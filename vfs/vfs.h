@@ -142,6 +142,7 @@ int vfs_link(struct inode_t *root, const char *oldpath, const char *new_path);
 int vfs_symlink(struct inode_t *root, const char *target, const char *linkpath);
 int vfs_rename(struct inode_t *root, const char *oldpath, const char *newpath);
 ssize_t vfs_readlink(struct inode_t *root, const char *pathname, char *buf, size_t bufsize);
+int vfs_stat(struct inode_t *root, const char *filename, struct stat *statbuf);
 struct file_t *vfs_open(struct inode_t *root, const char *pathname, int flags, mode_t mode);
 int vfs_close(struct file_t *filp);
 ssize_t vfs_read(struct file_t *filp, char *buf, int count);
