@@ -9,6 +9,8 @@
 
 #include "vfs/vfs.h"
 
+#define DIR_BUF_SIZE            4096
+
 /*
  * VFS data.
  */
@@ -41,20 +43,34 @@ static int op_readlink(const char *pathname, char *buf, size_t bufsize)
 
 static int op_mknod(const char *pathname, mode_t mode, dev_t dev)
 {
-  fprintf(stderr, "mnod not implemented\n");
+  fprintf(stderr, "mknod not implemented\n");
   return -ENOSYS;
 }
 
+/*
+ * Create a directory.
+ */
 static int op_mkdir(const char *pathname, mode_t mode)
 {
-  fprintf(stderr, "mkdir not implemented\n");
-  return -ENOSYS;
+  struct vfs_data_t *vfs_data;
+
+  /* get VFS data */
+  vfs_data = fuse_get_context()->private_data;
+
+  return vfs_mkdir(vfs_data->sb->root_inode, pathname, mode);
 }
 
+/*
+ * Remove a file.
+ */
 static int op_unlink(const char *pathname)
 {
-  fprintf(stderr, "unlink not implemented\n");
-  return -ENOSYS;
+  struct vfs_data_t *vfs_data;
+
+  /* get VFS data */
+  vfs_data = fuse_get_context()->private_data;
+
+  return vfs_unlink(vfs_data->sb->root_inode, pathname);
 }
 
 static int op_rmdir(const char *pathname)
@@ -189,10 +205,44 @@ static int op_removexattr(const char *pathname, const char *name)
   return -ENOSYS;
 }
 
+/*
+ * Read a directory.
+ */
 static int op_readdir(const char *pathname, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi,
                       enum fuse_readdir_flags flags)
 {
-  fprintf(stderr, "readdir not implemented\n");
+  struct dirent64_t *dir_entry;
+  char dir_buf[DIR_BUF_SIZE];
+  struct file_t *file;
+  int n, i;
+
+  /* get file */
+  file = (struct file_t *) fi->fh;
+
+  /* read directory */
+  for (;;) {
+    /* read next entries */
+    n = vfs_getdents64(file, dir_buf, DIR_BUF_SIZE);
+    if (n < 0)
+      return n;
+
+    /* no more data */
+    if (n == 0)
+      break;
+
+    /* for each entry */
+    for (i = 0; i < n;) {
+      /* get entry */
+      dir_entry = (struct dirent64_t *) (dir_buf + i);
+
+      /* fill directory */
+      filler(buf, dir_entry->d_name, NULL, 0, 0);
+
+      /* go to next entry */
+      i += dir_entry->d_reclen;
+    }
+  }
+
   return 0;
 }
 
@@ -237,10 +287,17 @@ static int op_access(const char *pathname, int mask)
   return -ENOSYS;
 }
 
+/*
+ * Create a file.
+ */
 static int op_create(const char *pathname, mode_t mode, struct fuse_file_info *fi)
 {
-  fprintf(stderr, "create not implemented\n");
-  return -ENOSYS;
+  struct vfs_data_t *vfs_data;
+
+  /* get VFS data */
+  vfs_data = fuse_get_context()->private_data;
+
+  return vfs_create(vfs_data->sb->root_inode, pathname, mode);
 }
 
 static int op_lock(const char *pathname, struct fuse_file_info *fi, int cmd, struct flock *lock)
