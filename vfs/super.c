@@ -71,3 +71,19 @@ int vfs_umount(struct super_block_t *sb)
   
   return 0;
 }
+
+/*
+ * Get file system statistics.
+ */
+int vfs_statfs(struct super_block_t *sb, struct statfs *buf)
+{
+  /* check super block */
+  if (!sb)
+    return -EINVAL;
+
+  /* statfs not implemented */
+  if (!sb->s_op || !sb->s_op->statfs)
+    return -ENOSYS;
+
+  return sb->s_op->statfs(sb, buf);
+}

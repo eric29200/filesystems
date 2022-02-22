@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <sys/stat.h>
+#include <sys/vfs.h>
 
 #define VFS_MINIXFS_TYPE            1
 
@@ -86,6 +87,7 @@ struct super_operations_t {
   int (*write_inode)(struct inode_t *);
   int (*put_inode)(struct inode_t *);
   void (*put_super)(struct super_block_t *);
+  int (*statfs)(struct super_block_t *, struct statfs *);
 };
 
 /*

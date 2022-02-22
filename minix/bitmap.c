@@ -8,6 +8,27 @@
 #define MINIXFS_BITMAP_CLR(bh, i)       ((bh)->b_data[(i) / 8] &= ~(0x1 << ((i) % 8)))
 
 /*
+ * Count number of free bits in a bitmap.
+ */
+static uint32_t minixfs_count_free_bitmap(struct super_block_t *sb, struct buffer_head_t **maps, int nb_maps)
+{
+  uint32_t *bits, res = 0;
+  register int i, j, k;
+
+  for (i = 0; i < nb_maps; i++) {
+    bits = (uint32_t *) maps[i]->b_data;
+
+    for (j = 0; j < sb->s_blocksize / 4; j++)
+      if (bits[j] != 0xFFFFFFFF)
+        for (k = 0; k < 32; k++)
+          if (!(bits[j] & (0x1 << k)))
+            res++;
+  }
+
+  return res;
+}
+
+/*
  * Get first free bit in a bitmap block.
  */
 static inline int minixfs_get_free_bitmap(struct super_block_t *sb, struct buffer_head_t *bh)
@@ -173,4 +194,22 @@ clear_bitmap:
   bwrite(bh);
   
   return 0;
+}
+
+/*
+ * Get number of free inodes.
+ */
+uint32_t minixfs_count_free_inodes(struct super_block_t *sb)
+{
+  struct minix_sb_info_t *sbi = minixfs_sb(sb);
+  return minixfs_count_free_bitmap(sb, sbi->s_imap, sbi->s_imap_blocks);
+}
+
+/*
+ * Get number of free blocks.
+ */
+uint32_t minixfs_count_free_blocks(struct super_block_t *sb)
+{
+  struct minix_sb_info_t *sbi = minixfs_sb(sb);
+  return minixfs_count_free_bitmap(sb, sbi->s_zmap, sbi->s_zmap_blocks);
 }

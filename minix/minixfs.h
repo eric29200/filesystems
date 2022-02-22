@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <sys/vfs.h>
 
 #include "../vfs/vfs.h"
 
@@ -132,12 +133,15 @@ extern struct inode_operations_t minixfs_dir_iops;
 /* Minix super operations */
 int minixfs_read_super(struct super_block_t *sb);
 void minixfs_put_super(struct super_block_t *sb);
+int minixfs_statfs(struct super_block_t *sb, struct statfs *buf);
 
 /* Minix bitmap prototypes */
 struct inode_t *minixfs_new_inode(struct super_block_t *sb);
 uint32_t minixfs_new_block(struct super_block_t *sb);
 int minixfs_free_inode(struct inode_t *inode);
 int minixfs_free_block(struct super_block_t *sb, uint32_t block);
+uint32_t minixfs_count_free_inodes(struct super_block_t *sb);
+uint32_t minixfs_count_free_blocks(struct super_block_t *sb);
 
 /* Minix inode prototypes */
 struct buffer_head_t *minixfs_bread(struct inode_t *inode, uint32_t block, int create);

@@ -16,6 +16,7 @@ struct super_operations_t minixfs_sops = {
   .write_inode        = minixfs_write_inode,
   .put_inode          = minixfs_put_inode,
   .put_super          = minixfs_put_super,
+  .statfs             = minixfs_statfs,
 };
 
 /*
@@ -218,4 +219,23 @@ void minixfs_put_super(struct super_block_t *sb)
   
   /* free in memory super block */
   free(sbi);
+}
+
+/*
+ * Get Minix File system status.
+ */
+int minixfs_statfs(struct super_block_t *sb, struct statfs *buf)
+{
+  struct minix_sb_info_t *sbi = minixfs_sb(sb);
+
+  buf->f_type = sb->s_magic;
+  buf->f_bsize = sb->s_blocksize;
+  buf->f_blocks = sbi->s_nzones - sbi->s_firstdatazone;
+  buf->f_bfree = minixfs_count_free_blocks(sb);
+  buf->f_bavail = buf->f_bfree;
+  buf->f_files = sbi->s_ninodes;
+  buf->f_ffree = minixfs_count_free_inodes(sb);
+  buf->f_namelen = sbi->s_name_len;
+
+  return 0;
 }
