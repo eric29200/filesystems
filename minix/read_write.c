@@ -10,7 +10,7 @@ int minixfs_file_read(struct file_t *filp, char *buf, int count)
 {
   struct buffer_head_t *bh;
   int pos, nb_chars, left;
-  
+
   /* adjust size */
   if (filp->f_pos + count > filp->f_inode->i_size)
     count = filp->f_inode->i_size - filp->f_pos;

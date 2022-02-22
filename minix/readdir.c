@@ -1,4 +1,5 @@
 #include <string.h>
+#include <errno.h>
 
 #include "minixfs.h"
 
@@ -8,8 +9,8 @@
 int minixfs_getdents64(struct file_t *filp, void *dirp, size_t count)
 {
   struct minix_sb_info_t *sbi = minixfs_sb(filp->f_inode->i_sb);
-  struct minix1_dir_entry_t de1;
-  struct minix3_dir_entry_t de3;
+  struct minix1_dir_entry_t *de1;
+  struct minix3_dir_entry_t *de3;
   struct dirent64_t *dirent;
   int entries_size;
   size_t name_len;
@@ -17,12 +18,15 @@ int minixfs_getdents64(struct file_t *filp, void *dirp, size_t count)
   ino_t ino;
   void *de;
   
-  /* choose directory version */
-  if (sbi->s_version == MINIXFS_V3)
-    de = &de3;
-  else
-    de = &de1;
+  /* allocate directory entry */
+  de = malloc(sbi->s_dirsize);
+  if (!de)
+    return -ENOMEM;
   
+  /* set Minix directory entries pointer */
+  de1 = de;
+  de3 = de;
+
   /* for each entry */
   for (entries_size = 0, dirent = (struct dirent64_t *) dirp;;) {
     /* read minix dir entry */
@@ -31,11 +35,11 @@ int minixfs_getdents64(struct file_t *filp, void *dirp, size_t count)
     
     /* get inode number and file name */
     if (sbi->s_version == MINIXFS_V3) {
-      ino = de3.d_inode;
-      name = de3.d_name;
+      ino = de3->d_inode;
+      name = de3->d_name;
     } else {
-      ino = de1.d_inode;
-      name = de1.d_name;
+      ino = de1->d_inode;
+      name = de1->d_name;
     }
 
     /* skip null entries */
@@ -62,6 +66,9 @@ int minixfs_getdents64(struct file_t *filp, void *dirp, size_t count)
     entries_size += dirent->d_reclen;
     dirent = (struct dirent64_t *) ((char *) dirent + dirent->d_reclen);
   }
+
+  /* free directory entry */
+  free(de);
 
   return entries_size;
 }
