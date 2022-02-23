@@ -35,12 +35,23 @@ static int op_getattr(const char *pathname, struct stat *statbuf, struct fuse_fi
   return vfs_stat(vfs_data->sb->root_inode, pathname, statbuf);
 }
 
+/*
+ * Read a link value.
+ */
 static int op_readlink(const char *pathname, char *buf, size_t bufsize)
 {
-  fprintf(stderr, "getattr not implemented\n");
-  return -ENOSYS;
+  struct vfs_data_t *vfs_data;
+
+  /* get VFS data */
+  vfs_data = fuse_get_context()->private_data;
+
+  /* read link */
+  return vfs_readlink(vfs_data->sb->root_inode, pathname, buf, bufsize);
 }
 
+/*
+ * Create a special file.
+ */
 static int op_mknod(const char *pathname, mode_t mode, dev_t dev)
 {
   fprintf(stderr, "mknod not implemented\n");
@@ -57,6 +68,7 @@ static int op_mkdir(const char *pathname, mode_t mode)
   /* get VFS data */
   vfs_data = fuse_get_context()->private_data;
 
+  /* make directory */
   return vfs_mkdir(vfs_data->sb->root_inode, pathname, mode);
 }
 
@@ -70,45 +82,82 @@ static int op_unlink(const char *pathname)
   /* get VFS data */
   vfs_data = fuse_get_context()->private_data;
 
+  /* remove file */
   return vfs_unlink(vfs_data->sb->root_inode, pathname);
 }
 
+/*
+ * Remove a directory.
+ */
 static int op_rmdir(const char *pathname)
 {
-  fprintf(stderr, "rmdir not implemented\n");
-  return -ENOSYS;
+  struct vfs_data_t *vfs_data;
+
+  /* get VFS data */
+  vfs_data = fuse_get_context()->private_data;
+
+  /* remove directory */
+  return vfs_rmdir(vfs_data->sb->root_inode, pathname);
 }
 
+/*
+ * Create a symbolic link.
+ */
 static int op_symlink(const char *target, const char *linkpath)
 {
   fprintf(stderr, "symlink not implemented\n");
   return -ENOSYS;
 }
 
+/*
+ * Rename a file.
+ */
 static int op_rename(const char *oldpath, const char *newpath, unsigned int flags)
 {
-  fprintf(stderr, "rename not implemented\n");
-  return -ENOSYS;
+  struct vfs_data_t *vfs_data;
+
+  /* get VFS data */
+  vfs_data = fuse_get_context()->private_data;
+
+  /* rename file */
+  return vfs_rename(vfs_data->sb->root_inode, oldpath, newpath);
 }
 
+/*
+ * Make a new name for a file (= hard link).
+ */
 static int op_link(const char *oldpath, const char *newpath)
 {
-  fprintf(stderr, "link not implemented\n");
-  return -ENOSYS;
+  struct vfs_data_t *vfs_data;
+
+  /* get VFS data */
+  vfs_data = fuse_get_context()->private_data;
+
+  /* link file */
+  return vfs_link(vfs_data->sb->root_inode, oldpath, newpath);
 }
 
+/*
+ * Change permissions of a file.
+ */
 static int op_chmod(const char *pathname, mode_t mode, struct fuse_file_info *fi)
 {
   fprintf(stderr, "chmod not implemented\n");
   return -ENOSYS;
 }
 
+/*
+ * Change owner of a file.
+ */
 static int op_chown(const char *pathname, uid_t uid, gid_t gid, struct fuse_file_info *fi)
 {
   fprintf(stderr, "chown not implemented\n");
   return -ENOSYS;
 }
 
+/*
+ * Truncate a file.
+ */
 static int op_truncate(const char *pathname, off_t length, struct fuse_file_info *fi)
 {
   fprintf(stderr, "truncate not implemented\n");
@@ -137,24 +186,75 @@ static int op_open(const char *pathname, struct fuse_file_info *fi)
   return 0;
 }
 
+/*
+ * Read from a file.
+ */
 static int op_read(const char *pathname, char *buf, size_t length, off_t offset, struct fuse_file_info *fi)
 {
-  fprintf(stderr, "read not implemented\n");
-  return -ENOSYS;
+  struct file_t *file;
+
+  /* get file */
+  file = (struct file_t *) fi->fh;
+
+  /* seek to position */
+  if (vfs_lseek(file, offset, SEEK_SET) == -1)
+    return -1;
+
+  /* read */
+  return vfs_read(file, buf, length);
 }
 
+/*
+ * Write to a file.
+ */
 static int op_write(const char *pathname, const char *buf, size_t length, off_t offset, struct fuse_file_info *fi)
 {
-  fprintf(stderr, "write not implemented\n");
-  return -ENOSYS;
+  struct file_t *file;
+
+  /* get file */
+  file = (struct file_t *) fi->fh;
+
+  /* seek to position */
+  if (vfs_lseek(file, offset, SEEK_SET) == -1)
+    return -1;
+
+  /* write */
+  return vfs_write(file, buf, length);
 }
 
+/*
+ * Get statistics on a file system.
+ */
 static int op_statfs(const char *pathname, struct statvfs *statbuf)
 {
-  fprintf(stderr, "statfs not implemented\n");
-  return -ENOSYS;
+  struct vfs_data_t *vfs_data;
+  struct statfs statbuf_fs;
+  int ret;
+
+  /* get VFS data */
+  vfs_data = fuse_get_context()->private_data;
+
+  /* get stats */
+  ret = vfs_statfs(vfs_data->sb, &statbuf_fs);
+  if (ret)
+    return ret;
+
+  /* copy statistics */
+  statbuf->f_bsize = statbuf_fs.f_bsize;
+  statbuf->f_blocks = statbuf_fs.f_blocks;
+  statbuf->f_bfree = statbuf_fs.f_bfree;
+  statbuf->f_bavail = statbuf_fs.f_bavail;
+  statbuf->f_files = statbuf_fs.f_files;
+  statbuf->f_ffree = statbuf_fs.f_ffree;
+  statbuf->f_namemax = statbuf_fs.f_namelen;
+  statbuf->f_flag = statbuf_fs.f_flags;
+
+  return 0;
 }
 
+/*
+ * Fluse a file on disk.
+ */
 static int op_flush(const char *pathname, struct fuse_file_info *fi)
 {
   fprintf(stderr, "flush not implemented\n");
@@ -175,30 +275,45 @@ static int op_release(const char *pathname, struct fuse_file_info *fi)
   return vfs_close(file);
 }
 
+/*
+ * Synchronize a file.
+ */
 static int op_fsync(const char *pathname, int data_sync, struct fuse_file_info *fi)
 {
   fprintf(stderr, "fsync not implemented\n");
   return -ENOSYS;
 }
 
+/*
+ * Set extended attribute.
+ */
 static int op_setxattr(const char *pathname, const char *name, const char *value, size_t size, int flags)
 {
   fprintf(stderr, "setxattr not implemented\n");
   return -ENOSYS;
 }
 
+/*
+ * Get extended attribute.
+ */
 static int op_getxattr(const char *pathname, const char *name, char *value, size_t size)
 {
   fprintf(stderr, "getxattr not implemented\n");
   return -ENOSYS;
 }
 
+/*
+ * List extended attributes.
+ */
 static int op_listxattr(const char *pathname, char *list, size_t size)
 {
   fprintf(stderr, "listxattr not implemented\n");
   return -ENOSYS;
 }
 
+/*
+ * Remove extended attribute.
+ */
 static int op_removexattr(const char *pathname, const char *name)
 {
   fprintf(stderr, "removexattr not implemented\n");
@@ -281,6 +396,9 @@ static void op_destroy(void *private_data)
     vfs_umount(vfs_data->sb);
 }
 
+/*
+ * Check user's permissions for a file.
+ */
 static int op_access(const char *pathname, int mask)
 {
   fprintf(stderr, "access not implemented\n");
@@ -300,21 +418,21 @@ static int op_create(const char *pathname, mode_t mode, struct fuse_file_info *f
   return vfs_create(vfs_data->sb->root_inode, pathname, mode);
 }
 
+/*
+ * Lock a file.
+ */
 static int op_lock(const char *pathname, struct fuse_file_info *fi, int cmd, struct flock *lock)
 {
   fprintf(stderr, "lock not implemented\n");
   return -ENOSYS;
 }
 
+/*
+ * Change file timestamps.
+ */
 static int op_utimens(const char *pathname, const struct timespec tv[2], struct fuse_file_info *fi)
 {
   fprintf(stderr, "utimens not implemented\n");
-  return -ENOSYS;
-}
-
-static int op_bmap(const char *pathname, size_t blocksize, uint64_t *idx)
-{
-  fprintf(stderr, "bmap not implemented\n");
   return -ENOSYS;
 }
 
@@ -355,7 +473,6 @@ static const struct fuse_operations vfs_ops = {
   .create         = op_create,
   .lock           = op_lock,
   .utimens        = op_utimens,
-  .bmap           = op_bmap,
 };
 
 /* Mount parameters */

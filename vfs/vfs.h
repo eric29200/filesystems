@@ -136,6 +136,7 @@ int vfs_open_namei(struct inode_t *root, const char *pathname, int flags, mode_t
 /* VFS system calls */
 struct super_block_t *vfs_mount(const char *dev, int fs_type);
 int vfs_umount(struct super_block_t *sb);
+int vfs_statfs(struct super_block_t *sb, struct statfs *buf);
 int vfs_create(struct inode_t *root, const char *pathname, mode_t mode);
 int vfs_unlink(struct inode_t *root, const char *pathname);
 int vfs_mkdir(struct inode_t *root, const char *pathname, mode_t mode);
