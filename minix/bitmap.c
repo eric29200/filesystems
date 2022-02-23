@@ -1,6 +1,8 @@
+#include <unistd.h>
 #include <string.h>
 #include <errno.h>
 #include <time.h>
+#include <sys/types.h>
 
 #include "minixfs.h"
 
@@ -74,6 +76,8 @@ struct inode_t *minixfs_new_inode(struct super_block_t *sb)
   
   /* set inode */
   inode->i_ino = i * sb->s_blocksize * 8 + j;
+  inode->i_uid = getuid();
+  inode->i_gid = getgid();
   inode->i_atime = inode->i_mtime = inode->i_ctime = time(NULL);
   inode->i_nlinks = 1;
   inode->i_ref = 1;
