@@ -401,8 +401,13 @@ static void op_destroy(void *private_data)
  */
 static int op_access(const char *pathname, int mask)
 {
-  fprintf(stderr, "access not implemented\n");
-  return -ENOSYS;
+  struct vfs_data_t *vfs_data;
+
+  /* get VFS data */
+  vfs_data = fuse_get_context()->private_data;
+
+  /* check access */
+  return vfs_access(vfs_data->sb->root_inode, pathname, 0);
 }
 
 /*
@@ -415,6 +420,7 @@ static int op_create(const char *pathname, mode_t mode, struct fuse_file_info *f
   /* get VFS data */
   vfs_data = fuse_get_context()->private_data;
 
+  /* create file */
   return vfs_create(vfs_data->sb->root_inode, pathname, mode);
 }
 
