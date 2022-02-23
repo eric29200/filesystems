@@ -77,9 +77,12 @@ static int minixfs_read_inode_v1(struct inode_t *inode)
   inode->i_uid = raw_inode->i_uid;
   inode->i_gid = raw_inode->i_gid;
   inode->i_size = raw_inode->i_size;
-  inode->i_atime = raw_inode->i_time;
-  inode->i_mtime = raw_inode->i_time;
-  inode->i_ctime = raw_inode->i_time;
+  inode->i_atime.tv_sec = raw_inode->i_time;
+  inode->i_atime.tv_nsec = 0;
+  inode->i_mtime.tv_sec = raw_inode->i_time;
+  inode->i_mtime.tv_nsec = 0;
+  inode->i_ctime.tv_sec = raw_inode->i_time;
+  inode->i_ctime.tv_nsec = 0;
   for (i = 0; i < 9; i++)
     inode->i_zone[i] = raw_inode->i_zone[i];
   inode->i_zone[9] = 0;
@@ -119,9 +122,12 @@ static int minixfs_read_inode_v2(struct inode_t *inode)
   inode->i_uid = raw_inode->i_uid;
   inode->i_gid = raw_inode->i_gid;
   inode->i_size = raw_inode->i_size;
-  inode->i_atime = raw_inode->i_atime;
-  inode->i_mtime = raw_inode->i_mtime;
-  inode->i_ctime = raw_inode->i_ctime;
+  inode->i_atime.tv_sec = raw_inode->i_atime;
+  inode->i_atime.tv_nsec = 0;
+  inode->i_mtime.tv_sec = raw_inode->i_mtime;
+  inode->i_mtime.tv_nsec = 0;
+  inode->i_ctime.tv_sec = raw_inode->i_ctime;
+  inode->i_ctime.tv_nsec = 0;
   for (i = 0; i < 10; i++)
     inode->i_zone[i] = raw_inode->i_zone[i];
   
@@ -192,7 +198,7 @@ static int minixfs_write_inode_v1(struct inode_t *inode)
   raw_inode->i_uid = inode->i_uid;
   raw_inode->i_gid = inode->i_gid;
   raw_inode->i_size = inode->i_size;
-  raw_inode->i_time = inode->i_mtime;
+  raw_inode->i_time = inode->i_mtime.tv_sec;
   for (i = 0; i < 9; i++)
     raw_inode->i_zone[i] = inode->i_zone[i];
   
@@ -235,9 +241,9 @@ static int minixfs_write_inode_v2(struct inode_t *inode)
   raw_inode->i_uid = inode->i_uid;
   raw_inode->i_gid = inode->i_gid;
   raw_inode->i_size = inode->i_size;
-  raw_inode->i_atime = inode->i_atime;
-  raw_inode->i_mtime = inode->i_mtime;
-  raw_inode->i_ctime = inode->i_ctime;
+  raw_inode->i_atime = inode->i_atime.tv_sec;
+  raw_inode->i_mtime = inode->i_mtime.tv_sec;
+  raw_inode->i_ctime = inode->i_ctime.tv_sec;
   for (i = 0; i < 10; i++)
     raw_inode->i_zone[i] = inode->i_zone[i];
   

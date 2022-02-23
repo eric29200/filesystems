@@ -153,7 +153,7 @@ found_free_entry:
   brelse(bh);
   
   /* update parent directory */
-  dir->i_mtime = dir->i_ctime = time(NULL);
+  dir->i_mtime = dir->i_ctime = current_time();
   dir->i_dirt = 1;
   
   return 0;
@@ -710,7 +710,7 @@ int minixfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_nam
     
     /* update new inode */
     new_inode->i_nlinks--;
-    new_inode->i_atime = new_inode->i_mtime = time(NULL);
+    new_inode->i_atime = new_inode->i_mtime = current_time();
     new_inode->i_dirt = 1;
   } else {
     /* add new entry */
@@ -731,9 +731,9 @@ int minixfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_nam
   old_bh->b_dirt = 1;
   
   /* update old and new directories */
-  old_dir->i_atime = old_dir->i_mtime = time(NULL);
+  old_dir->i_atime = old_dir->i_mtime = current_time();
   old_dir->i_dirt = 1;
-  new_dir->i_atime = new_dir->i_mtime = time(NULL);
+  new_dir->i_atime = new_dir->i_mtime = current_time();
   new_dir->i_dirt = 1;
   
   err = 0;

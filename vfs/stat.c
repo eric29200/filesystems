@@ -21,9 +21,9 @@ int vfs_stat(struct inode_t *root, const char *filename, struct stat *statbuf)
   statbuf->st_uid = inode->i_uid;
   statbuf->st_gid = inode->i_gid;
   statbuf->st_size = inode->i_size;
-  statbuf->st_atime = inode->i_atime;
-  statbuf->st_mtime = inode->i_mtime;
-  statbuf->st_ctime = inode->i_ctime;
+  statbuf->st_atime = inode->i_atime.tv_sec;
+  statbuf->st_mtime = inode->i_mtime.tv_sec;
+  statbuf->st_ctime = inode->i_ctime.tv_sec;
 
   /* release inode */
   vfs_iput(inode);

@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <time.h>
 #include <sys/stat.h>
 #include <sys/vfs.h>
 
@@ -45,9 +46,9 @@ struct inode_t {
   uid_t                     i_uid;
   gid_t                     i_gid;
   ssize_t                   i_size;
-  time_t                    i_atime;
-  time_t                    i_mtime;
-  time_t                    i_ctime;
+  struct timespec           i_atime;
+  struct timespec           i_mtime;
+  struct timespec           i_ctime;
   uint32_t                  i_zone[10];
   ino_t                     i_ino;
   struct super_block_t      *i_sb;
@@ -156,5 +157,15 @@ ssize_t vfs_write(struct file_t *filp, const char *buf, int count);
 off_t vfs_lseek(struct file_t *filp, off_t offset, int whence);
 int vfs_getdents64(struct file_t *filp, void *dirp, size_t count);
 int vfs_truncate(struct inode_t *root, const char *pathname, off_t length);
+
+/*
+ * Get current time.
+ */
+static inline struct timespec current_time()
+{
+  struct timespec now;
+  clock_gettime(CLOCK_REALTIME, &now);
+  return now;
+}
 
 #endif
