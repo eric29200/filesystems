@@ -202,7 +202,7 @@ static int op_open(const char *pathname, struct fuse_file_info *fi)
 static int op_read(const char *pathname, char *buf, size_t length, off_t offset, struct fuse_file_info *fi)
 {
   struct vfs_data_t *vfs_data;
-  int ret, close_fi = 0;
+  int err, close_fi = 0;
   struct file_t *file;
 
   /* get VFS data */
@@ -219,18 +219,18 @@ static int op_read(const char *pathname, char *buf, size_t length, off_t offset,
   }
 
   /* seek to position */
-  ret = vfs_lseek(file, offset, SEEK_SET);
-  if (ret == -1)
+  err = vfs_lseek(file, offset, SEEK_SET);
+  if (err == -1)
     goto out;
 
   /* read */
-  ret = vfs_read(file, buf, length);
+  err = vfs_read(file, buf, length);
 
 out:
   if (close_fi)
     vfs_close(file);
 
-  return ret;
+  return err;
 }
 
 /*
@@ -239,7 +239,7 @@ out:
 static int op_write(const char *pathname, const char *buf, size_t length, off_t offset, struct fuse_file_info *fi)
 {
   struct vfs_data_t *vfs_data;
-  int ret, close_fi = 0;
+  int err, close_fi = 0;
   struct file_t *file;
 
   /* get VFS data */
@@ -256,18 +256,18 @@ static int op_write(const char *pathname, const char *buf, size_t length, off_t 
   }
 
   /* seek to position */
-  ret = vfs_lseek(file, offset, SEEK_SET);
-  if (ret == -1)
+  err = vfs_lseek(file, offset, SEEK_SET);
+  if (err == -1)
     goto out;
 
   /* write */
-  ret = vfs_write(file, buf, length);
+  err = vfs_write(file, buf, length);
 
 out:
   if (close_fi)
     vfs_close(file);
 
-  return ret;
+  return err;
 }
 
 /*
@@ -277,15 +277,15 @@ static int op_statfs(const char *pathname, struct statvfs *statbuf)
 {
   struct vfs_data_t *vfs_data;
   struct statfs statbuf_fs;
-  int ret;
+  int err;
 
   /* get VFS data */
   vfs_data = fuse_get_context()->private_data;
 
   /* get stats */
-  ret = vfs_statfs(vfs_data->sb, &statbuf_fs);
-  if (ret)
-    return ret;
+  err = vfs_statfs(vfs_data->sb, &statbuf_fs);
+  if (err)
+    return err;
 
   /* copy statistics */
   statbuf->f_bsize = statbuf_fs.f_bsize;
@@ -603,12 +603,12 @@ int main(int argc, char **argv)
 {
   struct fuse_args fargs = FUSE_ARGS_INIT(0, NULL);
   struct vfs_data_t vfs_data;
-  int ret;
+  int err;
 
   /* parse options */
-  ret = parse_options(argc, argv, &vfs_data);
-  if (ret)
-    exit(ret);
+  err = parse_options(argc, argv, &vfs_data);
+  if (err)
+    exit(err);
 
   /* add fuse options */
   if (fuse_opt_add_arg(&fargs, argv[0]) == -1

@@ -41,7 +41,7 @@ struct inode_t *vfs_get_empty_inode(struct super_block_t *sb)
 struct inode_t *vfs_iget(struct super_block_t *sb, ino_t ino)
 {
   struct inode_t *inode;
-  int ret, i;
+  int err, i;
   
   /* try to find inode in table */
   for (i = 0; i < VFS_NR_INODE; i++) {
@@ -61,8 +61,8 @@ struct inode_t *vfs_iget(struct super_block_t *sb, ino_t ino)
   inode->i_ino = ino;
   
   /* read inode */
-  ret = sb->s_op->read_inode(inode);
-  if (ret) {
+  err = sb->s_op->read_inode(inode);
+  if (err) {
     vfs_iput(inode);
     return NULL;
   }

@@ -17,7 +17,7 @@
 struct buffer_head_t {
   uint32_t                  b_block;
   char                      *b_data;
-  char                      b_ref;
+  int                       b_ref;
   char                      b_dirt;
   struct super_block_t      *b_sb;
 };
@@ -40,18 +40,18 @@ struct super_block_t {
  * Generic inode.
  */
 struct inode_t {
-  uint16_t                  i_mode;
+  mode_t                    i_mode;
   uint16_t                  i_nlinks;
-  uint16_t                  i_uid;
-  uint16_t                  i_gid;
-  uint32_t                  i_size;
-  uint32_t                  i_atime;
-  uint32_t                  i_mtime;
-  uint32_t                  i_ctime;
+  uid_t                     i_uid;
+  gid_t                     i_gid;
+  ssize_t                   i_size;
+  time_t                    i_atime;
+  time_t                    i_mtime;
+  time_t                    i_ctime;
   uint32_t                  i_zone[10];
   ino_t                     i_ino;
   struct super_block_t      *i_sb;
-  char                      i_ref;
+  int                       i_ref;
   char                      i_dirt;
   struct inode_operations_t *i_op;
 };
@@ -71,7 +71,7 @@ struct dirent64_t {
  * Generic file.
  */
 struct file_t {
-  uint16_t                  f_mode;
+  mode_t                    f_mode;
   int                       f_flags;
   size_t                    f_pos;
   int                       f_ref;

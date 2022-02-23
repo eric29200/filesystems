@@ -13,7 +13,7 @@ fmounter: vfs/buffer_head.o vfs/super.o vfs/inode.o vfs/namei.o vfs/open.o vfs/r
 	$(CC) $(CFLAGS) -c $^
 
 test: fmounter
-	dd if=/dev/zero of=./test.img bs=4096 count=1024
+	dd if=/dev/zero of=./test.img bs=4M count=10
 	mkfs.minix ./test.img
 	-umount ./mnt
 	-mkdir ./mnt

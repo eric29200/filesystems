@@ -137,7 +137,7 @@ static int minixfs_read_inode_v2(struct inode_t *inode)
 int minixfs_read_inode(struct inode_t *inode)
 {
   struct minix_sb_info_t *sbi = minixfs_sb(inode->i_sb);
-  int ret;
+  int err;
   
   /* check inode number */
   if (!inode->i_ino || inode->i_ino > sbi->s_ninodes) {
@@ -147,9 +147,9 @@ int minixfs_read_inode(struct inode_t *inode)
   
   /* read inode on disk */
   if (sbi->s_version == MINIXFS_V1)
-    ret = minixfs_read_inode_v1(inode);
+    err = minixfs_read_inode_v1(inode);
   else
-    ret = minixfs_read_inode_v2(inode);
+    err = minixfs_read_inode_v2(inode);
   
   /* set operations */
   if (S_ISDIR(inode->i_mode))
@@ -157,7 +157,7 @@ int minixfs_read_inode(struct inode_t *inode)
   else
     inode->i_op = &minixfs_file_iops;
   
-  return ret;
+  return err;
 }
 
 /*
@@ -254,15 +254,15 @@ static int minixfs_write_inode_v2(struct inode_t *inode)
 int minixfs_write_inode(struct inode_t *inode)
 {
   struct minix_sb_info_t *sbi = minixfs_sb(inode->i_sb);
-  int ret;
+  int err;
   
   /* read inode on disk */
   if (sbi->s_version == MINIXFS_V1)
-    ret = minixfs_write_inode_v1(inode);
+    err = minixfs_write_inode_v1(inode);
   else
-    ret = minixfs_write_inode_v2(inode);
+    err = minixfs_write_inode_v2(inode);
   
-  return ret;
+  return err;
 }
 
 /*

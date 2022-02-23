@@ -89,8 +89,10 @@ static int minixfs_add_entry(struct inode_t *dir, const char *name, size_t name_
   ino_t de_ino;
 
   /* check file name */
-  if (!name_len || name_len > sbi->s_name_len)
+  if (!name_len)
     return -EINVAL;
+  if (name_len > sbi->s_name_len)
+    return -ENAMETOOLONG;
   
   /* compute number of entries in directory */
   nb_entries = dir->i_size / sbi->s_dirsize;
@@ -267,7 +269,7 @@ int minixfs_create(struct inode_t *dir, const char *name, size_t name_len, mode_
 {
   struct inode_t *inode, *tmp;
   ino_t ino;
-  int ret;
+  int err;
   
   /* check directory */
   *res_inode = NULL;
@@ -295,12 +297,12 @@ int minixfs_create(struct inode_t *dir, const char *name, size_t name_len, mode_
   inode->i_dirt = 1;
   
   /* add new entry to dir */
-  ret = minixfs_add_entry(dir, name, name_len, inode);
-  if (ret) {
+  err = minixfs_add_entry(dir, name, name_len, inode);
+  if (err) {
     inode->i_nlinks--;
     vfs_iput(inode);
     vfs_iput(dir);
-    return -ENOSPC;
+    return err;
   }
   
   /* release inode (to write it on disk) */
@@ -455,7 +457,7 @@ int minixfs_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t
     inode->i_nlinks = 0;
     vfs_iput(inode);
     vfs_iput(dir);
-    return -ENOSPC;
+    return err;
   }
   
   /* update directory links and mark it dirty */
@@ -545,7 +547,7 @@ int minixfs_link(struct inode_t *old_inode, struct inode_t *dir, const char *nam
 {
   struct buffer_head_t *bh;
   void *de;
-  int ret;
+  int err;
   
   /* check if new file exists */
   bh = minixfs_find_entry(dir, name, name_len, &de);
@@ -557,11 +559,11 @@ int minixfs_link(struct inode_t *old_inode, struct inode_t *dir, const char *nam
   }
   
   /* add entry */
-  ret = minixfs_add_entry(dir, name, name_len, old_inode);
-  if (ret) {
+  err = minixfs_add_entry(dir, name, name_len, old_inode);
+  if (err) {
     vfs_iput(old_inode);
     vfs_iput(dir);
-    return ret;
+    return err;
   }
   
   /* update old inode */
@@ -582,7 +584,7 @@ int minixfs_symlink(struct inode_t *dir, const char *name, size_t name_len, cons
 {
   struct buffer_head_t *bh;
   struct inode_t *inode;
-  int ret, i;
+  int err, i;
   void *de;
   
   /* create a new inode */
@@ -628,11 +630,11 @@ int minixfs_symlink(struct inode_t *dir, const char *name, size_t name_len, cons
   }
   
   /* add entry */
-  ret = minixfs_add_entry(dir, name, name_len, inode);
-  if (ret) {
+  err = minixfs_add_entry(dir, name, name_len, inode);
+  if (err) {
     vfs_iput(inode);
     vfs_iput(dir);
-    return ret;
+    return err;
   }
   
   /* release inode */
@@ -653,12 +655,12 @@ int minixfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_nam
   struct minix_sb_info_t *sbi;
   ino_t old_ino, new_ino;
   void *old_de, *new_de;
-  int ret;
+  int err;
   
   /* find old entry */
   old_bh = minixfs_find_entry(old_dir, old_name, old_name_len, &old_de);
   if (!old_bh) {
-    ret = -ENOENT;
+    err = -ENOENT;
     goto out;
   }
   
@@ -672,7 +674,7 @@ int minixfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_nam
   /* get old inode */
   old_inode = vfs_iget(old_dir->i_sb, old_ino);
   if (!old_inode) {
-    ret = -ENOSPC;
+    err = -ENOSPC;
     goto out;
   }
   
@@ -689,13 +691,13 @@ int minixfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_nam
     /* get new inode */
     new_inode = vfs_iget(new_dir->i_sb, new_ino);
     if (!new_inode) {
-      ret = -ENOSPC;
+      err = -ENOSPC;
       goto out;
     }
                 
     /* same inode : exit */
     if (old_inode->i_ino == new_inode->i_ino) {
-      ret = 0;
+      err = 0;
       goto out;
     }
                 
@@ -712,8 +714,8 @@ int minixfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_nam
     new_inode->i_dirt = 1;
   } else {
     /* add new entry */
-    ret = minixfs_add_entry(new_dir, new_name, new_name_len, old_inode);
-    if (ret)
+    err = minixfs_add_entry(new_dir, new_name, new_name_len, old_inode);
+    if (err)
       goto out;
   }
   
@@ -734,7 +736,7 @@ int minixfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_nam
   new_dir->i_atime = new_dir->i_mtime = time(NULL);
   new_dir->i_dirt = 1;
   
-  ret = 0;
+  err = 0;
 out:
   /* release buffers and inodes */
   brelse(old_bh);
@@ -744,5 +746,5 @@ out:
   vfs_iput(old_dir);
   vfs_iput(new_dir);
   
-  return ret;
+  return err;
 }

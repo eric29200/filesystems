@@ -27,7 +27,7 @@ int minixfs_read_super(struct super_block_t *sb)
   struct minix1_super_block_t *msb1;
   struct minix3_super_block_t *msb3;
   struct minix_sb_info_t *sbi;
-  int i, ret = -ENOSPC;
+  int i, err = -ENOSPC;
   uint32_t block;
   
   /* allocate Minix file system */
@@ -41,7 +41,7 @@ int minixfs_read_super(struct super_block_t *sb)
   /* read first block = super block */
   sb->sb_bh = sb_bread(sb, 1);
   if (!sb->sb_bh) {
-    ret = -EIO;
+    err = -EIO;
     goto err_bad_sb;
   }
   
@@ -106,7 +106,7 @@ int minixfs_read_super(struct super_block_t *sb)
   /* allocate inodes bitmap */
   sbi->s_imap = (struct buffer_head_t **) malloc(sizeof(struct buffer_head_t *) * sbi->s_imap_blocks);
   if (!sbi->s_imap) {
-    ret = -ENOMEM;
+    err = -ENOMEM;
     goto err_no_map;
   }
   
@@ -118,7 +118,7 @@ int minixfs_read_super(struct super_block_t *sb)
   for (i = 0, block = 2; i < sbi->s_imap_blocks; i++, block++) {
     sbi->s_imap[i] = sb_bread(sb, block);
     if (!sbi->s_imap[i]) {
-      ret = -EIO;
+      err = -EIO;
       goto err_map;
     }
   }
@@ -126,7 +126,7 @@ int minixfs_read_super(struct super_block_t *sb)
   /* allocate zones bitmap */
   sbi->s_zmap = (struct buffer_head_t **) malloc(sizeof(struct buffer_head_t *) * sbi->s_zmap_blocks);
   if (!sbi->s_zmap) {
-    ret = -ENOMEM;
+    err = -ENOMEM;
     goto err_no_map;
   }
   
@@ -138,7 +138,7 @@ int minixfs_read_super(struct super_block_t *sb)
   for (i = 0; i < sbi->s_zmap_blocks; i++, block++) {
     sbi->s_zmap[i] = sb_bread(sb, block);
     if (!sbi->s_zmap[i]) {
-      ret = -EIO;
+      err = -EIO;
       goto err_map;
     }
   }
@@ -184,7 +184,7 @@ err_bad_sb:
   fprintf(stderr, "MinixFS : can't read super block\n");
 err:
   free(sbi);
-  return ret;
+  return err;
 }
 
 /*

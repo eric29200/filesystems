@@ -14,7 +14,7 @@
 struct super_block_t *vfs_mount(const char *dev, int fs_type)
 {
   struct super_block_t *sb;
-  int ret;
+  int err;
   
   /* allocate a super block */
   sb = (struct super_block_t *) malloc(sizeof(struct super_block_t));
@@ -32,16 +32,16 @@ struct super_block_t *vfs_mount(const char *dev, int fs_type)
   /* read super block on disk */
   switch (fs_type) {
     case VFS_MINIXFS_TYPE:
-      ret = minixfs_read_super(sb);
+      err = minixfs_read_super(sb);
       break;
     default:
       fprintf(stderr, "VFS: file system type (fs_type = %d) not implemented\n", fs_type);
-      ret = -EINVAL;
+      err = -EINVAL;
       break;
   }
   
   /* failed to read super block */
-  if (ret) {
+  if (err) {
     close(sb->s_fd);
     free(sb);
     return NULL;

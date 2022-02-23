@@ -34,7 +34,7 @@ struct file_t *vfs_open(struct inode_t *root, const char *pathname, int flags, m
 {
   struct inode_t *inode;
   struct file_t *filp;
-  int ret;
+  int err;
   
   /* get an empty file */
   filp = vfs_get_empty_file();
@@ -42,8 +42,8 @@ struct file_t *vfs_open(struct inode_t *root, const char *pathname, int flags, m
     return NULL;
 
   /* open file */
-  ret = vfs_open_namei(root, pathname, flags, mode, &inode);
-  if (ret) {
+  err = vfs_open_namei(root, pathname, flags, mode, &inode);
+  if (err) {
     free(filp);
     return NULL;
   }
