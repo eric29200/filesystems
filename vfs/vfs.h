@@ -150,6 +150,7 @@ int vfs_stat(struct inode_t *root, const char *filename, struct stat *statbuf);
 int vfs_access(struct inode_t *root, const char *pathname, int flags);
 int vfs_chmod(struct inode_t *root, const char *pathname, mode_t mode);
 int vfs_chown(struct inode_t *root, const char *pathname, uid_t uid, gid_t gid);
+int vfs_utimens(struct inode_t *root, const char *pathname, const struct timespec times[2], int flags);
 struct file_t *vfs_open(struct inode_t *root, const char *pathname, int flags, mode_t mode);
 int vfs_close(struct file_t *filp);
 ssize_t vfs_read(struct file_t *filp, char *buf, int count);

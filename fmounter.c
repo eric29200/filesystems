@@ -491,8 +491,13 @@ static int op_lock(const char *pathname, struct fuse_file_info *fi, int cmd, str
  */
 static int op_utimens(const char *pathname, const struct timespec tv[2], struct fuse_file_info *fi)
 {
-  fprintf(stderr, "utimens not implemented\n");
-  return -ENOSYS;
+  struct vfs_data_t *vfs_data;
+
+  /* get VFS data */
+  vfs_data = fuse_get_context()->private_data;
+
+  /* set timestamps */
+  return vfs_utimens(vfs_data->sb->root_inode, pathname, tv, 0);
 }
 
 /*

@@ -136,3 +136,34 @@ int vfs_chown(struct inode_t *root, const char *pathname, uid_t uid, gid_t gid)
 
   return 0;
 }
+
+/*
+ * Set file's timestamps.
+ */
+int vfs_utimens(struct inode_t *root, const char *pathname, const struct timespec times[2], int flags)
+{
+  struct inode_t *inode;
+
+  /* get inode */
+  inode = vfs_namei(root, NULL, pathname, flags & AT_SYMLINK_NOFOLLOW ? 0 : 1);
+  if (!inode)
+    return -ENOENT;
+
+  /* set last access time */
+  if (times[0].tv_nsec == UTIME_NOW)
+    inode->i_atime = current_time();
+  else if (times[0].tv_nsec != UTIME_OMIT)
+    inode->i_atime = times[0];
+
+  /* set last modification time */
+  if (times[1].tv_nsec == UTIME_NOW)
+    inode->i_mtime = current_time();
+  else if (times[1].tv_nsec != UTIME_OMIT)
+    inode->i_mtime = times[1];
+
+  /* release inode */
+  inode->i_dirt = 1;
+  vfs_iput(inode);
+
+  return 0;
+}
