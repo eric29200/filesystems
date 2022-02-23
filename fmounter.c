@@ -170,8 +170,13 @@ static int op_chown(const char *pathname, uid_t uid, gid_t gid, struct fuse_file
  */
 static int op_truncate(const char *pathname, off_t length, struct fuse_file_info *fi)
 {
-  fprintf(stderr, "truncate not implemented\n");
-  return -ENOSYS;
+  struct vfs_data_t *vfs_data;
+
+  /* get VFS data */
+  vfs_data = fuse_get_context()->private_data;
+
+  /* chown */
+  return vfs_truncate(vfs_data->sb->root_inode, pathname, length);
 }
 
 /*

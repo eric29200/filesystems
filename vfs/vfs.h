@@ -155,5 +155,6 @@ ssize_t vfs_read(struct file_t *filp, char *buf, int count);
 ssize_t vfs_write(struct file_t *filp, const char *buf, int count);
 off_t vfs_lseek(struct file_t *filp, off_t offset, int whence);
 int vfs_getdents64(struct file_t *filp, void *dirp, size_t count);
+int vfs_truncate(struct inode_t *root, const char *pathname, off_t length);
 
 #endif
