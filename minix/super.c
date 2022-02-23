@@ -62,28 +62,23 @@ int minixfs_read_super(struct super_block_t *sb)
   sb->s_op = &minixfs_sops;
   
   /* set Minix file system specific version */
-  switch (sb->s_magic) {
-    case MINIX1_MAGIC1:
-      sbi->s_version = MINIXFS_V1;
-      sbi->s_name_len = 14;
-      sbi->s_dirsize = 16;
-      break;
-    case MINIX1_MAGIC2:
-      sbi->s_version = MINIXFS_V1;
-      sbi->s_name_len = 30;
-      sbi->s_dirsize = 32;
-      break;
-    case MINIX2_MAGIC1:
-      sbi->s_version = MINIXFS_V2;
-      sbi->s_name_len = 14;
-      sbi->s_dirsize = 16;
-      break;
-    case MINIX2_MAGIC2:
-      sbi->s_version = MINIXFS_V2;
-      sbi->s_name_len = 30;
-      sbi->s_dirsize = 32;
-      break;
-    case MINIX3_MAGIC:
+  if (sb->s_magic == MINIX1_MAGIC1) {
+    sbi->s_version = MINIXFS_V1;
+    sbi->s_name_len = 14;
+    sbi->s_dirsize = 16;
+  } else if (sb->s_magic == MINIX1_MAGIC2) {
+    sbi->s_version = MINIXFS_V1;
+    sbi->s_name_len = 30;
+    sbi->s_dirsize = 32;
+  } else if (sb->s_magic == MINIX2_MAGIC1) {
+    sbi->s_version = MINIXFS_V2;
+    sbi->s_name_len = 14;
+    sbi->s_dirsize = 16;
+  } else if (sb->s_magic == MINIX2_MAGIC2) {
+    sbi->s_version = MINIXFS_V2;
+    sbi->s_name_len = 30;
+    sbi->s_dirsize = 32;
+  } else if (*((uint16_t *) (sb->sb_bh->b_data + 24)) == MINIX3_MAGIC) {
       msb3 = (struct minix3_super_block_t *) sb->sb_bh->b_data;
       sbi->s_ninodes = msb3->s_ninodes;
       sbi->s_nzones = msb3->s_zones;
@@ -97,10 +92,8 @@ int minixfs_read_super(struct super_block_t *sb)
       sbi->s_dirsize = 64;
       sb->s_blocksize = msb3->s_blocksize;
       sb->s_max_size = msb3->s_max_size;
-      break;
-    default:
-      goto err_bad_magic;
-      break;
+  } else {
+    goto err_bad_magic;
   }
   
   /* allocate inodes bitmap */
