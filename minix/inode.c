@@ -3,57 +3,57 @@
 #include <string.h>
 #include <errno.h>
 
-#include "minixfs.h"
+#include "minix.h"
 
 /*
  * Minix file operations.
  */
-struct file_operations_t minixfs_file_fops = {
-  .read               = minixfs_file_read,
-  .write              = minixfs_file_write,
+struct file_operations_t minix_file_fops = {
+  .read               = minix_file_read,
+  .write              = minix_file_write,
 };
 
 /*
  * Minix directory operations.
  */
-struct file_operations_t minixfs_dir_fops = {
-  .read               = minixfs_file_read,
-  .write              = minixfs_file_write,
-  .getdents64         = minixfs_getdents64,
+struct file_operations_t minix_dir_fops = {
+  .read               = minix_file_read,
+  .write              = minix_file_write,
+  .getdents64         = minix_getdents64,
 };
 
 /*
  * Minix file inode operations.
  */
-struct inode_operations_t minixfs_file_iops = {
-  .fops               = &minixfs_file_fops,
-  .follow_link        = minixfs_follow_link,
-  .readlink           = minixfs_readlink,
-  .truncate           = minixfs_truncate,
+struct inode_operations_t minix_file_iops = {
+  .fops               = &minix_file_fops,
+  .follow_link        = minix_follow_link,
+  .readlink           = minix_readlink,
+  .truncate           = minix_truncate,
 };
 
 /*
  * Minix directory inode operations.
  */
-struct inode_operations_t minixfs_dir_iops = {
-  .fops               = &minixfs_dir_fops,
-  .lookup             = minixfs_lookup,
-  .create             = minixfs_create,
-  .link               = minixfs_link,
-  .unlink             = minixfs_unlink,
-  .symlink            = minixfs_symlink,
-  .mkdir              = minixfs_mkdir,
-  .rmdir              = minixfs_rmdir,
-  .rename             = minixfs_rename,
-  .truncate           = minixfs_truncate,
+struct inode_operations_t minix_dir_iops = {
+  .fops               = &minix_dir_fops,
+  .lookup             = minix_lookup,
+  .create             = minix_create,
+  .link               = minix_link,
+  .unlink             = minix_unlink,
+  .symlink            = minix_symlink,
+  .mkdir              = minix_mkdir,
+  .rmdir              = minix_rmdir,
+  .rename             = minix_rename,
+  .truncate           = minix_truncate,
 };
 
 /*
  * Read a Minix V1 inode on disk.
  */
-static int minixfs_read_inode_v1(struct inode_t *inode)
+static int minix_read_inode_v1(struct inode_t *inode)
 {
-  struct minix_sb_info_t *sbi = minixfs_sb(inode->i_sb);
+  struct minix_sb_info_t *sbi = minix_sb(inode->i_sb);
   struct minix1_inode_t *raw_inode;
   struct buffer_head_t *bh;
   int inodes_per_block, i;
@@ -96,9 +96,9 @@ static int minixfs_read_inode_v1(struct inode_t *inode)
 /*
  * Read a Minix V2/V3 inode on disk.
  */
-static int minixfs_read_inode_v2(struct inode_t *inode)
+static int minix_read_inode_v2(struct inode_t *inode)
 {
-  struct minix_sb_info_t *sbi = minixfs_sb(inode->i_sb);
+  struct minix_sb_info_t *sbi = minix_sb(inode->i_sb);
   struct minix2_inode_t *raw_inode;
   struct buffer_head_t *bh;
   int inodes_per_block, i;
@@ -140,28 +140,28 @@ static int minixfs_read_inode_v2(struct inode_t *inode)
 /*
  * Read a Minix inode on disk.
  */
-int minixfs_read_inode(struct inode_t *inode)
+int minix_read_inode(struct inode_t *inode)
 {
-  struct minix_sb_info_t *sbi = minixfs_sb(inode->i_sb);
+  struct minix_sb_info_t *sbi = minix_sb(inode->i_sb);
   int err;
   
   /* check inode number */
   if (!inode->i_ino || inode->i_ino > sbi->s_ninodes) {
-    fprintf(stderr, "MinixFS: bad inode number %ld\n", inode->i_ino);
+    fprintf(stderr, "Minix: bad inode number %ld\n", inode->i_ino);
     return -EINVAL;
   }
   
   /* read inode on disk */
-  if (sbi->s_version == MINIXFS_V1)
-    err = minixfs_read_inode_v1(inode);
+  if (sbi->s_version == MINIX_V1)
+    err = minix_read_inode_v1(inode);
   else
-    err = minixfs_read_inode_v2(inode);
+    err = minix_read_inode_v2(inode);
   
   /* set operations */
   if (S_ISDIR(inode->i_mode))
-    inode->i_op = &minixfs_dir_iops;
+    inode->i_op = &minix_dir_iops;
   else
-    inode->i_op = &minixfs_file_iops;
+    inode->i_op = &minix_file_iops;
   
   return err;
 }
@@ -169,9 +169,9 @@ int minixfs_read_inode(struct inode_t *inode)
 /*
  * Write a Minix V1 inode on disk.
  */
-static int minixfs_write_inode_v1(struct inode_t *inode)
+static int minix_write_inode_v1(struct inode_t *inode)
 {
-  struct minix_sb_info_t *sbi = minixfs_sb(inode->i_sb);
+  struct minix_sb_info_t *sbi = minix_sb(inode->i_sb);
   struct minix1_inode_t *raw_inode;
   struct buffer_head_t *bh;
   int inodes_per_block, i;
@@ -212,9 +212,9 @@ static int minixfs_write_inode_v1(struct inode_t *inode)
 /*
  * Write a Minix V2/V3 inode on disk.
  */
-static int minixfs_write_inode_v2(struct inode_t *inode)
+static int minix_write_inode_v2(struct inode_t *inode)
 {
-  struct minix_sb_info_t *sbi = minixfs_sb(inode->i_sb);
+  struct minix_sb_info_t *sbi = minix_sb(inode->i_sb);
   struct minix2_inode_t *raw_inode;
   struct buffer_head_t *bh;
   int inodes_per_block, i;
@@ -257,16 +257,16 @@ static int minixfs_write_inode_v2(struct inode_t *inode)
 /*
  * Write a Minix inode on disk.
  */
-int minixfs_write_inode(struct inode_t *inode)
+int minix_write_inode(struct inode_t *inode)
 {
-  struct minix_sb_info_t *sbi = minixfs_sb(inode->i_sb);
+  struct minix_sb_info_t *sbi = minix_sb(inode->i_sb);
   int err;
   
   /* read inode on disk */
-  if (sbi->s_version == MINIXFS_V1)
-    err = minixfs_write_inode_v1(inode);
+  if (sbi->s_version == MINIX_V1)
+    err = minix_write_inode_v1(inode);
   else
-    err = minixfs_write_inode_v2(inode);
+    err = minix_write_inode_v2(inode);
   
   return err;
 }
@@ -274,15 +274,15 @@ int minixfs_write_inode(struct inode_t *inode)
 /*
  * Release a Minix inode.
  */
-int minixfs_put_inode(struct inode_t *inode)
+int minix_put_inode(struct inode_t *inode)
 {
   if (!inode)
     return -EINVAL;
   
   if (!inode->i_nlinks) {
     inode->i_size = 0;
-    minixfs_truncate(inode);
-    minixfs_free_inode(inode);
+    minix_truncate(inode);
+    minix_free_inode(inode);
   }
   
   return 0;
@@ -291,11 +291,11 @@ int minixfs_put_inode(struct inode_t *inode)
 /*
  * Read a Minix inode block.
  */
-static struct buffer_head_t *minixfs_inode_getblk(struct inode_t *inode, uint32_t inode_block, int create)
+static struct buffer_head_t *minix_inode_getblk(struct inode_t *inode, uint32_t inode_block, int create)
 {
   /* create block if needed */
   if (create && !inode->i_zone[inode_block]) {
-    inode->i_zone[inode_block] = minixfs_new_block(inode->i_sb);
+    inode->i_zone[inode_block] = minix_new_block(inode->i_sb);
     if (inode->i_zone[inode_block])
       inode->i_dirt = 1;
   }
@@ -311,7 +311,7 @@ static struct buffer_head_t *minixfs_inode_getblk(struct inode_t *inode, uint32_
 /*
  * Read a Minix indirect block.
  */
-static struct buffer_head_t *minixfs_block_getblk(struct super_block_t *sb, struct buffer_head_t *bh,
+static struct buffer_head_t *minix_block_getblk(struct super_block_t *sb, struct buffer_head_t *bh,
                                                   uint32_t block_block, int create)
 {
   int i;
@@ -322,7 +322,7 @@ static struct buffer_head_t *minixfs_block_getblk(struct super_block_t *sb, stru
   /* create block if needed */
   i = ((uint32_t *) bh->b_data)[block_block];
   if (create && !i) {
-    i = minixfs_new_block(sb);
+    i = minix_new_block(sb);
     if (i) {
       ((uint32_t *) bh->b_data)[block_block] = i;
       bh->b_dirt = 1;
@@ -341,7 +341,7 @@ static struct buffer_head_t *minixfs_block_getblk(struct super_block_t *sb, stru
 /*
  * Read a Minix inode block.
  */
-struct buffer_head_t *minixfs_bread(struct inode_t *inode, uint32_t block, int create)
+struct buffer_head_t *minix_bread(struct inode_t *inode, uint32_t block, int create)
 {
   struct super_block_t *sb;
   struct buffer_head_t *bh;
@@ -359,27 +359,27 @@ struct buffer_head_t *minixfs_bread(struct inode_t *inode, uint32_t block, int c
   
   /* direct block */
   if (block < 7)
-    return minixfs_inode_getblk(inode, block, create);
+    return minix_inode_getblk(inode, block, create);
   
   /* indirect block */
   block -= 7;
   if (block < addresses_per_block) {
-    bh = minixfs_inode_getblk(inode, 7, create);
-    return minixfs_block_getblk(sb, bh, block, create);
+    bh = minix_inode_getblk(inode, 7, create);
+    return minix_block_getblk(sb, bh, block, create);
   }
   
   /* double indirect block */
   block -= addresses_per_block;
   if (block < addresses_per_block * addresses_per_block) {
-    bh = minixfs_inode_getblk(inode, 8, create);
-    bh = minixfs_block_getblk(sb, bh, (block / addresses_per_block) & (addresses_per_block - 1), create);
-    return minixfs_block_getblk(sb, bh, block & (addresses_per_block - 1), create);
+    bh = minix_inode_getblk(inode, 8, create);
+    bh = minix_block_getblk(sb, bh, (block / addresses_per_block) & (addresses_per_block - 1), create);
+    return minix_block_getblk(sb, bh, block & (addresses_per_block - 1), create);
   }
   
   /* trip indirect block */
   block -= addresses_per_block * addresses_per_block;
-  bh = minixfs_inode_getblk(inode, 9, create);
-  bh = minixfs_block_getblk(sb, bh, (block >> (addresses_per_block * 2)) & (addresses_per_block - 1), create);
-  bh = minixfs_block_getblk(sb, bh, (block / addresses_per_block) & (addresses_per_block - 1), create);
-  return minixfs_block_getblk(sb, bh, block & (addresses_per_block - 1), create);
+  bh = minix_inode_getblk(inode, 9, create);
+  bh = minix_block_getblk(sb, bh, (block >> (addresses_per_block * 2)) & (addresses_per_block - 1), create);
+  bh = minix_block_getblk(sb, bh, (block / addresses_per_block) & (addresses_per_block - 1), create);
+  return minix_block_getblk(sb, bh, block & (addresses_per_block - 1), create);
 }

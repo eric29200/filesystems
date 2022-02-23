@@ -4,15 +4,15 @@
 #include <time.h>
 #include <sys/types.h>
 
-#include "minixfs.h"
+#include "minix.h"
 
-#define MINIXFS_BITMAP_SET(bh, i)       ((bh)->b_data[(i) / 8] |= (0x1 << ((i) % 8)))
-#define MINIXFS_BITMAP_CLR(bh, i)       ((bh)->b_data[(i) / 8] &= ~(0x1 << ((i) % 8)))
+#define MINIX_BITMAP_SET(bh, i)       ((bh)->b_data[(i) / 8] |= (0x1 << ((i) % 8)))
+#define MINIX_BITMAP_CLR(bh, i)       ((bh)->b_data[(i) / 8] &= ~(0x1 << ((i) % 8)))
 
 /*
  * Count number of free bits in a bitmap.
  */
-static uint32_t minixfs_count_free_bitmap(struct super_block_t *sb, struct buffer_head_t **maps, int nb_maps)
+static uint32_t minix_count_free_bitmap(struct super_block_t *sb, struct buffer_head_t **maps, int nb_maps)
 {
   uint32_t *bits, res = 0;
   register int i, j, k;
@@ -33,7 +33,7 @@ static uint32_t minixfs_count_free_bitmap(struct super_block_t *sb, struct buffe
 /*
  * Get first free bit in a bitmap block.
  */
-static inline int minixfs_get_free_bitmap(struct super_block_t *sb, struct buffer_head_t *bh)
+static inline int minix_get_free_bitmap(struct super_block_t *sb, struct buffer_head_t *bh)
 {
   uint32_t *bits = (uint32_t *) bh->b_data;
   register int i, j;
@@ -50,9 +50,9 @@ static inline int minixfs_get_free_bitmap(struct super_block_t *sb, struct buffe
 /*
  * Create a new Minix inode.
  */
-struct inode_t *minixfs_new_inode(struct super_block_t *sb)
+struct inode_t *minix_new_inode(struct super_block_t *sb)
 {
-  struct minix_sb_info_t *sbi = minixfs_sb(sb);
+  struct minix_sb_info_t *sbi = minix_sb(sb);
   struct inode_t *inode;
   int i, j;
   
@@ -63,7 +63,7 @@ struct inode_t *minixfs_new_inode(struct super_block_t *sb)
   
   /* get free ino in bitmap */
   for (i = 0; i < sbi->s_imap_blocks; i++) {
-    j = minixfs_get_free_bitmap(sb, sbi->s_imap[i]);
+    j = minix_get_free_bitmap(sb, sbi->s_imap[i]);
     if (j != -1)
       break;
   }
@@ -83,7 +83,7 @@ struct inode_t *minixfs_new_inode(struct super_block_t *sb)
   inode->i_ref = 1;
   
   /* set inode in bitmap */
-  MINIXFS_BITMAP_SET(sbi->s_imap[i], j);
+  MINIX_BITMAP_SET(sbi->s_imap[i], j);
   
   /* update bitmap on disk */
   bwrite(sbi->s_imap[i]);
@@ -94,16 +94,16 @@ struct inode_t *minixfs_new_inode(struct super_block_t *sb)
 /*
  * Create a new Minix block (return block number or 0 on failure).
  */
-uint32_t minixfs_new_block(struct super_block_t *sb)
+uint32_t minix_new_block(struct super_block_t *sb)
 {
-  struct minix_sb_info_t *sbi = minixfs_sb(sb);
+  struct minix_sb_info_t *sbi = minix_sb(sb);
   struct buffer_head_t *bh;
   uint32_t block_nr, i;
   int j;
   
   /* get free block in bitmap */
   for (i = 0; i < sbi->s_zmap_blocks; i++) {
-    j = minixfs_get_free_bitmap(sb, sbi->s_zmap[i]);
+    j = minix_get_free_bitmap(sb, sbi->s_zmap[i]);
     if (j != -1)
       break;
   }
@@ -128,7 +128,7 @@ uint32_t minixfs_new_block(struct super_block_t *sb)
   brelse(bh);
   
   /* set block in bitmap */
-  MINIXFS_BITMAP_SET(sbi->s_zmap[i], j);
+  MINIX_BITMAP_SET(sbi->s_zmap[i], j);
   
   /* update bitmap on disk */
   bwrite(sbi->s_zmap[i]);
@@ -139,7 +139,7 @@ uint32_t minixfs_new_block(struct super_block_t *sb)
 /*
  * Free a Minix inode.
  */
-int minixfs_free_inode(struct inode_t *inode)
+int minix_free_inode(struct inode_t *inode)
 {
   struct minix_sb_info_t *sbi;
   struct buffer_head_t *bh;
@@ -148,17 +148,17 @@ int minixfs_free_inode(struct inode_t *inode)
     return 0;
   
   /* get minix super block */
-  sbi = minixfs_sb(inode->i_sb);
+  sbi = minix_sb(inode->i_sb);
   
   /* check if inode is still referenced */
   if (inode->i_ref > 1) {
-    fprintf(stderr, "MinixFS: trying to free inode %ld with ref=%d\n", inode->i_ino, inode->i_ref);
+    fprintf(stderr, "Minix: trying to free inode %ld with ref=%d\n", inode->i_ino, inode->i_ref);
     return -EINVAL;
   }
   
   /* clear inode in bitmap */
   bh = sbi->s_imap[inode->i_ino / (inode->i_sb->s_blocksize * 8)];
-  MINIXFS_BITMAP_CLR(bh, inode->i_ino & (inode->i_sb->s_blocksize * 8 - 1));
+  MINIX_BITMAP_CLR(bh, inode->i_ino & (inode->i_sb->s_blocksize * 8 - 1));
   
   /* update bitmap on disk */
   bwrite(bh);
@@ -169,9 +169,9 @@ int minixfs_free_inode(struct inode_t *inode)
 /*
  * Free a Minix block.
  */
-int minixfs_free_block(struct super_block_t *sb, uint32_t block)
+int minix_free_block(struct super_block_t *sb, uint32_t block)
 {
-  struct minix_sb_info_t *sbi = minixfs_sb(sb);
+  struct minix_sb_info_t *sbi = minix_sb(sb);
   struct buffer_head_t *bh;
   
   /* check block number */
@@ -192,7 +192,7 @@ clear_bitmap:
   /* clear block in bitmap */
   block -= sbi->s_firstdatazone - 1;
   bh = sbi->s_zmap[block / (sb->s_blocksize * 8)];
-  MINIXFS_BITMAP_CLR(bh, block & (sb->s_blocksize * 8 - 1));
+  MINIX_BITMAP_CLR(bh, block & (sb->s_blocksize * 8 - 1));
   
   /* update bitmap on disk */
   bwrite(bh);
@@ -203,17 +203,17 @@ clear_bitmap:
 /*
  * Get number of free inodes.
  */
-uint32_t minixfs_count_free_inodes(struct super_block_t *sb)
+uint32_t minix_count_free_inodes(struct super_block_t *sb)
 {
-  struct minix_sb_info_t *sbi = minixfs_sb(sb);
-  return minixfs_count_free_bitmap(sb, sbi->s_imap, sbi->s_imap_blocks);
+  struct minix_sb_info_t *sbi = minix_sb(sb);
+  return minix_count_free_bitmap(sb, sbi->s_imap, sbi->s_imap_blocks);
 }
 
 /*
  * Get number of free blocks.
  */
-uint32_t minixfs_count_free_blocks(struct super_block_t *sb)
+uint32_t minix_count_free_blocks(struct super_block_t *sb)
 {
-  struct minix_sb_info_t *sbi = minixfs_sb(sb);
-  return minixfs_count_free_bitmap(sb, sbi->s_zmap, sbi->s_zmap_blocks);
+  struct minix_sb_info_t *sbi = minix_sb(sb);
+  return minix_count_free_bitmap(sb, sbi->s_zmap, sbi->s_zmap_blocks);
 }

@@ -2,12 +2,12 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include "minixfs.h"
+#include "minix.h"
 
 /*
  * Follow a Minix link (inode will be released).
  */
-int minixfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t **res_inode)
+int minix_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t **res_inode)
 {
   struct buffer_head_t *bh;
   
@@ -24,7 +24,7 @@ int minixfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode
   }
   
   /* read first link block */
-  bh = minixfs_bread(inode, 0, 0);
+  bh = minix_bread(inode, 0, 0);
   if (!bh) {
     vfs_iput(inode);
     return -EIO;
@@ -48,7 +48,7 @@ int minixfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode
 /*
  * Read value of a Minix symbolic link.
  */
-ssize_t minixfs_readlink(struct inode_t *inode, char *buf, size_t bufsize)
+ssize_t minix_readlink(struct inode_t *inode, char *buf, size_t bufsize)
 {
   struct buffer_head_t *bh;
   ssize_t len;
@@ -64,7 +64,7 @@ ssize_t minixfs_readlink(struct inode_t *inode, char *buf, size_t bufsize)
     bufsize = inode->i_sb->s_blocksize;
   
   /* read first block */
-  bh = minixfs_bread(inode, 0, 0);
+  bh = minix_bread(inode, 0, 0);
   if (!bh) {
     vfs_iput(inode);
     return 0;

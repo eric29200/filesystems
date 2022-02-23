@@ -427,7 +427,7 @@ static void *op_init(struct fuse_conn_info *conn, struct fuse_config *cfg)
   vfs_data = ctx->private_data;
   
   /* mount file system */
-  vfs_data->sb = vfs_mount(vfs_data->dev, VFS_MINIXFS_TYPE);
+  vfs_data->sb = vfs_mount(vfs_data->dev, VFS_MINIX_TYPE);
   if (!vfs_data->sb)
     fuse_exit(ctx->fuse);
 
@@ -596,8 +596,8 @@ static int parse_options(int argc, char **argv, struct vfs_data_t *vfs_data)
   }
 
   /* choose file system type */
-  if (strcmp(fs_type, "minixfs") == 0) {
-    vfs_data->fs_type = VFS_MINIXFS_TYPE;
+  if (strcmp(fs_type, "minix") == 0) {
+    vfs_data->fs_type = VFS_MINIX_TYPE;
   } else {
     printf("Unknown file system type '%s'\n", fs_type);
     return -1;

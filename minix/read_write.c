@@ -1,12 +1,12 @@
 #include <string.h>
 #include <sys/fcntl.h>
 
-#include "minixfs.h"
+#include "minix.h"
 
 /*
  * Read a Minix file.
  */
-int minixfs_file_read(struct file_t *filp, char *buf, int count)
+int minix_file_read(struct file_t *filp, char *buf, int count)
 {
   struct buffer_head_t *bh;
   int pos, nb_chars, left;
@@ -22,7 +22,7 @@ int minixfs_file_read(struct file_t *filp, char *buf, int count)
   /* read block by block */
   for (left = count; left > 0;) {
     /* read block */
-    bh = minixfs_bread(filp->f_inode, filp->f_pos / filp->f_inode->i_sb->s_blocksize, 0);
+    bh = minix_bread(filp->f_inode, filp->f_pos / filp->f_inode->i_sb->s_blocksize, 0);
     if (!bh)
       goto out;
     
@@ -49,7 +49,7 @@ out:
 /*
  * Write to a Minix file.
  */
-int minixfs_file_write(struct file_t *filp, const char *buf, int count)
+int minix_file_write(struct file_t *filp, const char *buf, int count)
 {
   struct buffer_head_t *bh;
   int pos, nb_chars, left;
@@ -63,7 +63,7 @@ int minixfs_file_write(struct file_t *filp, const char *buf, int count)
   /* read block by block */
   for (left = count; left > 0;) {
     /* read block */
-    bh = minixfs_bread(filp->f_inode, filp->f_pos / filp->f_inode->i_sb->s_blocksize, 1);
+    bh = minix_bread(filp->f_inode, filp->f_pos / filp->f_inode->i_sb->s_blocksize, 1);
     if (!bh)
       goto out;
     

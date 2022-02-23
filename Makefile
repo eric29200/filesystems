@@ -17,7 +17,7 @@ test: fmounter
 	mkfs.minix -3 ./test.img
 	-umount ./mnt
 	-mkdir ./mnt
-	./fmounter -t minixfs `pwd`/test.img ./mnt
+	./fmounter -t minix `pwd`/test.img ./mnt
 
 clean :
 	rm -f *.o */*.o fmounter

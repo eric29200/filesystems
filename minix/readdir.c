@@ -1,14 +1,14 @@
 #include <string.h>
 #include <errno.h>
 
-#include "minixfs.h"
+#include "minix.h"
 
 /*
  * Get directory entries system call.
  */
-int minixfs_getdents64(struct file_t *filp, void *dirp, size_t count)
+int minix_getdents64(struct file_t *filp, void *dirp, size_t count)
 {
-  struct minix_sb_info_t *sbi = minixfs_sb(filp->f_inode->i_sb);
+  struct minix_sb_info_t *sbi = minix_sb(filp->f_inode->i_sb);
   struct minix1_dir_entry_t *de1;
   struct minix3_dir_entry_t *de3;
   struct dirent64_t *dirent;
@@ -30,11 +30,11 @@ int minixfs_getdents64(struct file_t *filp, void *dirp, size_t count)
   /* for each entry */
   for (entries_size = 0, dirent = (struct dirent64_t *) dirp;;) {
     /* read minix dir entry */
-    if (minixfs_file_read(filp, (char *) de, sbi->s_dirsize) != sbi->s_dirsize)
+    if (minix_file_read(filp, (char *) de, sbi->s_dirsize) != sbi->s_dirsize)
       return entries_size;
     
     /* get inode number and file name */
-    if (sbi->s_version == MINIXFS_V3) {
+    if (sbi->s_version == MINIX_V3) {
       ino = de3->d_inode;
       name = de3->d_name;
     } else {

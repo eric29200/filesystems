@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 
 #include "vfs.h"
-#include "../minix/minixfs.h"
+#include "../minix/minix.h"
 
 /*
  * Mount a file system.
@@ -31,8 +31,8 @@ struct super_block_t *vfs_mount(const char *dev, int fs_type)
   
   /* read super block on disk */
   switch (fs_type) {
-    case VFS_MINIXFS_TYPE:
-      err = minixfs_read_super(sb);
+    case VFS_MINIX_TYPE:
+      err = minix_read_super(sb);
       break;
     default:
       fprintf(stderr, "VFS: file system type (fs_type = %d) not implemented\n", fs_type);

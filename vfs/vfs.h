@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <sys/vfs.h>
 
-#define VFS_MINIXFS_TYPE            1
+#define VFS_MINIX_TYPE              1
 
 #define VFS_NR_INODE                1024
 #define VFS_NR_BUFFER               1024

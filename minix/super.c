@@ -6,23 +6,23 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "minixfs.h"
+#include "minix.h"
 
 /*
  * Minix super block operations.
  */
-struct super_operations_t minixfs_sops = {
-  .read_inode         = minixfs_read_inode,
-  .write_inode        = minixfs_write_inode,
-  .put_inode          = minixfs_put_inode,
-  .put_super          = minixfs_put_super,
-  .statfs             = minixfs_statfs,
+struct super_operations_t minix_sops = {
+  .read_inode         = minix_read_inode,
+  .write_inode        = minix_write_inode,
+  .put_inode          = minix_put_inode,
+  .put_super          = minix_put_super,
+  .statfs             = minix_statfs,
 };
 
 /*
  * Read a minix super block.
  */
-int minixfs_read_super(struct super_block_t *sb)
+int minix_read_super(struct super_block_t *sb)
 {
   struct minix1_super_block_t *msb1;
   struct minix3_super_block_t *msb3;
@@ -59,23 +59,23 @@ int minixfs_read_super(struct super_block_t *sb)
   sb->s_max_size = msb1->s_max_size;
   sb->s_magic = msb1->s_magic;
   sb->root_inode = NULL;
-  sb->s_op = &minixfs_sops;
+  sb->s_op = &minix_sops;
   
   /* set Minix file system specific version */
   if (sb->s_magic == MINIX1_MAGIC1) {
-    sbi->s_version = MINIXFS_V1;
+    sbi->s_version = MINIX_V1;
     sbi->s_name_len = 14;
     sbi->s_dirsize = 16;
   } else if (sb->s_magic == MINIX1_MAGIC2) {
-    sbi->s_version = MINIXFS_V1;
+    sbi->s_version = MINIX_V1;
     sbi->s_name_len = 30;
     sbi->s_dirsize = 32;
   } else if (sb->s_magic == MINIX2_MAGIC1) {
-    sbi->s_version = MINIXFS_V2;
+    sbi->s_version = MINIX_V2;
     sbi->s_name_len = 14;
     sbi->s_dirsize = 16;
   } else if (sb->s_magic == MINIX2_MAGIC2) {
-    sbi->s_version = MINIXFS_V2;
+    sbi->s_version = MINIX_V2;
     sbi->s_name_len = 30;
     sbi->s_dirsize = 32;
   } else if (*((uint16_t *) (sb->sb_bh->b_data + 24)) == MINIX3_MAGIC) {
@@ -87,7 +87,7 @@ int minixfs_read_super(struct super_block_t *sb)
       sbi->s_firstdatazone = msb3->s_firstdatazone;
       sbi->s_log_zone_size = msb3->s_log_zone_size;
       sbi->s_state = MINIX_VALID_FS;
-      sbi->s_version = MINIXFS_V3;
+      sbi->s_version = MINIX_V3;
       sbi->s_name_len = 60;
       sbi->s_dirsize = 64;
       sb->s_blocksize = msb3->s_blocksize;
@@ -146,13 +146,13 @@ int minixfs_read_super(struct super_block_t *sb)
   
   return 0;
 err_root_inode:
-  fprintf(stderr, "MinixFS : can't read root inode\n");
+  fprintf(stderr, "Minix : can't read root inode\n");
   goto err_release_map;
 err_map:
-  fprintf(stderr, "MinixFS : can't read inodes/zones bitmaps\n");
+  fprintf(stderr, "Minix : can't read inodes/zones bitmaps\n");
   goto err_release_map;
 err_no_map:
-  fprintf(stderr, "MinixFS : can't allocate inodes/zones bitmaps\n");
+  fprintf(stderr, "Minix : can't allocate inodes/zones bitmaps\n");
 err_release_map:
   if (sbi->s_imap) {
     for (i = 0; i < sbi->s_imap_blocks; i++)
@@ -169,12 +169,12 @@ err_release_map:
   }
   goto err_release_sb;
 err_bad_magic:
-  fprintf(stderr, "MinixFS : wrong magic number\n");
+  fprintf(stderr, "Minix : wrong magic number\n");
 err_release_sb:
   brelse(sb->sb_bh);
   goto err;
 err_bad_sb:
-  fprintf(stderr, "MinixFS : can't read super block\n");
+  fprintf(stderr, "Minix : can't read super block\n");
 err:
   free(sbi);
   return err;
@@ -183,9 +183,9 @@ err:
 /*
  * Unmount a Minix File System.
  */
-void minixfs_put_super(struct super_block_t *sb)
+void minix_put_super(struct super_block_t *sb)
 {
-  struct minix_sb_info_t *sbi = minixfs_sb(sb);
+  struct minix_sb_info_t *sbi = minix_sb(sb);
   int i;
   
   /* release root inode */
@@ -217,17 +217,17 @@ void minixfs_put_super(struct super_block_t *sb)
 /*
  * Get Minix File system status.
  */
-int minixfs_statfs(struct super_block_t *sb, struct statfs *buf)
+int minix_statfs(struct super_block_t *sb, struct statfs *buf)
 {
-  struct minix_sb_info_t *sbi = minixfs_sb(sb);
+  struct minix_sb_info_t *sbi = minix_sb(sb);
 
   buf->f_type = sb->s_magic;
   buf->f_bsize = sb->s_blocksize;
   buf->f_blocks = sbi->s_nzones - sbi->s_firstdatazone;
-  buf->f_bfree = minixfs_count_free_blocks(sb);
+  buf->f_bfree = minix_count_free_blocks(sb);
   buf->f_bavail = buf->f_bfree;
   buf->f_files = sbi->s_ninodes;
-  buf->f_ffree = minixfs_count_free_inodes(sb);
+  buf->f_ffree = minix_count_free_inodes(sb);
   buf->f_namelen = sbi->s_name_len;
 
   return 0;
