@@ -191,17 +191,36 @@ static int op_open(const char *pathname, struct fuse_file_info *fi)
  */
 static int op_read(const char *pathname, char *buf, size_t length, off_t offset, struct fuse_file_info *fi)
 {
+  struct vfs_data_t *vfs_data;
+  int ret, close_fi = 0;
   struct file_t *file;
 
-  /* get file */
+  /* get VFS data */
+  vfs_data = fuse_get_context()->private_data;
   file = (struct file_t *) fi->fh;
 
+  /* open file if needed */
+  if (!file) {
+    file = vfs_open(vfs_data->sb->root_inode, pathname, O_RDONLY, 0);
+    if (!file)
+      return -1;
+
+    close_fi = 1;
+  }
+
   /* seek to position */
-  if (vfs_lseek(file, offset, SEEK_SET) == -1)
-    return -1;
+  ret = vfs_lseek(file, offset, SEEK_SET);
+  if (ret == -1)
+    goto out;
 
   /* read */
-  return vfs_read(file, buf, length);
+  ret = vfs_read(file, buf, length);
+
+out:
+  if (close_fi)
+    vfs_close(file);
+
+  return ret;
 }
 
 /*
@@ -209,17 +228,36 @@ static int op_read(const char *pathname, char *buf, size_t length, off_t offset,
  */
 static int op_write(const char *pathname, const char *buf, size_t length, off_t offset, struct fuse_file_info *fi)
 {
+  struct vfs_data_t *vfs_data;
+  int ret, close_fi = 0;
   struct file_t *file;
 
-  /* get file */
+  /* get VFS data */
+  vfs_data = fuse_get_context()->private_data;
   file = (struct file_t *) fi->fh;
 
+  /* open file if needed */
+  if (!file) {
+    file = vfs_open(vfs_data->sb->root_inode, pathname, O_WRONLY, 0);
+    if (!file)
+      return -1;
+
+    close_fi = 1;
+  }
+
   /* seek to position */
-  if (vfs_lseek(file, offset, SEEK_SET) == -1)
-    return -1;
+  ret = vfs_lseek(file, offset, SEEK_SET);
+  if (ret == -1)
+    goto out;
 
   /* write */
-  return vfs_write(file, buf, length);
+  ret = vfs_write(file, buf, length);
+
+out:
+  if (close_fi)
+    vfs_close(file);
+
+  return ret;
 }
 
 /*
