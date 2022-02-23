@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <fcntl.h>
 
 #include "vfs.h"
 
@@ -83,6 +84,55 @@ int vfs_close(struct file_t *filp)
     /* free file */
     free(filp);
   }
+
+  return 0;
+}
+
+/*
+ * Change mode of a file.
+ */
+int vfs_chmod(struct inode_t *root, const char *pathname, mode_t mode)
+{
+  struct inode_t *inode;
+
+  /* get inode */
+  inode = vfs_namei(root, NULL, pathname, 1);
+  if (!inode)
+    return -ENOENT;
+
+  /* adjust mode */
+  if (mode == (mode_t) -1)
+    mode = inode->i_mode;
+
+  /* change mode */
+  inode->i_mode = mode;
+
+  /* release inode */
+  inode->i_dirt = 1;
+  vfs_iput(inode);
+
+  return 0;
+}
+
+/*
+ * Change file's owner.
+ */
+int vfs_chown(struct inode_t *root, const char *pathname, uid_t uid, gid_t gid)
+{
+  struct inode_t *inode;
+
+  /* get inode */
+  inode = vfs_namei(root, NULL, pathname, 1);
+  if (!inode)
+    return -ENOENT;
+
+  /* change uid and gid */
+  inode->i_uid = uid;
+  inode->i_gid = gid;
+
+  /* release inode */
+  inode->i_dirt = 1;
+  vfs_iput(inode);
 
   return 0;
 }

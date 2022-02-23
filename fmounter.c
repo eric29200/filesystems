@@ -142,8 +142,13 @@ static int op_link(const char *oldpath, const char *newpath)
  */
 static int op_chmod(const char *pathname, mode_t mode, struct fuse_file_info *fi)
 {
-  fprintf(stderr, "chmod not implemented\n");
-  return -ENOSYS;
+  struct vfs_data_t *vfs_data;
+
+  /* get VFS data */
+  vfs_data = fuse_get_context()->private_data;
+
+  /* chmod */
+  return vfs_chmod(vfs_data->sb->root_inode, pathname, mode);
 }
 
 /*
@@ -151,8 +156,13 @@ static int op_chmod(const char *pathname, mode_t mode, struct fuse_file_info *fi
  */
 static int op_chown(const char *pathname, uid_t uid, gid_t gid, struct fuse_file_info *fi)
 {
-  fprintf(stderr, "chown not implemented\n");
-  return -ENOSYS;
+  struct vfs_data_t *vfs_data;
+
+  /* get VFS data */
+  vfs_data = fuse_get_context()->private_data;
+
+  /* chown */
+  return vfs_chown(vfs_data->sb->root_inode, pathname, uid, gid);
 }
 
 /*
