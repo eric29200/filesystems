@@ -87,3 +87,18 @@ int vfs_statfs(struct super_block_t *sb, struct statfs *buf)
 
   return sb->s_op->statfs(sb, buf);
 }
+
+/*
+ * Init VFS.
+ */
+int vfs_init()
+{
+  int err;
+
+  /* init block buffers */
+  err = vfs_binit();
+  if (err)
+    return err;
+
+  return 0;
+}

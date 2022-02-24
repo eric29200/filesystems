@@ -10,11 +10,14 @@
 #include "../lib/list.h"
 #include "../lib/htable.h"
 
-#define VFS_MINIX_TYPE              1
+#define VFS_MINIX_TYPE                        1
 
-#define VFS_BUFFER_HTABLE_BITS      12
-#define VFS_NR_BUFFER               (1 << VFS_BUFFER_HTABLE_BITS)
-#define VFS_NR_INODE                (1 << 12)
+#define VFS_BUFFER_HTABLE_BITS                12
+#define VFS_NR_BUFFER                         (1 << VFS_BUFFER_HTABLE_BITS)
+#define VFS_NR_INODE                          (1 << 12)
+
+#define container_of(ptr, type, member)       ({void *__mptr = (void *)(ptr);                   \
+                                              ((type *)(__mptr - offsetof(type, member))); })
 
 /*
  * Block buffer.
@@ -143,6 +146,7 @@ struct inode_t *vfs_namei(struct inode_t *root, struct inode_t *base, const char
 int vfs_open_namei(struct inode_t *root, const char *pathname, int flags, mode_t mode, struct inode_t **res_inode);
 
 /* VFS system calls */
+int vfs_init();
 int vfs_binit();
 struct super_block_t *vfs_mount(const char *dev, int fs_type);
 int vfs_umount(struct super_block_t *sb);

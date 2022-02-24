@@ -3,13 +3,10 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stddef.h>
 #include <sys/types.h>
 
 #include "vfs.h"
-
-#define offsetof(type, member)                ((size_t) & ((type *) 0)->member)
-#define container_of(ptr, type, member)       ({void *__mptr = (void *)(ptr);                   \
-                                              ((type *)(__mptr - offsetof(type, member))); })
 
 /* global buffer table */
 static struct buffer_head_t *buffer_table = NULL;

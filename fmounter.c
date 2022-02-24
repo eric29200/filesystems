@@ -615,10 +615,10 @@ int main(int argc, char **argv)
   struct vfs_data_t vfs_data;
   int err;
 
-  /* init VFS block buffers */
-  err = vfs_binit();
+  /* init VFS block buffers and inodes */
+  err = vfs_init();
   if (err) {
-    printf("VFS: can't init block buffers\n");
+    printf("VFS: can't init block buffers map or inodes map\n");
     exit(err);
   }
 
