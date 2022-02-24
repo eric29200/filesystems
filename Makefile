@@ -1,4 +1,4 @@
-CFLAGS  := -Wall -g
+CFLAGS  := -O2 -Wall -g
 LDFLAGS	:= `pkg-config --libs fuse3`
 CC      := gcc 
 

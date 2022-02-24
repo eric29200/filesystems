@@ -82,9 +82,9 @@ static int minix_add_entry(struct inode_t *dir, const char *name, size_t name_le
 {
   struct minix_sb_info_t *sbi = minix_sb(dir->i_sb);
   int nb_entries, nb_entries_per_block, i;
+  struct minix1_dir_entry_t *de1 = NULL;
+  struct minix3_dir_entry_t *de3 = NULL;
   struct buffer_head_t *bh = NULL;
-  struct minix1_dir_entry_t *de1;
-  struct minix3_dir_entry_t *de3;
   char *de, *de_name;
   ino_t de_ino;
 

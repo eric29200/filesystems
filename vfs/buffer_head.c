@@ -15,7 +15,7 @@ static struct buffer_head_t buffer_table[VFS_NR_BUFFER];
  */
 static struct buffer_head_t *vfs_get_empty_buffer(uint16_t block_size)
 {
-  struct buffer_head_t *bh;
+  struct buffer_head_t *bh = NULL;
   int i;
   
   /* find a free buffer */
@@ -26,6 +26,10 @@ static struct buffer_head_t *vfs_get_empty_buffer(uint16_t block_size)
     }
   }
   
+  /* no free buffer */
+  if (!bh)
+    return NULL;
+
   /* reset buffer */
   memset(bh, 0, sizeof(struct buffer_head_t));
   
