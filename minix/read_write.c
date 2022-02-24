@@ -28,7 +28,7 @@ int minix_file_read(struct file_t *filp, char *buf, int count)
     
     /* find position and numbers of chars to read */
     pos = filp->f_pos % filp->f_inode->i_sb->s_blocksize;
-    nb_chars = filp->f_inode->i_sb->s_blocksize - pos <= left ? filp->f_inode->i_sb->s_blocksize : left;
+    nb_chars = filp->f_inode->i_sb->s_blocksize - pos <= left ? filp->f_inode->i_sb->s_blocksize - pos : left;
     
     /* copy to buffer */
     memcpy(buf, bh->b_data + pos, nb_chars);
@@ -69,7 +69,7 @@ int minix_file_write(struct file_t *filp, const char *buf, int count)
     
     /* find position and numbers of chars to read */
     pos = filp->f_pos % filp->f_inode->i_sb->s_blocksize;
-    nb_chars = filp->f_inode->i_sb->s_blocksize - pos <= left ? filp->f_inode->i_sb->s_blocksize : left;
+    nb_chars = filp->f_inode->i_sb->s_blocksize - pos <= left ? filp->f_inode->i_sb->s_blocksize - pos : left;
     
     /* copy to buffer */
     memcpy(bh->b_data + pos, buf, nb_chars);
