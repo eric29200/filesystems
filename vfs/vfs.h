@@ -7,10 +7,14 @@
 #include <sys/stat.h>
 #include <sys/vfs.h>
 
+#include "../lib/list.h"
+#include "../lib/htable.h"
+
 #define VFS_MINIX_TYPE              1
 
-#define VFS_NR_INODE                1024
-#define VFS_NR_BUFFER               1024
+#define VFS_BUFFER_HTABLE_BITS      12
+#define VFS_NR_BUFFER               (1 << VFS_BUFFER_HTABLE_BITS)
+#define VFS_NR_INODE                (1 << 12)
 
 /*
  * Block buffer.
@@ -18,9 +22,13 @@
 struct buffer_head_t {
   uint32_t                  b_block;
   char                      *b_data;
+  size_t                    b_size;
   int                       b_ref;
   char                      b_dirt;
+  char                      b_uptodate;
   struct super_block_t      *b_sb;
+  struct list_head_t        b_list;
+  struct htable_link_t      b_htable;
 };
 
 /*
@@ -135,6 +143,7 @@ struct inode_t *vfs_namei(struct inode_t *root, struct inode_t *base, const char
 int vfs_open_namei(struct inode_t *root, const char *pathname, int flags, mode_t mode, struct inode_t **res_inode);
 
 /* VFS system calls */
+int vfs_binit();
 struct super_block_t *vfs_mount(const char *dev, int fs_type);
 int vfs_umount(struct super_block_t *sb);
 int vfs_statfs(struct super_block_t *sb, struct statfs *buf);

@@ -599,7 +599,7 @@ static int parse_options(int argc, char **argv, struct vfs_data_t *vfs_data)
   if (strcmp(fs_type, "minix") == 0) {
     vfs_data->fs_type = VFS_MINIX_TYPE;
   } else {
-    printf("Unknown file system type '%s'\n", fs_type);
+    printf("VFS: Unknown file system type '%s'\n", fs_type);
     return -1;
   }
   
@@ -614,6 +614,13 @@ int main(int argc, char **argv)
   struct fuse_args fargs = FUSE_ARGS_INIT(0, NULL);
   struct vfs_data_t vfs_data;
   int err;
+
+  /* init VFS block buffers */
+  err = vfs_binit();
+  if (err) {
+    printf("VFS: can't init block buffers\n");
+    exit(err);
+  }
 
   /* parse options */
   err = parse_options(argc, argv, &vfs_data);
