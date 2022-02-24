@@ -54,7 +54,7 @@ static struct buffer_head_t *minix_find_entry(struct inode_t *dir, const char *n
     }
                                      
     /* get directory entry */
-    de = bh->b_data + i * sbi->s_dirsize;
+    de = bh->b_data + (i % nb_entries_per_block) * sbi->s_dirsize;
     if (sbi->s_version == MINIX_V3) {
       de3 = (struct minix3_dir_entry_t *) de;
       de_name = de3->d_name;
@@ -118,7 +118,7 @@ static int minix_add_entry(struct inode_t *dir, const char *name, size_t name_le
     }
                                      
     /* get directory entry */
-    de = bh->b_data + i * sbi->s_dirsize;
+    de = bh->b_data + (i % nb_entries_per_block) * sbi->s_dirsize;
     if (sbi->s_version == MINIX_V3) {
       de3 = (struct minix3_dir_entry_t *) de;
       de_ino = de3->d_inode;
@@ -196,7 +196,7 @@ static int minix_empty_dir(struct inode_t *dir)
       continue;
                                      
     /* get inode number */
-    de = bh->b_data + i * sbi->s_dirsize;
+    de = bh->b_data + (i % nb_entries_per_block) * sbi->s_dirsize;
     if (sbi->s_version == MINIX_V3)
       ino = ((struct minix3_dir_entry_t *) de)->d_inode;
     else

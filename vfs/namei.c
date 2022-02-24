@@ -316,7 +316,7 @@ int vfs_mkdir(struct inode_t *root, const char *pathname, mode_t mode)
   
   /* release directory */
   vfs_iput(dir);
-  
+
   return err;
 }
 

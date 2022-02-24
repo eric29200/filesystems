@@ -346,7 +346,7 @@ struct buffer_head_t *minix_bread(struct inode_t *inode, uint32_t block, int cre
   struct super_block_t *sb;
   struct buffer_head_t *bh;
   int addresses_per_block;
-  
+
   /* get super block */
   sb = inode->i_sb;
 
