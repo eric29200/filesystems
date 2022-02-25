@@ -40,6 +40,7 @@ struct minix_sb_info_t {
   uint16_t                      s_state;
   int                           s_name_len;
   int                           s_dirsize;
+  uint32_t                      s_max_size;
   struct buffer_head_t          **s_imap;
   struct buffer_head_t          **s_zmap;
 };

@@ -343,15 +343,17 @@ static struct buffer_head_t *minix_block_getblk(struct super_block_t *sb, struct
  */
 struct buffer_head_t *minix_bread(struct inode_t *inode, uint32_t block, int create)
 {
+  struct minix_sb_info_t *sbi;
   struct super_block_t *sb;
   struct buffer_head_t *bh;
   int addresses_per_block;
 
   /* get super block */
   sb = inode->i_sb;
+  sbi = minix_sb(sb);
 
   /* check block number */
-  if (block >= sb->s_max_size / sb->s_blocksize)
+  if (block >= sbi->s_max_size / sb->s_blocksize)
     return NULL;
   
   /* compute number of addresses per block */

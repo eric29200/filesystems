@@ -40,7 +40,6 @@ struct buffer_head_t {
 struct super_block_t {
   int                       s_fd;
   uint16_t                  s_blocksize;
-  uint32_t                  s_max_size;
   uint16_t                  s_magic;
   void                      *s_fs_info;
   struct buffer_head_t      *sb_bh;

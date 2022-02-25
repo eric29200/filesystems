@@ -56,7 +56,7 @@ int minix_read_super(struct super_block_t *sb)
   sbi->s_state = msb1->s_state;
   sbi->s_imap = NULL;
   sbi->s_zmap = NULL;
-  sb->s_max_size = msb1->s_max_size;
+  sbi->s_max_size = msb1->s_max_size;
   sb->s_magic = msb1->s_magic;
   sb->root_inode = NULL;
   sb->s_op = &minix_sops;
@@ -91,7 +91,7 @@ int minix_read_super(struct super_block_t *sb)
       sbi->s_name_len = 60;
       sbi->s_dirsize = 64;
       sb->s_blocksize = msb3->s_blocksize;
-      sb->s_max_size = msb3->s_max_size;
+      sbi->s_max_size = msb3->s_max_size;
   } else {
     goto err_bad_magic;
   }
