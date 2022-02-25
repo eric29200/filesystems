@@ -1,6 +1,7 @@
 *.o
 */*.o
 */*/*.o
+mkfs.minix
 fmounter
 mnt
 test.img
