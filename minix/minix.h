@@ -30,99 +30,99 @@
  * Minix in memory super block.
  */
 struct minix_sb_info_t {
-  uint32_t                      s_ninodes;
-  uint32_t                      s_nzones;
-  uint16_t                      s_imap_blocks;
-  uint16_t                      s_zmap_blocks;
-  uint16_t                      s_firstdatazone;
-  uint16_t                      s_log_zone_size;
-  uint16_t                      s_version;
-  uint16_t                      s_state;
-  int                           s_name_len;
-  int                           s_dirsize;
-  uint32_t                      s_max_size;
-  struct buffer_head_t          *sb_bh;
-  struct buffer_head_t          **s_imap;
-  struct buffer_head_t          **s_zmap;
+  uint32_t                      s_ninodes;              /* number of inodes */
+  uint32_t                      s_nzones;               /* number of zones */
+  uint16_t                      s_imap_blocks;          /* number of inodes bitmap blocks */
+  uint16_t                      s_zmap_blocks;          /* number of zones bitmap blocks */
+  uint16_t                      s_firstdatazone;        /* first data zone */
+  uint16_t                      s_log_zone_size;        /* always 0 */
+  uint16_t                      s_version;              /* file system version */
+  uint16_t                      s_state;                /* file system state */
+  int                           s_name_len;             /* file name length */
+  int                           s_dirsize;              /* directory entry size */
+  uint32_t                      s_max_size;             /* maximum size of file */
+  struct buffer_head_t          *sb_bh;                 /* super block buffer */
+  struct buffer_head_t          **s_imap;               /* inodes bitmap buffers */
+  struct buffer_head_t          **s_zmap;               /* zones bitmap buffers */
 };
 
 /*
  * Minix V1/V2 super block.
  */
 struct minix1_super_block_t {
-  uint16_t      s_ninodes;
-  uint16_t      s_nzones;
-  uint16_t      s_imap_blocks;
-  uint16_t      s_zmap_blocks;
-  uint16_t      s_firstdatazone;
-  uint16_t      s_log_zone_size;
-  uint32_t      s_max_size;
-  uint16_t      s_magic;
-  uint16_t      s_state;
-  uint32_t      s_zones;
+  uint16_t      s_ninodes;              /* number of inodes */
+  uint16_t      s_nzones;               /* number of zones */
+  uint16_t      s_imap_blocks;          /* number of inodes bitmap blocks */
+  uint16_t      s_zmap_blocks;          /* number of zones bitmap blocks */
+  uint16_t      s_firstdatazone;        /* first data zone */
+  uint16_t      s_log_zone_size;        /* always 0 */
+  uint32_t      s_max_size;             /* maximum size of file */
+  uint16_t      s_magic;                /* magic numer */
+  uint16_t      s_state;                /* file system state */
+  uint32_t      s_zones;                /* number of zones */
 };
 
 /*
  * Minix V3 super block.
  */
 struct minix3_super_block_t {
-  uint32_t      s_ninodes;
-  uint16_t      s_pad0;
-  uint16_t      s_imap_blocks;
-  uint16_t      s_zmap_blocks;
-  uint16_t      s_firstdatazone;
-  uint16_t      s_log_zone_size;
-  uint16_t      s_pad1;
-  uint32_t      s_max_size;
-  uint32_t      s_zones;
-  uint16_t      s_magic;
-  uint16_t      s_pad2;
-  uint16_t      s_blocksize;
-  uint8_t       s_disk_version;
+  uint32_t      s_ninodes;              /* number of inodes */
+  uint16_t      s_pad0;                 /* padding */
+  uint16_t      s_imap_blocks;          /* number of inodes bitmap blocks */
+  uint16_t      s_zmap_blocks;          /* number of zones bitmap blocks */
+  uint16_t      s_firstdatazone;        /* first data zone */
+  uint16_t      s_log_zone_size;        /* always 0 */
+  uint16_t      s_pad1;                 /* padding */
+  uint32_t      s_max_size;             /* maximum size of file */
+  uint32_t      s_zones;                /* number of zones */
+  uint16_t      s_magic;                /* magic number */
+  uint16_t      s_pad2;                 /* padding */
+  uint16_t      s_blocksize;            /* block size */
+  uint8_t       s_disk_version;         /* file system version */
 };
 
 /*
  * Minix V1 inode.
  */
 struct minix1_inode_t {
-  uint16_t      i_mode;
-  uint16_t      i_uid;
-  uint32_t      i_size;
-  uint32_t      i_time;
-  uint8_t       i_gid;
-  uint8_t       i_nlinks;
-  uint16_t      i_zone[9];
+  uint16_t      i_mode;             /* file mode */
+  uint16_t      i_uid;              /* user id */
+  uint32_t      i_size;             /* file size in bytes */
+  uint32_t      i_time;             /* timestamp */
+  uint8_t       i_gid;              /* group id */
+  uint8_t       i_nlinks;           /* number of links to this file */
+  uint16_t      i_zone[9];          /* data zones */
 };
 
 /*
  * Minix V2/V3 inode.
  */
 struct minix2_inode_t {
-  uint16_t      i_mode;
-  uint16_t      i_nlinks;
-  uint16_t      i_uid;
-  uint16_t      i_gid;
-  uint32_t      i_size;
-  uint32_t      i_atime;
-  uint32_t      i_mtime;
-  uint32_t      i_ctime;
-  uint32_t      i_zone[10];
+  uint16_t      i_mode;             /* file mode */
+  uint16_t      i_nlinks;           /* number of links to this file */
+  uint16_t      i_uid;              /* user id */
+  uint16_t      i_gid;              /* group id */
+  uint32_t      i_size;             /* file size */
+  uint32_t      i_atime;            /* last access time */
+  uint32_t      i_mtime;            /* last modification time */
+  uint32_t      i_ctime;            /* creation time */
+  uint32_t      i_zone[10];         /* data zones */
 };
 
 /*
  * Minix V1/V2 directory entry.
  */
 struct minix1_dir_entry_t {
-  uint16_t      d_inode;
-  char          d_name[0];
+  uint16_t      d_inode;              /* inode number */
+  char          d_name[0];            /* file name */
 };
 
 /*
  * Minix V3 directory entry.
  */
 struct minix3_dir_entry_t {
-  uint32_t      d_inode;
-  char          d_name[0];
+  uint32_t      d_inode;              /* inode number */
+  char          d_name[0];            /* file name */
 };
 
 /* Minix file system operations */
