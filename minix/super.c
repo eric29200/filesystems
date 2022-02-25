@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <math.h>
 
 #include "minix.h"
 
@@ -37,6 +38,7 @@ int minix_read_super(struct super_block_t *sb)
   
   /* set default block size */
   sb->s_blocksize = MINIX_BLOCK_SIZE;
+  sb->s_blocksize_bits = MINIX_BLOCK_SIZE_BITS;
   
   /* read first block = super block */
   sbi->sb_bh = sb_bread(sb, 1);
@@ -90,12 +92,13 @@ int minix_read_super(struct super_block_t *sb)
       sbi->s_version = MINIX_V3;
       sbi->s_name_len = 60;
       sbi->s_dirsize = 64;
-      sb->s_blocksize = msb3->s_blocksize;
       sbi->s_max_size = msb3->s_max_size;
+      sb->s_blocksize = msb3->s_blocksize;
+      sb->s_blocksize_bits = log2(msb3->s_blocksize);
   } else {
     goto err_bad_magic;
   }
-  
+
   /* allocate inodes bitmap */
   sbi->s_imap = (struct buffer_head_t **) malloc(sizeof(struct buffer_head_t *) * sbi->s_imap_blocks);
   if (!sbi->s_imap) {

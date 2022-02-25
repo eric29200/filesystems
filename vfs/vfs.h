@@ -40,6 +40,7 @@ struct buffer_head_t {
 struct super_block_t {
   int                       s_fd;
   uint16_t                  s_blocksize;
+  uint8_t                   s_blocksize_bits;
   uint16_t                  s_magic;
   void                      *s_fs_info;
   struct inode_t            *root_inode;

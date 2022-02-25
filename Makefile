@@ -1,5 +1,5 @@
 CFLAGS  := -O2 -Wall -g
-LDFLAGS	:= `pkg-config --libs fuse3`
+LDFLAGS	:= `pkg-config --libs fuse3` -lm
 CC      := gcc 
 
 all: fmounter
