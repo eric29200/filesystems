@@ -42,7 +42,6 @@ struct super_block_t {
   uint16_t                  s_blocksize;
   uint16_t                  s_magic;
   void                      *s_fs_info;
-  struct buffer_head_t      *sb_bh;
   struct inode_t            *root_inode;
   struct super_operations_t *s_op;
 };
