@@ -552,7 +552,11 @@ static const struct option lopt[] = {
  */
 static void usage(char *prog_name)
 {
-  printf("Usage: %s -t fstype <image_file> <mount_point>\n", prog_name);
+  printf("%s -t fstype <image_file> <mount_point>\n", prog_name);
+  printf("\n");
+  printf("Options :\n");
+  printf(" -h               print help\n");
+  printf(" -t               file system type (minix)\n");
 }
 
 /*
