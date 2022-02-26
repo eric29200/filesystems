@@ -96,17 +96,15 @@ void vfs_iput(struct inode_t *inode)
   }
   
   /* removed inode : truncate and free it */
-  if (!inode->i_nlinks && !inode->i_ref) {
+  if (!inode->i_nlinks && !inode->i_ref)
     inode->i_sb->s_op->put_inode(inode);
-    return;
-  }
   
-  /* free inode */
-  if (!inode->i_ref) {
-    if (inode->i_sb->s_op && inode->i_sb->s_op->release_inode)
-      inode->i_sb->s_op->release_inode(inode);
+  /* release inode */
+  if (!inode->i_ref && inode->i_sb->s_op && inode->i_sb->s_op->release_inode)
+    inode->i_sb->s_op->release_inode(inode);
 
+  /* memzero inode */
+  if (!inode->i_ref)
     memset(inode, 0, sizeof(struct inode_t));
-  }
 }
 
