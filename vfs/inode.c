@@ -11,7 +11,7 @@ static struct inode_t inode_table[VFS_NR_INODE];
 struct inode_t *vfs_get_empty_inode(struct super_block_t *sb)
 {
   struct inode_t *inode;
-  int i;
+  int i, ret;
   
   /* find a free inode */
   for (i = 0; i < VFS_NR_INODE; i++) {
@@ -28,6 +28,13 @@ struct inode_t *vfs_get_empty_inode(struct super_block_t *sb)
   /* reset inode */
   memset(inode, 0, sizeof(struct inode_t));
   
+  /* specific file system allocation */
+  if (sb->s_op && sb->s_op->alloc_inode) {
+    ret = sb->s_op->alloc_inode(inode);
+    if (ret)
+      return NULL;
+  }
+
   /* set reference and super block */
   inode->i_sb = sb;
   inode->i_ref = 1;
@@ -95,7 +102,11 @@ void vfs_iput(struct inode_t *inode)
   }
   
   /* free inode */
-  if (!inode->i_ref)
+  if (!inode->i_ref) {
+    if (inode->i_sb->s_op && inode->i_sb->s_op->release_inode)
+      inode->i_sb->s_op->release_inode(inode);
+
     memset(inode, 0, sizeof(struct inode_t));
+  }
 }
 

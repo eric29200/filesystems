@@ -49,10 +49,42 @@ struct inode_operations_t minix_dir_iops = {
 };
 
 /*
+ * Allocate a Minix inode.
+ */
+int minix_alloc_inode(struct inode_t *inode)
+{
+  int i;
+
+  if (!inode)
+    return -EINVAL;
+
+  /* allocate minix specific inode */
+  inode->i_private = malloc(sizeof(struct minix_inode_info_t));
+  if (!inode->i_private)
+    return -ENOMEM;
+
+  /* reset data zones */
+  for (i = 0; i < 10; i++)
+    minix_i(inode)->i_zone[i] = 0;
+
+  return 0;
+}
+
+/*
+ * Release a Minix inode.
+ */
+void minix_release_inode(struct inode_t *inode)
+{
+  if (inode && inode->i_private)
+    free(inode->i_private);
+}
+
+/*
  * Read a Minix V1 inode on disk.
  */
 static int minix_read_inode_v1(struct inode_t *inode)
 {
+  struct minix_inode_info_t *minix_inode = minix_i(inode);
   struct minix_sb_info_t *sbi = minix_sb(inode->i_sb);
   struct minix1_inode_t *raw_inode;
   struct buffer_head_t *bh;
@@ -84,8 +116,8 @@ static int minix_read_inode_v1(struct inode_t *inode)
   inode->i_ctime.tv_sec = raw_inode->i_time;
   inode->i_ctime.tv_nsec = 0;
   for (i = 0; i < 9; i++)
-    inode->i_zone[i] = raw_inode->i_zone[i];
-  inode->i_zone[9] = 0;
+    minix_inode->i_zone[i] = raw_inode->i_zone[i];
+  minix_inode->i_zone[9] = 0;
   
   /* release block buffer */
   brelse(bh);
@@ -98,6 +130,7 @@ static int minix_read_inode_v1(struct inode_t *inode)
  */
 static int minix_read_inode_v2(struct inode_t *inode)
 {
+  struct minix_inode_info_t *minix_inode = minix_i(inode);
   struct minix_sb_info_t *sbi = minix_sb(inode->i_sb);
   struct minix2_inode_t *raw_inode;
   struct buffer_head_t *bh;
@@ -129,7 +162,7 @@ static int minix_read_inode_v2(struct inode_t *inode)
   inode->i_ctime.tv_sec = raw_inode->i_ctime;
   inode->i_ctime.tv_nsec = 0;
   for (i = 0; i < 10; i++)
-    inode->i_zone[i] = raw_inode->i_zone[i];
+    minix_inode->i_zone[i] = raw_inode->i_zone[i];
   
   /* release block buffer */
   brelse(bh);
@@ -171,6 +204,7 @@ int minix_read_inode(struct inode_t *inode)
  */
 static int minix_write_inode_v1(struct inode_t *inode)
 {
+  struct minix_inode_info_t *minix_inode = minix_i(inode);
   struct minix_sb_info_t *sbi = minix_sb(inode->i_sb);
   struct minix1_inode_t *raw_inode;
   struct buffer_head_t *bh;
@@ -200,7 +234,7 @@ static int minix_write_inode_v1(struct inode_t *inode)
   raw_inode->i_size = inode->i_size;
   raw_inode->i_time = inode->i_mtime.tv_sec;
   for (i = 0; i < 9; i++)
-    raw_inode->i_zone[i] = inode->i_zone[i];
+    raw_inode->i_zone[i] = minix_inode->i_zone[i];
   
   /* release buffer */
   bh->b_dirt = 1;
@@ -214,6 +248,7 @@ static int minix_write_inode_v1(struct inode_t *inode)
  */
 static int minix_write_inode_v2(struct inode_t *inode)
 {
+  struct minix_inode_info_t *minix_inode = minix_i(inode);
   struct minix_sb_info_t *sbi = minix_sb(inode->i_sb);
   struct minix2_inode_t *raw_inode;
   struct buffer_head_t *bh;
@@ -245,7 +280,7 @@ static int minix_write_inode_v2(struct inode_t *inode)
   raw_inode->i_mtime = inode->i_mtime.tv_sec;
   raw_inode->i_ctime = inode->i_ctime.tv_sec;
   for (i = 0; i < 10; i++)
-    raw_inode->i_zone[i] = inode->i_zone[i];
+    raw_inode->i_zone[i] = minix_inode->i_zone[i];
   
   /* release buffer */
   bh->b_dirt = 1;
@@ -293,19 +328,21 @@ int minix_put_inode(struct inode_t *inode)
  */
 static struct buffer_head_t *minix_inode_getblk(struct inode_t *inode, uint32_t inode_block, int create)
 {
+  struct minix_inode_info_t *minix_inode = minix_i(inode);
+
   /* create block if needed */
-  if (create && !inode->i_zone[inode_block]) {
-    inode->i_zone[inode_block] = minix_new_block(inode->i_sb);
-    if (inode->i_zone[inode_block])
+  if (create && !minix_inode->i_zone[inode_block]) {
+    minix_inode->i_zone[inode_block] = minix_new_block(inode->i_sb);
+    if (minix_inode->i_zone[inode_block])
       inode->i_dirt = 1;
   }
   
   /* check block */
-  if (!inode->i_zone[inode_block])
+  if (!minix_inode->i_zone[inode_block])
     return NULL;
   
   /* read block on disk */
-  return sb_bread(inode->i_sb, inode->i_zone[inode_block]);
+  return sb_bread(inode->i_sb, minix_inode->i_zone[inode_block]);
 }
 
 /*

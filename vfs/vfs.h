@@ -59,12 +59,12 @@ struct inode_t {
   struct timespec           i_atime;
   struct timespec           i_mtime;
   struct timespec           i_ctime;
-  uint32_t                  i_zone[10];
   ino_t                     i_ino;
   struct super_block_t      *i_sb;
   int                       i_ref;
   char                      i_dirt;
   struct inode_operations_t *i_op;
+  void                      *i_private;
 };
 
 /*
@@ -94,6 +94,8 @@ struct file_t {
  * Super block operations.
  */
 struct super_operations_t {
+  int (*alloc_inode)(struct inode_t *);
+  void (*release_inode)(struct inode_t *);
   int (*read_inode)(struct inode_t *);
   int (*write_inode)(struct inode_t *);
   int (*put_inode)(struct inode_t *);

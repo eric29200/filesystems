@@ -12,12 +12,13 @@
  */
 static void minix_free_direct_blocks(struct inode_t *inode)
 {
+  struct minix_inode_info_t *minix_inode = minix_i(inode);
   int i;
   
   for (i = DIRECT_BLOCK(inode, inode->i_sb->s_blocksize); i < 7; i++) {
-    if (inode->i_zone[i]) {
-      minix_free_block(inode->i_sb, inode->i_zone[i]);
-      inode->i_zone[i] = 0;
+    if (minix_inode->i_zone[i]) {
+      minix_free_block(inode->i_sb, minix_inode->i_zone[i]);
+      minix_inode->i_zone[i] = 0;
     }
   }
 }
@@ -141,6 +142,7 @@ static void minix_free_tindirect_blocks(struct inode_t *inode, int offset, uint3
  */
 void minix_truncate(struct inode_t *inode)
 {
+  struct minix_inode_info_t *minix_inode = minix_i(inode);
   int addr_per_block;
   
   /* only allowed on regular files and directories */
@@ -152,9 +154,9 @@ void minix_truncate(struct inode_t *inode)
   
   /* free blocks */
   minix_free_direct_blocks(inode);
-  minix_free_indirect_blocks(inode, 7, &inode->i_zone[7]);
-  minix_free_dindirect_blocks(inode, 7 + addr_per_block, &inode->i_zone[8]);
-  minix_free_tindirect_blocks(inode, 7 + addr_per_block + addr_per_block * addr_per_block, &inode->i_zone[9]);
+  minix_free_indirect_blocks(inode, 7, &minix_inode->i_zone[7]);
+  minix_free_dindirect_blocks(inode, 7 + addr_per_block, &minix_inode->i_zone[8]);
+  minix_free_tindirect_blocks(inode, 7 + addr_per_block + addr_per_block * addr_per_block, &minix_inode->i_zone[9]);
   
   /* mark inode dirty */
   inode->i_dirt = 1;

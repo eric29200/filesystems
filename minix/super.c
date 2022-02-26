@@ -13,6 +13,8 @@
  * Minix super block operations.
  */
 struct super_operations_t minix_sops = {
+  .alloc_inode        = minix_alloc_inode,
+  .release_inode      = minix_release_inode,
   .read_inode         = minix_read_inode,
   .write_inode        = minix_write_inode,
   .put_inode          = minix_put_inode,

@@ -82,6 +82,13 @@ struct minix3_super_block_t {
 };
 
 /*
+ * Minix in memory inode.
+ */
+struct minix_inode_info_t {
+  uint32_t      i_zone[10];         /* data zones */
+};
+
+/*
  * Minix V1 inode.
  */
 struct minix1_inode_t {
@@ -147,6 +154,8 @@ uint32_t minix_count_free_blocks(struct super_block_t *sb);
 
 /* Minix inode prototypes */
 struct buffer_head_t *minix_bread(struct inode_t *inode, uint32_t block, int create);
+int minix_alloc_inode(struct inode_t *inode);
+void minix_release_inode(struct inode_t *inode);
 int minix_read_inode(struct inode_t *inode);
 int minix_write_inode(struct inode_t *inode);
 int minix_put_inode(struct inode_t *inode);
@@ -180,6 +189,14 @@ int minix_getdents64(struct file_t *filp, void *dirp, size_t count);
 static inline struct minix_sb_info_t *minix_sb(struct super_block_t *sb)
 {
   return sb->s_fs_info;
+}
+
+/*
+ * Get Minix in memory inode from generic inode.
+ */
+static inline struct minix_inode_info_t *minix_i(struct inode_t *inode)
+{
+  return inode->i_private;
 }
 
 #endif
