@@ -41,12 +41,17 @@ static int op_getattr(const char *pathname, struct stat *statbuf, struct fuse_fi
 static int op_readlink(const char *pathname, char *buf, size_t bufsize)
 {
   struct vfs_data_t *vfs_data;
+  int err;
 
   /* get VFS data */
   vfs_data = fuse_get_context()->private_data;
 
   /* read link */
-  return vfs_readlink(vfs_data->sb->root_inode, pathname, buf, bufsize);
+  err = vfs_readlink(vfs_data->sb->root_inode, pathname, buf, bufsize);
+  if (err < 0)
+    return err;
+
+  return 0;
 }
 
 /*
@@ -105,8 +110,13 @@ static int op_rmdir(const char *pathname)
  */
 static int op_symlink(const char *target, const char *linkpath)
 {
-  fprintf(stderr, "symlink not implemented\n");
-  return -ENOSYS;
+  struct vfs_data_t *vfs_data;
+
+  /* get VFS data */
+  vfs_data = fuse_get_context()->private_data;
+
+  /* remove directory */
+  return vfs_symlink(vfs_data->sb->root_inode, target, linkpath);
 }
 
 /*
