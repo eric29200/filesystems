@@ -33,7 +33,7 @@ static struct buffer_head_t *get_empty_buffer(struct super_block_t *sb)
 found:
   /* write it on disk if needed */
   if (bh->b_dirt && bwrite(bh))
-    printf("VFS: can't write block %d on disk\n", bh->b_block);
+    fprintf(stderr, "VFS: can't write block %d on disk\n", bh->b_block);
 
   /* allocate data if needed */
   if (!bh->b_size)

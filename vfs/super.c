@@ -22,11 +22,14 @@ struct super_block_t *vfs_mount(const char *dev, int fs_type)
     return NULL;
   
   /* open device */
-  sb->s_fd = open(dev, O_RDWR);
-  if (sb->s_fd < 0) {
-    free(sb);
-    fprintf(stderr, "VFS: can't open device %s\n", dev);
-    return NULL;
+  sb->s_fd = -1;
+  if (dev) {
+    sb->s_fd = open(dev, O_RDWR);
+    if (sb->s_fd < 0) {
+      free(sb);
+      fprintf(stderr, "VFS: can't open device %s\n", dev);
+      return NULL;
+    }
   }
   
   /* read super block on disk */
@@ -64,7 +67,8 @@ int vfs_umount(struct super_block_t *sb)
     sb->s_op->put_super(sb);
   
   /* close device */
-  close(sb->s_fd);
+  if (sb->s_fd > 0)
+    close(sb->s_fd);
   
   /* free super block */
   free(sb);

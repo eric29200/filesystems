@@ -437,7 +437,7 @@ static void *op_init(struct fuse_conn_info *conn, struct fuse_config *cfg)
   vfs_data = ctx->private_data;
   
   /* mount file system */
-  vfs_data->sb = vfs_mount(vfs_data->dev, VFS_MINIX_TYPE);
+  vfs_data->sb = vfs_mount(vfs_data->dev, vfs_data->fs_type);
   if (!vfs_data->sb)
     fuse_exit(ctx->fuse);
 
@@ -562,7 +562,7 @@ static const struct option lopt[] = {
  */
 static void usage(char *prog_name)
 {
-  printf("%s -t fstype <image_file> <mount_point>\n", prog_name);
+  printf("%s -t fstype [image_file] <mount_point>\n", prog_name);
   printf("\n");
   printf("Options :\n");
   printf(" -h               print help\n");
@@ -595,16 +595,26 @@ static int parse_options(int argc, char **argv, struct vfs_data_t *vfs_data)
     }
   }
 
-  /* get image file */
-  if (optind < argc && argv[optind] != NULL)
-    vfs_data->dev = strdup(argv[optind++]);
+  /* missing file system type */
+  if (!fs_type) {
+    usage(argv[0]);
+    return -1;
+  }
 
-  /* get mount point */
-  if (optind < argc && argv[optind] != NULL)
-    vfs_data->mnt_point = strdup(argv[optind++]);
+  /* get image file and mount point */
+  if (optind + 1 < argc) {
+    vfs_data->dev = argv[optind] ? strdup(argv[optind]) : NULL;
+    vfs_data->mnt_point = argv[optind + 1] ? strdup(argv[optind + 1]) : NULL;
+  } else if (optind < argc) {
+    vfs_data->dev = NULL;
+    vfs_data->mnt_point = argv[optind] ? strdup(argv[optind]) : NULL;
+  } else {
+    vfs_data->dev = NULL;
+    vfs_data->mnt_point = NULL;
+  }
 
-  /* image file or mount point no specified */
-  if (!vfs_data->dev || !vfs_data->mnt_point) {
+  /* mount point not specified */
+  if (!vfs_data->mnt_point) {
     usage(argv[0]);
     return -1;
   }
@@ -613,7 +623,7 @@ static int parse_options(int argc, char **argv, struct vfs_data_t *vfs_data)
   if (strcmp(fs_type, "minix") == 0) {
     vfs_data->fs_type = VFS_MINIX_TYPE;
   } else {
-    printf("VFS: Unknown file system type '%s'\n", fs_type);
+    fprintf(stderr, "VFS: Unknown file system type '%s'\n", fs_type);
     return -1;
   }
   
@@ -632,7 +642,7 @@ int main(int argc, char **argv)
   /* init VFS block buffers and inodes */
   err = vfs_init();
   if (err) {
-    printf("VFS: can't init block buffers map or inodes map\n");
+    fprintf(stderr, "VFS: can't init block buffers map or inodes map\n");
     exit(err);
   }
 
