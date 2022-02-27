@@ -94,24 +94,36 @@ void vfs_destroy_inode(struct inode_t *inode)
  */
 void vfs_iput(struct inode_t *inode)
 {
+  struct super_operations_t *op = NULL;
+
   if (!inode)
     return;
   
   /* update reference */
   inode->i_ref--;
   
-  /* write inode in disk if needed */
-  if (inode->i_dirt) {
+  /* get super operations */
+  if (inode->i_sb && inode->i_sb->s_op)
+    op = inode->i_sb->s_op;
+
+  /* write inode on disk if needed */
+  if (inode->i_dirt && op && op->write_inode) {
     inode->i_sb->s_op->write_inode(inode);
     inode->i_dirt = 0;
   }
   
-  /* removed inode : truncate and free it */
-  if (!inode->i_nlinks && !inode->i_ref)
-    inode->i_sb->s_op->put_inode(inode);
-  
-  /* release inode */
-  if (!inode->i_ref && inode->i_sb->s_op && inode->i_sb->s_op->release_inode)
-    inode->i_sb->s_op->release_inode(inode);
+  /* put inode */
+  if (!inode->i_ref) {
+    /* delete inode */
+    if (!inode->i_nlinks && op && op->delete_inode)
+      op->delete_inode(inode);
+
+    /* put inode */
+    if (op && op->put_inode)
+      op->put_inode(inode);
+
+    /* destroy inode */
+    vfs_destroy_inode(inode);
+  }
 }
 

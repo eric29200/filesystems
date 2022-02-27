@@ -155,10 +155,10 @@ uint32_t minix_count_free_blocks(struct super_block_t *sb);
 /* Minix inode prototypes */
 struct buffer_head_t *minix_bread(struct inode_t *inode, uint32_t block, int create);
 int minix_alloc_inode(struct inode_t *inode);
-void minix_release_inode(struct inode_t *inode);
+void minix_put_inode(struct inode_t *inode);
+void minix_delete_inode(struct inode_t *inode);
 int minix_read_inode(struct inode_t *inode);
 int minix_write_inode(struct inode_t *inode);
-int minix_put_inode(struct inode_t *inode);
 
 /* Minix names resolution prototypes */
 int minix_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);

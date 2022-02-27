@@ -95,10 +95,10 @@ struct file_t {
  */
 struct super_operations_t {
   int (*alloc_inode)(struct inode_t *);
-  void (*release_inode)(struct inode_t *);
+  void (*put_inode)(struct inode_t *);
+  void (*delete_inode)(struct inode_t *);
   int (*read_inode)(struct inode_t *);
   int (*write_inode)(struct inode_t *);
-  int (*put_inode)(struct inode_t *);
   void (*put_super)(struct super_block_t *);
   int (*statfs)(struct super_block_t *, struct statfs *);
 };

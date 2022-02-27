@@ -71,19 +71,6 @@ int minix_alloc_inode(struct inode_t *inode)
 }
 
 /*
- * Release a Minix inode.
- */
-void minix_release_inode(struct inode_t *inode)
-{
-  if (!inode)
-    return;
-
-  /* free inode */
-  free(inode->i_private);
-  vfs_destroy_inode(inode);
-}
-
-/*
  * Read a Minix V1 inode on disk.
  */
 static int minix_read_inode_v1(struct inode_t *inode)
@@ -313,18 +300,29 @@ int minix_write_inode(struct inode_t *inode)
 /*
  * Release a Minix inode.
  */
-int minix_put_inode(struct inode_t *inode)
+void minix_put_inode(struct inode_t *inode)
 {
   if (!inode)
-    return -EINVAL;
+    return;
+
+  /* free inode */
+  free(inode->i_private);
+}
+
+/*
+ * Delete a Minix inode.
+ */
+void minix_delete_inode(struct inode_t *inode)
+{
+  if (!inode)
+    return;
   
+  /* truncate and free inode */
   if (!inode->i_nlinks) {
     inode->i_size = 0;
     minix_truncate(inode);
     minix_free_inode(inode);
   }
-  
-  return 0;
 }
 
 /*
