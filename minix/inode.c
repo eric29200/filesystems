@@ -75,8 +75,12 @@ int minix_alloc_inode(struct inode_t *inode)
  */
 void minix_release_inode(struct inode_t *inode)
 {
-  if (inode && inode->i_private)
-    free(inode->i_private);
+  if (!inode)
+    return;
+
+  /* free inode */
+  free(inode->i_private);
+  vfs_destroy_inode(inode);
 }
 
 /*

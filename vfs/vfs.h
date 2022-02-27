@@ -14,7 +14,6 @@
 
 #define VFS_BUFFER_HTABLE_BITS                12
 #define VFS_NR_BUFFER                         (1 << VFS_BUFFER_HTABLE_BITS)
-#define VFS_NR_INODE                          (1 << 12)
 
 #define container_of(ptr, type, member)       ({void *__mptr = (void *)(ptr);                   \
                                               ((type *)(__mptr - offsetof(type, member))); })
@@ -65,6 +64,7 @@ struct inode_t {
   char                      i_dirt;
   struct inode_operations_t *i_op;
   void                      *i_private;
+  struct list_head_t        i_list;
 };
 
 /*
@@ -141,6 +141,7 @@ void brelse(struct buffer_head_t *bh);
 struct inode_t *vfs_get_empty_inode(struct super_block_t *sb);
 struct inode_t *vfs_iget(struct super_block_t *sb, ino_t ino);
 void vfs_iput(struct inode_t *inode);
+void vfs_destroy_inode(struct inode_t *inode);
 
 /* VFS name resolution prototypes */
 struct inode_t *vfs_namei(struct inode_t *root, struct inode_t *base, const char *pathname, int follow_links);

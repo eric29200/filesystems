@@ -1,9 +1,10 @@
+#include <stdlib.h>
 #include <string.h>
 
 #include "vfs.h"
 
-/* global inode table */
-static struct inode_t inode_table[VFS_NR_INODE];
+/* global inodes list */
+static LIST_HEAD(inodes_list);
 
 /*
  * Get an empty inode.
@@ -11,19 +12,14 @@ static struct inode_t inode_table[VFS_NR_INODE];
 struct inode_t *vfs_get_empty_inode(struct super_block_t *sb)
 {
   struct inode_t *inode;
-  int i, ret;
-  
-  /* find a free inode */
-  for (i = 0; i < VFS_NR_INODE; i++) {
-    if (!inode_table[i].i_ref) {
-      inode = &inode_table[i];
-      break;
-    }
-  }
-  
-  /* no more inode */
-  if (i >= VFS_NR_INODE)
+  int ret;
+
+  /* allocate a new inode */
+  inode = (struct inode_t *) malloc(sizeof(struct inode_t));
+  if (!inode) {
+    fprintf(stderr, "VFS : can't allocate new inode\n");
     return NULL;
+  }
   
   /* reset inode */
   memset(inode, 0, sizeof(struct inode_t));
@@ -35,9 +31,13 @@ struct inode_t *vfs_get_empty_inode(struct super_block_t *sb)
       return NULL;
   }
 
-  /* set reference and super block */
+  /* set new inode */
   inode->i_sb = sb;
   inode->i_ref = 1;
+  INIT_LIST_HEAD(&inode->i_list);
+
+  /* add inode to global list */
+  list_add(&inode->i_list, &inodes_list);
   
   return inode;
 }
@@ -47,13 +47,14 @@ struct inode_t *vfs_get_empty_inode(struct super_block_t *sb)
  */
 struct inode_t *vfs_iget(struct super_block_t *sb, ino_t ino)
 {
+  struct list_head_t *pos;
   struct inode_t *inode;
-  int err, i;
+  int err;
   
   /* try to find inode in table */
-  for (i = 0; i < VFS_NR_INODE; i++) {
-    if (inode_table[i].i_ino == ino && inode_table[i].i_sb == sb) {
-      inode = &inode_table[i];
+  list_for_each(pos, &inodes_list) {
+    inode = list_entry(pos, struct inode_t, i_list);
+    if (inode->i_ino == ino && inode->i_sb == sb) {
       inode->i_ref++;
       return inode;
     }
@@ -77,6 +78,16 @@ struct inode_t *vfs_iget(struct super_block_t *sb, ino_t ino)
   return inode;
 }
 
+/*
+ * Destroy an inode.
+ */
+void vfs_destroy_inode(struct inode_t *inode)
+{
+  if (inode) {
+    list_del(&inode->i_list);
+    free(inode);
+  }
+}
 
 /*
  * Release an inode.
@@ -102,9 +113,5 @@ void vfs_iput(struct inode_t *inode)
   /* release inode */
   if (!inode->i_ref && inode->i_sb->s_op && inode->i_sb->s_op->release_inode)
     inode->i_sb->s_op->release_inode(inode);
-
-  /* memzero inode */
-  if (!inode->i_ref)
-    memset(inode, 0, sizeof(struct inode_t));
 }
 
