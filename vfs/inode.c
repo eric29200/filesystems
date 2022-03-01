@@ -60,6 +60,10 @@ struct inode_t *vfs_iget(struct super_block_t *sb, ino_t ino)
     }
   }
   
+  /* check if read_inode is implemented */
+  if (!sb->s_op || !sb->s_op->read_inode)
+    return NULL;
+
   /* allocate generic inode */
   inode = vfs_get_empty_inode(sb);
   if (!inode)
