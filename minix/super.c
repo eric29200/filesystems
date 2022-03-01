@@ -43,14 +43,14 @@ int minix_read_super(struct super_block_t *sb)
   sb->s_blocksize_bits = MINIX_BLOCK_SIZE_BITS;
   
   /* read first block = super block */
-  sbi->sb_bh = sb_bread(sb, 1);
-  if (!sbi->sb_bh) {
+  sbi->s_sbh = sb_bread(sb, 1);
+  if (!sbi->s_sbh) {
     err = -EIO;
     goto err_bad_sb;
   }
   
   /* set Minix file system */
-  msb1 = (struct minix1_super_block_t *) sbi->sb_bh->b_data;
+  msb1 = (struct minix1_super_block_t *) sbi->s_sbh->b_data;
   sbi->s_ninodes = msb1->s_ninodes;
   sbi->s_nzones = msb1->s_nzones;
   sbi->s_imap_blocks = msb1->s_imap_blocks;
@@ -82,8 +82,8 @@ int minix_read_super(struct super_block_t *sb)
     sbi->s_version = MINIX_V2;
     sbi->s_name_len = 30;
     sbi->s_dirsize = 32;
-  } else if (*((uint16_t *) (sbi->sb_bh->b_data + 24)) == MINIX3_MAGIC) {
-      msb3 = (struct minix3_super_block_t *) sbi->sb_bh->b_data;
+  } else if (*((uint16_t *) (sbi->s_sbh->b_data + 24)) == MINIX3_MAGIC) {
+      msb3 = (struct minix3_super_block_t *) sbi->s_sbh->b_data;
       sbi->s_ninodes = msb3->s_ninodes;
       sbi->s_nzones = msb3->s_zones;
       sbi->s_imap_blocks = msb3->s_imap_blocks;
@@ -176,7 +176,7 @@ err_release_map:
 err_bad_magic:
   fprintf(stderr, "Minix : wrong magic number\n");
 err_release_sb:
-  brelse(sbi->sb_bh);
+  brelse(sbi->s_sbh);
   goto err;
 err_bad_sb:
   fprintf(stderr, "Minix : can't read super block\n");
@@ -213,7 +213,7 @@ void minix_put_super(struct super_block_t *sb)
   }
   
   /* release super block */
-  brelse(sbi->sb_bh);
+  brelse(sbi->s_sbh);
   
   /* free in memory super block */
   free(sbi);

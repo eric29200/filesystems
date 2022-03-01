@@ -51,23 +51,21 @@ struct inode_operations_t minix_dir_iops = {
 /*
  * Allocate a Minix inode.
  */
-int minix_alloc_inode(struct inode_t *inode)
+struct inode_t *minix_alloc_inode(struct super_block_t *sb)
 {
+  struct minix_inode_info_t *minix_inode;
   int i;
 
-  if (!inode)
-    return -EINVAL;
-
   /* allocate minix specific inode */
-  inode->i_private = malloc(sizeof(struct minix_inode_info_t));
-  if (!inode->i_private)
-    return -ENOMEM;
+  minix_inode = malloc(sizeof(struct minix_inode_info_t));
+  if (!minix_inode)
+    return NULL;
 
   /* reset data zones */
   for (i = 0; i < 10; i++)
-    minix_i(inode)->i_zone[i] = 0;
+    minix_inode->i_zone[i] = 0;
 
-  return 0;
+  return &minix_inode->vfs_inode;
 }
 
 /*
@@ -306,7 +304,7 @@ void minix_put_inode(struct inode_t *inode)
     return;
 
   /* free inode */
-  free(inode->i_private);
+  free(minix_i(inode));
 }
 
 /*

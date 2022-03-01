@@ -12,24 +12,18 @@ static LIST_HEAD(inodes_list);
 struct inode_t *vfs_get_empty_inode(struct super_block_t *sb)
 {
   struct inode_t *inode;
-  int ret;
 
-  /* allocate a new inode */
-  inode = (struct inode_t *) malloc(sizeof(struct inode_t));
-  if (!inode) {
-    fprintf(stderr, "VFS : can't allocate new inode\n");
+  /* allocation inode not implemented */
+  if (!sb->s_op || !sb->s_op->alloc_inode)
     return NULL;
-  }
+
+  /* allocate new inode */
+  inode = sb->s_op->alloc_inode(sb);
+  if (!inode)
+    return NULL;
   
   /* reset inode */
   memset(inode, 0, sizeof(struct inode_t));
-  
-  /* specific file system allocation */
-  if (sb->s_op && sb->s_op->alloc_inode) {
-    ret = sb->s_op->alloc_inode(inode);
-    if (ret)
-      return NULL;
-  }
 
   /* set new inode */
   inode->i_sb = sb;
@@ -118,6 +112,9 @@ void vfs_iput(struct inode_t *inode)
   
   /* put inode */
   if (!inode->i_ref) {
+    /* remove inode from list */
+    list_del(&inode->i_list);
+
     /* delete inode */
     if (!inode->i_nlinks && op && op->delete_inode)
       op->delete_inode(inode);
@@ -125,9 +122,6 @@ void vfs_iput(struct inode_t *inode)
     /* put inode */
     if (op && op->put_inode)
       op->put_inode(inode);
-
-    /* destroy inode */
-    vfs_destroy_inode(inode);
   }
 }
 

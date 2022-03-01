@@ -41,7 +41,7 @@ struct minix_sb_info_t {
   int                           s_name_len;             /* file name length */
   int                           s_dirsize;              /* directory entry size */
   uint32_t                      s_max_size;             /* maximum size of file */
-  struct buffer_head_t          *sb_bh;                 /* super block buffer */
+  struct buffer_head_t          *s_sbh;                 /* super block buffer */
   struct buffer_head_t          **s_imap;               /* inodes bitmap buffers */
   struct buffer_head_t          **s_zmap;               /* zones bitmap buffers */
 };
@@ -85,7 +85,8 @@ struct minix3_super_block_t {
  * Minix in memory inode.
  */
 struct minix_inode_info_t {
-  uint32_t      i_zone[10];         /* data zones */
+  uint32_t          i_zone[10];         /* data zones */
+  struct inode_t    vfs_inode;          /* VFS inode */
 };
 
 /*
@@ -154,7 +155,7 @@ uint32_t minix_count_free_blocks(struct super_block_t *sb);
 
 /* Minix inode prototypes */
 struct buffer_head_t *minix_bread(struct inode_t *inode, uint32_t block, int create);
-int minix_alloc_inode(struct inode_t *inode);
+struct inode_t *minix_alloc_inode(struct super_block_t *sb);
 void minix_put_inode(struct inode_t *inode);
 void minix_delete_inode(struct inode_t *inode);
 int minix_read_inode(struct inode_t *inode);
@@ -196,7 +197,7 @@ static inline struct minix_sb_info_t *minix_sb(struct super_block_t *sb)
  */
 static inline struct minix_inode_info_t *minix_i(struct inode_t *inode)
 {
-  return inode->i_private;
+  return container_of(inode, struct minix_inode_info_t, vfs_inode);
 }
 
 #endif

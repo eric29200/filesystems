@@ -63,7 +63,6 @@ struct inode_t {
   int                       i_ref;
   char                      i_dirt;
   struct inode_operations_t *i_op;
-  void                      *i_private;
   struct list_head_t        i_list;
 };
 
@@ -94,7 +93,7 @@ struct file_t {
  * Super block operations.
  */
 struct super_operations_t {
-  int (*alloc_inode)(struct inode_t *);
+  struct inode_t *(*alloc_inode)(struct super_block_t *);
   void (*put_inode)(struct inode_t *);
   void (*delete_inode)(struct inode_t *);
   int (*read_inode)(struct inode_t *);
