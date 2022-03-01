@@ -136,7 +136,7 @@ static int minix_read_inode_v2(struct inode_t *inode)
     return -EIO;
   
   /* get raw inode */
-  raw_inode = &((struct minix2_inode_t *) bh->b_data)[(inode->i_ino -1 ) % inodes_per_block];
+  raw_inode = &((struct minix2_inode_t *) bh->b_data)[(inode->i_ino - 1) % inodes_per_block];
   
   /* set inode */
   inode->i_mode = raw_inode->i_mode;

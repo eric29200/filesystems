@@ -146,9 +146,6 @@ int minix_read_super(struct super_block_t *sb)
   if (!sb->root_inode)
     goto err_root_inode;
   
-  /* set root inode reference */
-  sb->root_inode->i_ref = 1;
-  
   return 0;
 err_root_inode:
   fprintf(stderr, "Minix : can't read root inode\n");

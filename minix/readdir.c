@@ -4,7 +4,7 @@
 #include "minix.h"
 
 /*
- * Get directory entries system call.
+ * Get directory entries.
  */
 int minix_getdents64(struct file_t *filp, void *dirp, size_t count)
 {

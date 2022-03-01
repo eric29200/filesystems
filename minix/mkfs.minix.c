@@ -17,9 +17,6 @@
 #define MINIX_INODES_PER_BLOCK      ((MINIX_BLOCK_SIZE) / sizeof(struct minix1_inode_t))
 #define MINIX2_INODES_PER_BLOCK     ((MINIX_BLOCK_SIZE) / sizeof(struct minix2_inode_t))
 
-#define BITMAP_SET(map, i)          ((map)[(i) / 8] |= (0x1 << ((i) % 8)))
-#define BITMAP_CLR(map, i)          ((map)[(i) / 8] &= ~(0x1 << ((i) % 8)))
-
 /* global variables */
 static int fs_version = DEFAULTS_FS_VERSION;
 static int fs_namelen = 30;

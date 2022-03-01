@@ -44,7 +44,7 @@ struct inode_t *vfs_iget(struct super_block_t *sb, ino_t ino)
   struct list_head_t *pos;
   struct inode_t *inode;
   int err;
-  
+
   /* try to find inode in table */
   list_for_each(pos, &inodes_list) {
     inode = list_entry(pos, struct inode_t, i_list);

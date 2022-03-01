@@ -11,12 +11,17 @@
 #include "../lib/htable.h"
 
 #define VFS_MINIX_TYPE                        1
+#define VFS_BFS_TYPE                          2
 
 #define VFS_BUFFER_HTABLE_BITS                12
 #define VFS_NR_BUFFER                         (1 << VFS_BUFFER_HTABLE_BITS)
 
 #define container_of(ptr, type, member)       ({void *__mptr = (void *)(ptr);                   \
                                               ((type *)(__mptr - offsetof(type, member))); })
+
+#define BITMAP_SET(map, i)                    ((map)[(i) / 8] |= (0x1 << ((i) % 8)))
+#define BITMAP_CLR(map, i)                    ((map)[(i) / 8] &= ~(0x1 << ((i) % 8)))
+
 
 /*
  * Block buffer.

@@ -115,7 +115,7 @@ struct inode_t *vfs_namei(struct inode_t *root, struct inode_t *base, const char
     vfs_iput(dir);
     return NULL;
   }
-  
+
   /* lookup file */
   dir->i_ref++;
   err = dir->i_op->lookup(dir, basename, basename_len, &inode);
