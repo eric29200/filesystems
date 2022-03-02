@@ -128,7 +128,7 @@ static int bfs_add_entry(struct inode_t *dir, const char *name, size_t name_len,
       de = (struct bfs_dir_entry_t *) (bh->b_data + off);
 
       /* free inode */
-      if (!de->d_ino) {
+      if (!le16toh(de->d_ino)) {
         /* update directory size */
         if ((block - bfs_dir->i_sblock) * BFS_BLOCK_SIZE + off >= dir->i_size) {
           dir->i_size += BFS_DIRENT_SIZE;
@@ -140,7 +140,7 @@ static int bfs_add_entry(struct inode_t *dir, const char *name, size_t name_len,
         memcpy(de->d_name, name, name_len);
 
         /* set new entry inode */
-        de->d_ino = inode->i_ino;
+        de->d_ino = htole16(inode->i_ino);
 
         /* mark buffer dirty and release it */
         bh->b_dirt = 1;
@@ -216,6 +216,88 @@ int bfs_create(struct inode_t *dir, const char *name, size_t name_len, mode_t mo
   }
 
   /* release directory */
+  vfs_iput(dir);
+
+  return 0;
+}
+
+/*
+ * Make a new name for a BFS file (= hard link).
+ */
+int bfs_link(struct inode_t *old_inode, struct inode_t *dir, const char *name, size_t name_len)
+{
+  struct bfs_dir_entry_t *de;
+  struct buffer_head_t *bh;
+  int err;
+
+  /* check if new file exists */
+  bh = bfs_find_entry(dir, name, name_len, &de);
+  if (bh) {
+    brelse(bh);
+    vfs_iput(old_inode);
+    vfs_iput(dir);
+    return -EEXIST;
+  }
+
+  /* add entry */
+  err = bfs_add_entry(dir, name, name_len, old_inode);
+  if (err) {
+    vfs_iput(old_inode);
+    vfs_iput(dir);
+    return err;
+  }
+
+  /* update old inode */
+  old_inode->i_nlinks++;
+  old_inode->i_dirt = 1;
+
+  /* release inodes */
+  vfs_iput(old_inode);
+  vfs_iput(dir);
+
+  return 0;
+}
+
+/*
+ * Unlink (remove) a BFS file.
+ */
+int bfs_unlink(struct inode_t *dir, const char *name, size_t name_len)
+{
+  struct bfs_dir_entry_t *de;
+  struct buffer_head_t *bh;
+  struct inode_t *inode;
+
+  /* get directory entry */
+  bh = bfs_find_entry(dir, name, name_len, &de);
+  if (!bh) {
+    vfs_iput(dir);
+    return -ENOENT;
+  }
+
+  /* get inode */
+  inode = vfs_iget(dir->i_sb, le16toh(de->d_ino));
+  if (!inode) {
+    vfs_iput(dir);
+    brelse(bh);
+    return -ENOENT;
+  }
+
+  /* reset directory entry */
+  memset(de, 0, BFS_DIRENT_SIZE);
+  bh->b_dirt = 1;
+  brelse(bh);
+
+  /* update directory */
+  dir->i_ctime = dir->i_mtime = current_time();
+  dir->i_dirt = 1;
+
+  /* update inode */
+  inode->i_ctime = dir->i_ctime;
+  inode->i_nlinks--;
+  inode->i_dirt = 1;
+
+  /* release inode */
+  vfs_iput(inode);
   vfs_iput(dir);
 
   return 0;

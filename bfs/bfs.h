@@ -111,6 +111,8 @@ int bfs_write_inode(struct inode_t *inode);
 /* BFS name resolution prototypes */
 int bfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
 int bfs_create(struct inode_t *dir, const char *name, size_t name_len, mode_t mode, struct inode_t **res_inode);
+int bfs_link(struct inode_t *old_inode, struct inode_t *dir, const char *name, size_t name_len);
+int bfs_unlink(struct inode_t *dir, const char *name, size_t name_len);
 
 /* BFS file prototypes */
 int bfs_file_read(struct file_t *filp, char *buf, int count);
