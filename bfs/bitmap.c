@@ -71,3 +71,49 @@ struct inode_t *bfs_new_inode(struct super_block_t *sb)
 
   return inode;
 }
+
+/*
+ * Free a BFS inode.
+ */
+int bfs_free_inode(struct inode_t *inode)
+{
+  struct bfs_inode_info_t *bfs_inode = bfs_i(inode);
+  struct bfs_sb_info_t *sbi = bfs_sb(inode->i_sb);
+  struct bfs_inode_t *raw_inode;
+  struct buffer_head_t *bh;
+  uint32_t block, off;
+
+  /* compute inode block */
+  block = (inode->i_ino - BFS_ROOT_INO) / BFS_INODES_PER_BLOCK + 1;
+
+  /* read inode block buffer */
+  bh = sb_bread(inode->i_sb, block);
+  if (!bh)
+    return -EIO;
+
+  /* get bfs inode */
+  off = (inode->i_ino - BFS_ROOT_INO) % BFS_INODES_PER_BLOCK;
+  raw_inode = (struct bfs_inode_t *) bh->b_data + off;
+
+  /* memzero raw inode */
+  memset(raw_inode, 0, sizeof(struct bfs_inode_t));
+
+  /* release block buffer */
+  bh->b_dirt = 1;
+  brelse(bh);
+
+  /* update super block and bitmap */
+  if (bfs_inode->i_dsk_ino) {
+    /* update number of free blocks */
+    if (bfs_inode->i_sblock)
+      sbi->s_freeb += bfs_inode->i_eblock - bfs_inode->i_sblock + 1;
+
+    /* update number of free inodes */
+    sbi->s_freei++;
+
+    /* clear bitmap */
+    BITMAP_CLR(sbi->s_imap, inode->i_ino);
+  }
+
+  return 0;
+}

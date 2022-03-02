@@ -72,7 +72,7 @@ void bfs_delete_inode(struct inode_t *inode)
   if (!inode->i_nlinks) {
     inode->i_size = 0;
     bfs_truncate(inode);
-    //bfs_free_inode(inode);
+    bfs_free_inode(inode);
   }
 }
 

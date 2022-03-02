@@ -101,6 +101,7 @@ int bfs_statfs(struct super_block_t *sb, struct statfs *buf);
 
 /* BFS bitmap prototypes */
 struct inode_t *bfs_new_inode(struct super_block_t *sb);
+int bfs_free_inode(struct inode_t *inode);
 
 /* BFS inode prototypes */
 struct inode_t *bfs_alloc_inode(struct super_block_t *sb);
