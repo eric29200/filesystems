@@ -105,6 +105,7 @@ struct inode_t *bfs_new_inode(struct super_block_t *sb);
 /* BFS inode prototypes */
 struct inode_t *bfs_alloc_inode(struct super_block_t *sb);
 void bfs_put_inode(struct inode_t *inode);
+void bfs_delete_inode(struct inode_t *inode);
 int bfs_read_inode(struct inode_t *inode);
 int bfs_write_inode(struct inode_t *inode);
 
@@ -121,6 +122,9 @@ struct buffer_head_t *bfs_bread(struct inode_t *inode, uint32_t block, int creat
 int bfs_file_read(struct file_t *filp, char *buf, int count);
 int bfs_file_write(struct file_t *filp, const char *buf, int count);
 int bfs_getdents64(struct file_t *filp, void *dirp, size_t count);
+
+/* BFS truncate prototypes */
+int bfs_truncate(struct inode_t *inode);
 
 /*
  * Get BFS in memory super block from generic super block.

@@ -10,7 +10,7 @@
 struct super_operations_t bfs_sops = {
   .alloc_inode          = bfs_alloc_inode,
   .put_inode            = bfs_put_inode,
-  .delete_inode         = NULL,
+  .delete_inode         = bfs_delete_inode,
   .read_inode           = bfs_read_inode,
   .write_inode          = bfs_write_inode,
   .put_super            = bfs_put_super,

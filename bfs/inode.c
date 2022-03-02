@@ -61,6 +61,22 @@ struct inode_t *bfs_alloc_inode(struct super_block_t *sb)
 }
 
 /*
+ * Delete a BFS inode.
+ */
+void bfs_delete_inode(struct inode_t *inode)
+{
+  if (!inode)
+    return;
+
+  /* truncate and free inode */
+  if (!inode->i_nlinks) {
+    inode->i_size = 0;
+    bfs_truncate(inode);
+    //bfs_free_inode(inode);
+  }
+}
+
+/*
  * Read a BFS inode.
  */
 int bfs_read_inode(struct inode_t *inode)
