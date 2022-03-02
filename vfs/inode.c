@@ -77,17 +77,6 @@ struct inode_t *vfs_iget(struct super_block_t *sb, ino_t ino)
 }
 
 /*
- * Destroy an inode.
- */
-void vfs_destroy_inode(struct inode_t *inode)
-{
-  if (inode) {
-    list_del(&inode->i_list);
-    free(inode);
-  }
-}
-
-/*
  * Release an inode.
  */
 void vfs_iput(struct inode_t *inode)
