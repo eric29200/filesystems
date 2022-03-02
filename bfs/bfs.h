@@ -50,10 +50,10 @@ struct bfs_super_block_t {
 	uint32_t              s_magic;          /* magic number */
 	uint32_t              s_start;          /* start of data blocks (in bytes) */
 	uint32_t              s_end;            /* end of data blocks (in bytes) */
-	uint32_t              s_from;
-	uint32_t              s_to;
-	int32_t               s_bfrom;
-	int32_t               s_bto;
+	uint32_t              s_from;           /* used to compact file system */
+	uint32_t              s_to;             /* idem */
+	int32_t               s_bfrom;          /* idem */
+	int32_t               s_bto;            /* idem */
 	char                  s_fsname[6];      /* file system name */
 	char                  s_volume[6];      /* volume name */
 	uint32_t              s_padding[118];   /* padding */

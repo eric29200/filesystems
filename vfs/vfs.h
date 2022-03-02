@@ -27,71 +27,71 @@
  * Block buffer.
  */
 struct buffer_head_t {
-  uint32_t                  b_block;
-  char                      *b_data;
-  size_t                    b_size;
-  int                       b_ref;
-  char                      b_dirt;
-  char                      b_uptodate;
-  struct super_block_t      *b_sb;
-  struct list_head_t        b_list;
-  struct htable_link_t      b_htable;
+  uint32_t                  b_block;          /* block number */
+  char                      *b_data;          /* data buffer */
+  size_t                    b_size;           /* buffer block size */
+  int                       b_ref;            /* reference counter */
+  char                      b_dirt;           /* dirty flag */
+  char                      b_uptodate;       /* up to date flag */
+  struct super_block_t      *b_sb;            /* super block of device */
+  struct list_head_t        b_list;           /* global blocks linked list */
+  struct htable_link_t      b_htable;         /* global blocks hash table */
 };
 
 /*
  * Generic super block.
  */
 struct super_block_t {
-  int                       s_fd;
-  uint16_t                  s_blocksize;
-  uint8_t                   s_blocksize_bits;
-  uint16_t                  s_magic;
-  void                      *s_fs_info;
-  struct inode_t            *root_inode;
-  struct super_operations_t *s_op;
+  int                       s_fd;                 /* device file descriptor */
+  uint16_t                  s_blocksize;          /* block size in byte */
+  uint8_t                   s_blocksize_bits;     /* block size in bit (log2) */
+  uint16_t                  s_magic;              /* magic number */
+  void                      *s_fs_info;           /* specific file system informations */
+  struct inode_t            *s_root_inode;        /* root inode */
+  struct super_operations_t *s_op;                /* super block operations */
 };
 
 /*
  * Generic inode.
  */
 struct inode_t {
-  mode_t                    i_mode;
-  uint16_t                  i_nlinks;
-  uid_t                     i_uid;
-  gid_t                     i_gid;
-  ssize_t                   i_size;
-  struct timespec           i_atime;
-  struct timespec           i_mtime;
-  struct timespec           i_ctime;
-  ino_t                     i_ino;
-  struct super_block_t      *i_sb;
-  int                       i_ref;
-  char                      i_dirt;
-  struct inode_operations_t *i_op;
-  struct list_head_t        i_list;
+  mode_t                    i_mode;               /* file mode */
+  uint16_t                  i_nlinks;             /* number of links to this file */
+  uid_t                     i_uid;                /* user id */
+  gid_t                     i_gid;                /* group id */
+  ssize_t                   i_size;               /* file size in byte */
+  struct timespec           i_atime;              /* last access time */
+  struct timespec           i_mtime;              /* last modification time */
+  struct timespec           i_ctime;              /* creation time */
+  ino_t                     i_ino;                /* inode number */
+  struct super_block_t      *i_sb;                /* super block */
+  int                       i_ref;                /* reference counter */
+  char                      i_dirt;               /* dirty flag */
+  struct inode_operations_t *i_op;                /* inode operations */
+  struct list_head_t        i_list;               /* global inodes linked list */
 };
 
 /*
  * Generic directory entry.
  */
 struct dirent64_t {
-  uint64_t                  d_inode;
-  int64_t                   d_off;
-  uint16_t                  d_reclen;
-  uint8_t                   d_type;
-  char                      d_name[];
+  uint64_t                  d_inode;              /* inode number */
+  int64_t                   d_off;                /* offset to next directory entry */
+  uint16_t                  d_reclen;             /* length of this struct */
+  uint8_t                   d_type;               /* file type */
+  char                      d_name[];             /* file name */
 };
 
 /*
  * Generic file.
  */
 struct file_t {
-  mode_t                    f_mode;
-  int                       f_flags;
-  size_t                    f_pos;
-  int                       f_ref;
-  struct inode_t            *f_inode;
-  struct file_operations_t  *f_op;
+  mode_t                    f_mode;               /* file mode */
+  int                       f_flags;              /* file flags */
+  size_t                    f_pos;                /* file position */
+  int                       f_ref;                /* reference counter */
+  struct inode_t            *f_inode;             /* inode */
+  struct file_operations_t  *f_op;                /* file operations */
 };
 
 /*

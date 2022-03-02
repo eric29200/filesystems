@@ -59,7 +59,7 @@ int bfs_read_super(struct super_block_t *sb)
   sbi->s_imap = NULL;
   sb->s_magic = le32toh(bfs_sb->s_magic);
   sb->s_op = &bfs_sops;
-  sb->root_inode = NULL;
+  sb->s_root_inode = NULL;
 
   /* allocate inodes bitmap */
   imap_len = (sbi->s_lasti / 8) + 1;
@@ -112,8 +112,8 @@ int bfs_read_super(struct super_block_t *sb)
   brelse(sbh);
 
   /* get root inode */
-  sb->root_inode = vfs_iget(sb, BFS_ROOT_INO);
-  if (!sb->root_inode)
+  sb->s_root_inode = vfs_iget(sb, BFS_ROOT_INO);
+  if (!sb->s_root_inode)
     goto err_root_inode;
 
   return 0;
@@ -144,7 +144,7 @@ void bfs_put_super(struct super_block_t *sb)
   struct bfs_sb_info_t *sbi = bfs_sb(sb);
 
   /* release root inode */
-  vfs_iput(sb->root_inode);
+  vfs_iput(sb->s_root_inode);
 
   /* free inodes bitmap */
   free(sbi->s_imap);

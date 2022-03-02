@@ -62,7 +62,7 @@ int minix_read_super(struct super_block_t *sb)
   sbi->s_zmap = NULL;
   sbi->s_max_size = msb1->s_max_size;
   sb->s_magic = msb1->s_magic;
-  sb->root_inode = NULL;
+  sb->s_root_inode = NULL;
   sb->s_op = &minix_sops;
   
   /* set Minix file system specific version */
@@ -142,8 +142,8 @@ int minix_read_super(struct super_block_t *sb)
   }
   
   /* get root inode */
-  sb->root_inode = vfs_iget(sb, MINIX_ROOT_INODE);
-  if (!sb->root_inode)
+  sb->s_root_inode = vfs_iget(sb, MINIX_ROOT_INODE);
+  if (!sb->s_root_inode)
     goto err_root_inode;
   
   return 0;
@@ -191,7 +191,7 @@ void minix_put_super(struct super_block_t *sb)
   int i;
   
   /* release root inode */
-  vfs_iput(sb->root_inode);
+  vfs_iput(sb->s_root_inode);
   
   /* release inodes bitmap */
   if (sbi->s_imap) {

@@ -32,7 +32,7 @@ static int op_getattr(const char *pathname, struct stat *statbuf, struct fuse_fi
   vfs_data = fuse_get_context()->private_data;
 
   /* stat file */
-  return vfs_stat(vfs_data->sb->root_inode, pathname, statbuf);
+  return vfs_stat(vfs_data->sb->s_root_inode, pathname, statbuf);
 }
 
 /*
@@ -47,7 +47,7 @@ static int op_readlink(const char *pathname, char *buf, size_t bufsize)
   vfs_data = fuse_get_context()->private_data;
 
   /* read link */
-  err = vfs_readlink(vfs_data->sb->root_inode, pathname, buf, bufsize);
+  err = vfs_readlink(vfs_data->sb->s_root_inode, pathname, buf, bufsize);
   if (err < 0)
     return err;
 
@@ -74,7 +74,7 @@ static int op_mkdir(const char *pathname, mode_t mode)
   vfs_data = fuse_get_context()->private_data;
 
   /* make directory */
-  return vfs_mkdir(vfs_data->sb->root_inode, pathname, mode);
+  return vfs_mkdir(vfs_data->sb->s_root_inode, pathname, mode);
 }
 
 /*
@@ -88,7 +88,7 @@ static int op_unlink(const char *pathname)
   vfs_data = fuse_get_context()->private_data;
 
   /* remove file */
-  return vfs_unlink(vfs_data->sb->root_inode, pathname);
+  return vfs_unlink(vfs_data->sb->s_root_inode, pathname);
 }
 
 /*
@@ -102,7 +102,7 @@ static int op_rmdir(const char *pathname)
   vfs_data = fuse_get_context()->private_data;
 
   /* remove directory */
-  return vfs_rmdir(vfs_data->sb->root_inode, pathname);
+  return vfs_rmdir(vfs_data->sb->s_root_inode, pathname);
 }
 
 /*
@@ -116,7 +116,7 @@ static int op_symlink(const char *target, const char *linkpath)
   vfs_data = fuse_get_context()->private_data;
 
   /* remove directory */
-  return vfs_symlink(vfs_data->sb->root_inode, target, linkpath);
+  return vfs_symlink(vfs_data->sb->s_root_inode, target, linkpath);
 }
 
 /*
@@ -130,7 +130,7 @@ static int op_rename(const char *oldpath, const char *newpath, unsigned int flag
   vfs_data = fuse_get_context()->private_data;
 
   /* rename file */
-  return vfs_rename(vfs_data->sb->root_inode, oldpath, newpath);
+  return vfs_rename(vfs_data->sb->s_root_inode, oldpath, newpath);
 }
 
 /*
@@ -144,7 +144,7 @@ static int op_link(const char *oldpath, const char *newpath)
   vfs_data = fuse_get_context()->private_data;
 
   /* link file */
-  return vfs_link(vfs_data->sb->root_inode, oldpath, newpath);
+  return vfs_link(vfs_data->sb->s_root_inode, oldpath, newpath);
 }
 
 /*
@@ -158,7 +158,7 @@ static int op_chmod(const char *pathname, mode_t mode, struct fuse_file_info *fi
   vfs_data = fuse_get_context()->private_data;
 
   /* chmod */
-  return vfs_chmod(vfs_data->sb->root_inode, pathname, mode);
+  return vfs_chmod(vfs_data->sb->s_root_inode, pathname, mode);
 }
 
 /*
@@ -172,7 +172,7 @@ static int op_chown(const char *pathname, uid_t uid, gid_t gid, struct fuse_file
   vfs_data = fuse_get_context()->private_data;
 
   /* chown */
-  return vfs_chown(vfs_data->sb->root_inode, pathname, uid, gid);
+  return vfs_chown(vfs_data->sb->s_root_inode, pathname, uid, gid);
 }
 
 /*
@@ -186,7 +186,7 @@ static int op_truncate(const char *pathname, off_t length, struct fuse_file_info
   vfs_data = fuse_get_context()->private_data;
 
   /* chown */
-  return vfs_truncate(vfs_data->sb->root_inode, pathname, length);
+  return vfs_truncate(vfs_data->sb->s_root_inode, pathname, length);
 }
 
 /*
@@ -201,7 +201,7 @@ static int op_open(const char *pathname, struct fuse_file_info *fi)
   vfs_data = fuse_get_context()->private_data;
 
   /* open file */
-  file = vfs_open(vfs_data->sb->root_inode, pathname, fi->flags, 0);
+  file = vfs_open(vfs_data->sb->s_root_inode, pathname, fi->flags, 0);
   if (!file)
     return -ENOENT;
 
@@ -226,7 +226,7 @@ static int op_read(const char *pathname, char *buf, size_t length, off_t offset,
 
   /* open file if needed */
   if (!file) {
-    file = vfs_open(vfs_data->sb->root_inode, pathname, O_RDONLY, 0);
+    file = vfs_open(vfs_data->sb->s_root_inode, pathname, O_RDONLY, 0);
     if (!file)
       return -1;
 
@@ -263,7 +263,7 @@ static int op_write(const char *pathname, const char *buf, size_t length, off_t 
 
   /* open file if needed */
   if (!file) {
-    file = vfs_open(vfs_data->sb->root_inode, pathname, O_WRONLY, 0);
+    file = vfs_open(vfs_data->sb->s_root_inode, pathname, O_WRONLY, 0);
     if (!file)
       return -1;
 
@@ -470,7 +470,7 @@ static int op_access(const char *pathname, int mask)
   vfs_data = fuse_get_context()->private_data;
 
   /* check access */
-  return vfs_access(vfs_data->sb->root_inode, pathname, 0);
+  return vfs_access(vfs_data->sb->s_root_inode, pathname, 0);
 }
 
 /*
@@ -484,7 +484,7 @@ static int op_create(const char *pathname, mode_t mode, struct fuse_file_info *f
   vfs_data = fuse_get_context()->private_data;
 
   /* create file */
-  return vfs_create(vfs_data->sb->root_inode, pathname, mode);
+  return vfs_create(vfs_data->sb->s_root_inode, pathname, mode);
 }
 
 /*
@@ -507,7 +507,7 @@ static int op_utimens(const char *pathname, const struct timespec tv[2], struct 
   vfs_data = fuse_get_context()->private_data;
 
   /* set timestamps */
-  return vfs_utimens(vfs_data->sb->root_inode, pathname, tv, 0);
+  return vfs_utimens(vfs_data->sb->s_root_inode, pathname, tv, 0);
 }
 
 /*
