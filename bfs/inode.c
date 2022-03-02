@@ -43,7 +43,7 @@ struct inode_operations_t bfs_dir_iops = {
   .symlink            = NULL,
   .mkdir              = NULL,
   .rmdir              = NULL,
-  .rename             = NULL,
+  .rename             = bfs_rename,
   .truncate           = NULL,
 };
 

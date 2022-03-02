@@ -302,3 +302,82 @@ int bfs_unlink(struct inode_t *dir, const char *name, size_t name_len)
 
   return 0;
 }
+
+/*
+ * Rename a BFS file.
+ */
+int bfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_name_len,
+               struct inode_t *new_dir, const char *new_name, size_t new_name_len)
+{
+  struct inode_t *old_inode = NULL, *new_inode = NULL;
+  struct buffer_head_t *old_bh = NULL, *new_bh = NULL;
+  struct bfs_dir_entry_t *old_de, *new_de;
+  int err;
+
+  /* find old entry */
+  old_bh = bfs_find_entry(old_dir, old_name, old_name_len, &old_de);
+  if (!old_bh) {
+    err = -ENOENT;
+    goto out;
+  }
+
+  /* get old inode */
+  old_inode = vfs_iget(old_dir->i_sb, le16toh(old_de->d_ino));
+  if (!old_inode) {
+    err = -ENOSPC;
+    goto out;
+  }
+
+  /* find new entry (if exists) or add new one */
+  new_bh = bfs_find_entry(new_dir, new_name, new_name_len, &new_de);
+  if (new_bh) {
+    /* get new inode */
+    new_inode = vfs_iget(new_dir->i_sb, le16toh(new_de->d_ino));
+    if (!new_inode) {
+      err = -ENOSPC;
+      goto out;
+    }
+
+    /* same inode : exit */
+    if (old_inode->i_ino == new_inode->i_ino) {
+      err = 0;
+      goto out;
+    }
+
+    /* modify new directory entry inode */
+    new_de->d_ino = htole16(old_inode->i_ino);
+
+    /* update new inode */
+    new_inode->i_nlinks--;
+    new_inode->i_atime = new_inode->i_mtime = current_time();
+    new_inode->i_dirt = 1;
+  } else {
+    /* add new entry */
+    err = bfs_add_entry(new_dir, new_name, new_name_len, old_inode);
+    if (err)
+      goto out;
+  }
+
+  /* cancel old directory entry */
+  old_de->d_ino = 0;
+  memset(old_de->d_name, 0, BFS_NAME_LEN);
+  old_bh->b_dirt = 1;
+
+  /* update old and new directories */
+  old_dir->i_atime = old_dir->i_mtime = current_time();
+  old_dir->i_dirt = 1;
+  new_dir->i_atime = new_dir->i_mtime = current_time();
+  new_dir->i_dirt = 1;
+
+  err = 0;
+out:
+  /* release buffers and inodes */
+  brelse(old_bh);
+  brelse(new_bh);
+  vfs_iput(old_inode);
+  vfs_iput(new_inode);
+  vfs_iput(old_dir);
+  vfs_iput(new_dir);
+
+  return err;
+}
