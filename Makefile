@@ -9,7 +9,7 @@ mkfs.minix: minix/mkfs.minix.o
 
 fmounter: vfs/buffer_head.o vfs/super.o vfs/inode.o vfs/namei.o vfs/open.o vfs/read_write.o vfs/readdir.o vfs/stat.o vfs/access.o vfs/truncate.o \
 	minix/super.o minix/bitmap.o minix/inode.o minix/namei.o minix/symlink.o minix/truncate.o minix/read_write.o minix/readdir.o \
-	bfs/super.o bfs/inode.o bfs/namei.o bfs/read_write.o bfs/readdir.o \
+	bfs/super.o bfs/inode.o bfs/namei.o bfs/read_write.o bfs/readdir.o bfs/bitmap.o \
 	fmounter.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 

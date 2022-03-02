@@ -37,7 +37,7 @@ struct inode_operations_t bfs_file_iops = {
 struct inode_operations_t bfs_dir_iops = {
   .fops               = &bfs_dir_fops,
   .lookup             = bfs_lookup,
-  .create             = NULL,
+  .create             = bfs_create,
   .link               = NULL,
   .unlink             = NULL,
   .symlink            = NULL,
@@ -116,6 +116,63 @@ int bfs_read_inode(struct inode_t *inode)
   }
 
   /* release block buffer */
+  brelse(bh);
+
+  return 0;
+}
+
+/*
+ * Write a BFS inode.
+ */
+int bfs_write_inode(struct inode_t *inode)
+{
+  struct bfs_inode_info_t *bfs_inode = bfs_i(inode);
+  struct bfs_sb_info_t *sbi = bfs_sb(inode->i_sb);
+  struct bfs_inode_t *raw_inode;
+  struct buffer_head_t *bh;
+  uint32_t block, off;
+
+  /* check inode */
+  if (!inode)
+    return 0;
+  if (inode->i_ino < BFS_ROOT_INO || inode->i_ino > sbi->s_lasti) {
+    fprintf(stderr, "BFS : bad inode number %ld\n", inode->i_ino);
+    return -EINVAL;
+  }
+
+  /* compute inode block */
+  block = (inode->i_ino - BFS_ROOT_INO) / BFS_INODES_PER_BLOCK + 1;
+
+  /* read inode block */
+  bh = sb_bread(inode->i_sb, block);
+  if (!bh)
+    return -EIO;
+
+  /* read bfs raw inode */
+  off = (inode->i_ino - BFS_ROOT_INO) % BFS_INODES_PER_BLOCK;
+  raw_inode = (struct bfs_inode_t *) bh->b_data + off;
+
+  /* set on disk inode */
+  if (inode->i_ino == BFS_ROOT_INO)
+    raw_inode->i_vtype = BFS_VDIR;
+  else
+    raw_inode->i_vtype = BFS_VREG;
+
+  /* set on disk inode */
+  raw_inode->i_ino = inode->i_ino;
+  raw_inode->i_mode = inode->i_mode;
+  raw_inode->i_uid = inode->i_uid;
+  raw_inode->i_gid = inode->i_gid;
+  raw_inode->i_nlink = inode->i_nlinks;
+  raw_inode->i_atime = inode->i_atime.tv_sec;
+  raw_inode->i_mtime = inode->i_mtime.tv_sec;
+  raw_inode->i_ctime = inode->i_ctime.tv_sec;
+  raw_inode->i_sblock = bfs_inode->i_sblock;
+  raw_inode->i_eblock = bfs_inode->i_eblock;
+  raw_inode->i_eoffset = bfs_inode->i_sblock * BFS_BLOCK_SIZE + inode->i_size - 1;
+
+  /* release buffer */
+  bh->b_dirt = 1;
   brelse(bh);
 
   return 0;

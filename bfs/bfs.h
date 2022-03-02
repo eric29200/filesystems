@@ -94,18 +94,23 @@ extern struct super_operations_t bfs_sops;
 extern struct inode_operations_t bfs_file_iops;
 extern struct inode_operations_t bfs_dir_iops;
 
-/* BFS super operations */
+/* BFS super prototypes */
 int bfs_read_super(struct super_block_t *sb);
 void bfs_put_super(struct super_block_t *sb);
 int bfs_statfs(struct super_block_t *sb, struct statfs *buf);
+
+/* BFS bitmap prototypes */
+struct inode_t *bfs_new_inode(struct super_block_t *sb);
 
 /* BFS inode prototypes */
 struct inode_t *bfs_alloc_inode(struct super_block_t *sb);
 void bfs_put_inode(struct inode_t *inode);
 int bfs_read_inode(struct inode_t *inode);
+int bfs_write_inode(struct inode_t *inode);
 
 /* BFS name resolution prototypes */
 int bfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
+int bfs_create(struct inode_t *dir, const char *name, size_t name_len, mode_t mode, struct inode_t **res_inode);
 
 /* BFS file prototypes */
 int bfs_file_read(struct file_t *filp, char *buf, int count);
