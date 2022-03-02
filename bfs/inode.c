@@ -9,15 +9,13 @@
  */
 struct file_operations_t bfs_file_fops = {
   .read               = bfs_file_read,
-  .write              = NULL,
+  .write              = bfs_file_write,
 };
 
 /*
  * BFS directory operations.
  */
 struct file_operations_t bfs_dir_fops = {
-  .read               = bfs_file_read,
-  .write              = NULL,
   .getdents64         = bfs_getdents64,
 };
 

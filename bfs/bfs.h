@@ -117,7 +117,9 @@ int bfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_name_le
                struct inode_t *new_dir, const char *new_name, size_t new_name_len);
 
 /* BFS file prototypes */
+struct buffer_head_t *bfs_bread(struct inode_t *inode, uint32_t block, int create);
 int bfs_file_read(struct file_t *filp, char *buf, int count);
+int bfs_file_write(struct file_t *filp, const char *buf, int count);
 int bfs_getdents64(struct file_t *filp, void *dirp, size_t count);
 
 /*
