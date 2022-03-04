@@ -2,5 +2,7 @@
 */*.o
 */*/*.o
 fmounter
+mkfs.minix
+mkfs.bfs
 mnt
 test.img
