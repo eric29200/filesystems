@@ -33,7 +33,7 @@ struct inode_operations_t ext2_file_iops = {
  */
 struct inode_operations_t ext2_dir_iops = {
   .fops               = &ext2_dir_fops,
-  .lookup             = NULL,
+  .lookup             = ext2_lookup,
   .create             = NULL,
   .link               = NULL,
   .unlink             = NULL,

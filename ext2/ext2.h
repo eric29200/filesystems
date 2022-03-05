@@ -197,6 +197,9 @@ int ext2_read_inode(struct inode_t *inode);
 /* Ext2 balloc prototypes */
 struct ext2_group_desc_t *ext2_get_group_desc(struct super_block_t *sb, uint32_t block_group, struct buffer_head_t **bh);
 
+/* Ext2 name resolution prototypes */
+int ext2_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
+
 /* Ext2 file prototypes */
 int ext2_file_read(struct file_t *filp, char *buf, int count);
 int ext2_getdents64(struct file_t *filp, void *dirp, size_t count);
