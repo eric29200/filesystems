@@ -8,6 +8,7 @@
 #include "vfs.h"
 #include "../minix/minix.h"
 #include "../bfs/bfs.h"
+#include "../ext2/ext2.h"
 
 /*
  * Mount a file system.
@@ -40,6 +41,9 @@ struct super_block_t *vfs_mount(const char *dev, int fs_type)
       break;
     case VFS_BFS_TYPE:
       err = bfs_read_super(sb);
+      break;
+    case VFS_EXT2_TYPE:
+      err = ext2_read_super(sb);
       break;
     default:
       fprintf(stderr, "VFS: file system type (fs_type = %d) not implemented\n", fs_type);

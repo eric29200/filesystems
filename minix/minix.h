@@ -134,11 +134,11 @@ struct minix3_dir_entry_t {
 };
 
 /* Minix file system operations */
-extern struct file_operations_t minix_file_fops;
-extern struct file_operations_t minix_dir_fops;
 extern struct super_operations_t minix_sops;
 extern struct inode_operations_t minix_file_iops;
 extern struct inode_operations_t minix_dir_iops;
+extern struct file_operations_t minix_file_fops;
+extern struct file_operations_t minix_dir_fops;
 
 /* Minix super operations */
 int minix_read_super(struct super_block_t *sb);
