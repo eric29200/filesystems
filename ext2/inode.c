@@ -102,7 +102,7 @@ int ext2_read_inode(struct inode_t *inode)
 
   /* get inode table block */
   offset = ((inode->i_ino - 1) % sbi->s_inodes_per_group) * sbi->s_inode_size;
-  block = le32toh(gdp->bg_inode_table) + (offset >> EXT2_BLOCK_SIZE_BITS);
+  block = le32toh(gdp->bg_inode_table) + (offset >> inode->i_sb->s_blocksize_bits);
 
   /* read inode table block buffer */
   bh = sb_bread(inode->i_sb, block);
@@ -110,7 +110,7 @@ int ext2_read_inode(struct inode_t *inode)
     return -EIO;
 
   /* get inode */
-  offset &= (EXT2_BLOCK_SIZE - 1);
+  offset &= (inode->i_sb->s_blocksize - 1);
   raw_inode = (struct ext2_inode_t *) (bh->b_data + offset);
 
   /* set generic inode */
