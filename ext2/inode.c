@@ -144,14 +144,81 @@ int ext2_read_inode(struct inode_t *inode)
 /*
  * Read a Ext2 inode block.
  */
-struct buffer_head_t *ext2_bread(struct inode_t *inode, uint32_t block)
+static struct buffer_head_t *ext2_inode_getblk(struct inode_t *inode, uint32_t inode_block)
 {
   struct ext2_inode_info_t *ext2_inode = ext2_i(inode);
+
+  /* check block */
+  if (!ext2_inode->i_data[inode_block])
+    return NULL;
+
+  /* read block on disk */
+  return sb_bread(inode->i_sb, ext2_inode->i_data[inode_block]);
+}
+
+/*
+ * Read a Ext2 indirect block.
+ */
+static struct buffer_head_t *ext2_block_getblk(struct super_block_t *sb, struct buffer_head_t *bh, uint32_t block_block)
+{
+  int i;
+
+  if (!bh)
+    return NULL;
+
+  /* create block if needed */
+  i = ((uint32_t *) bh->b_data)[block_block];
+
+  /* release parent block */
+  brelse(bh);
+
+  if (!i)
+    return NULL;
+
+  return sb_bread(sb, i);
+}
+
+/*
+ * Read a Ext2 inode block.
+ */
+struct buffer_head_t *ext2_bread(struct inode_t *inode, uint32_t block)
+{
   struct super_block_t *sb = inode->i_sb;
+  struct buffer_head_t *bh;
+  int addr_per_block;
+
+  /* compute number of addresses per block */
+  addr_per_block = sb->s_blocksize / 4;
+
+  /* check block number */
+  if (block > EXT2_NDIR_BLOCKS + addr_per_block
+      + addr_per_block * addr_per_block
+      + addr_per_block * addr_per_block * addr_per_block)
+    return NULL;
 
   /* direct block */
-  if (block < EXT2_NDIR_BLOCKS && ext2_inode->i_data[block])
-    return sb_bread(sb, ext2_inode->i_data[block]);
+  if (block < EXT2_NDIR_BLOCKS)
+    return ext2_inode_getblk(inode, block);
 
-  return NULL;
+  /* indirect block */
+  block -= EXT2_NDIR_BLOCKS;
+  if (block < addr_per_block) {
+    bh = ext2_inode_getblk(inode, EXT2_IND_BLOCK);
+    return ext2_block_getblk(sb, bh, block);
+  }
+
+  /* double indirect block */
+  block -= addr_per_block;
+  if (block < addr_per_block * addr_per_block) {
+    bh = ext2_inode_getblk(inode, EXT2_DIND_BLOCK);
+    bh = ext2_block_getblk(sb, bh, block / addr_per_block);
+    return ext2_block_getblk(sb, bh, block & (addr_per_block - 1));
+  }
+
+  /* triple indirect block */
+  block -= addr_per_block * addr_per_block;
+  bh = ext2_inode_getblk(inode, EXT2_TIND_BLOCK);
+  bh = ext2_block_getblk(sb, bh, block / (addr_per_block * addr_per_block));
+  bh = ext2_block_getblk(sb, bh, (block / addr_per_block) & (addr_per_block - 1));
+  return ext2_block_getblk(sb, bh, block & (addr_per_block - 1));
 }

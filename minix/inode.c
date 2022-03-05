@@ -381,7 +381,7 @@ struct buffer_head_t *minix_bread(struct inode_t *inode, uint32_t block, int cre
   struct minix_sb_info_t *sbi;
   struct super_block_t *sb;
   struct buffer_head_t *bh;
-  int addresses_per_block;
+  int addr_per_block;
 
   /* get super block */
   sb = inode->i_sb;
@@ -392,7 +392,7 @@ struct buffer_head_t *minix_bread(struct inode_t *inode, uint32_t block, int cre
     return NULL;
   
   /* compute number of addresses per block */
-  addresses_per_block = sb->s_blocksize / 4;
+  addr_per_block = sb->s_blocksize / 4;
   
   /* direct block */
   if (block < 7)
@@ -400,23 +400,23 @@ struct buffer_head_t *minix_bread(struct inode_t *inode, uint32_t block, int cre
   
   /* indirect block */
   block -= 7;
-  if (block < addresses_per_block) {
+  if (block < addr_per_block) {
     bh = minix_inode_getblk(inode, 7, create);
     return minix_block_getblk(sb, bh, block, create);
   }
   
   /* double indirect block */
-  block -= addresses_per_block;
-  if (block < addresses_per_block * addresses_per_block) {
+  block -= addr_per_block;
+  if (block < addr_per_block * addr_per_block) {
     bh = minix_inode_getblk(inode, 8, create);
-    bh = minix_block_getblk(sb, bh, (block / addresses_per_block) & (addresses_per_block - 1), create);
-    return minix_block_getblk(sb, bh, block & (addresses_per_block - 1), create);
+    bh = minix_block_getblk(sb, bh, block / addr_per_block, create);
+    return minix_block_getblk(sb, bh, block & (addr_per_block - 1), create);
   }
   
-  /* trip indirect block */
-  block -= addresses_per_block * addresses_per_block;
+  /* triple indirect block */
+  block -= addr_per_block * addr_per_block;
   bh = minix_inode_getblk(inode, 9, create);
-  bh = minix_block_getblk(sb, bh, (block >> (addresses_per_block * 2)) & (addresses_per_block - 1), create);
-  bh = minix_block_getblk(sb, bh, (block / addresses_per_block) & (addresses_per_block - 1), create);
-  return minix_block_getblk(sb, bh, block & (addresses_per_block - 1), create);
+  bh = minix_block_getblk(sb, bh, block / (addr_per_block * addr_per_block), create);
+  bh = minix_block_getblk(sb, bh, (block / addr_per_block) & (addr_per_block - 1), create);
+  return minix_block_getblk(sb, bh, block & (addr_per_block - 1), create);
 }
