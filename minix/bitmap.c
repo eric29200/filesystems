@@ -176,8 +176,10 @@ int minix_free_block(struct super_block_t *sb, uint32_t block)
   struct buffer_head_t *bh;
   
   /* check block number */
-  if (block < sbi->s_firstdatazone || block >= sbi->s_nzones)
+  if (block < sbi->s_firstdatazone || block >= sbi->s_nzones) {
+    fprintf(stderr, "Minix : trying to free block %d not in data zone\n", block);
     return -EINVAL;
+  }
   
   /* get block buffer */
   bh = sb_bread(sb, block);
