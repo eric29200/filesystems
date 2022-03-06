@@ -1,5 +1,5 @@
 #include <unistd.h>
-#include <error.h>
+#include <errno.h>
 #include <sys/types.h>
 
 #include "ext2.h"
@@ -23,7 +23,7 @@ static struct buffer_head_t *ext2_read_inode_bitmap(struct super_block_t *sb, ui
 /*
  * Create a new Ext2 inode.
  */
-struct inode_t *ext2_new_inode(struct inode_t *dir)
+struct inode_t *ext2_new_inode(struct inode_t *dir, mode_t mode)
 {
   struct ext2_sb_info_t *sbi = ext2_sb(dir->i_sb);
   struct buffer_head_t *gdp_bh, *bitmap_bh;
@@ -84,6 +84,7 @@ allocated:
   }
 
   /* set inode */
+  inode->i_mode = mode;
   inode->i_uid = getuid();
   inode->i_gid = getgid();
   inode->i_atime = inode->i_mtime = inode->i_ctime = current_time();
@@ -112,6 +113,8 @@ allocated:
 
   /* update group descriptor */
   gdp->bg_free_inodes_count = htole16(le16toh(gdp->bg_free_inodes_count) - 1);
+  if (S_ISDIR(inode->i_mode))
+    gdp->bg_used_dirs_count = htole16(le16toh(gdp->bg_used_dirs_count) + 1);
   gdp_bh->b_dirt = 1;
   bwrite(gdp_bh);
 
@@ -124,4 +127,63 @@ allocated:
   inode->i_dirt = 1;
 
   return inode;
+}
+
+/*
+ * Free a Ext2 inode.
+ */
+int ext2_free_inode(struct inode_t *inode)
+{
+  struct buffer_head_t *bitmap_bh, *gdp_bh;
+  struct ext2_group_desc_t *gdp;
+  struct ext2_sb_info_t *sbi;
+  uint32_t block_group, bit;
+
+  /* check inode */
+  if (!inode)
+    return 0;
+
+  /* check if inode is still referenced */
+  if (inode->i_ref > 1) {
+    fprintf(stderr, "Ext2 : trying to free inode %ld with ref=%d\n", inode->i_ino, inode->i_ref);
+    return -EINVAL;
+  }
+
+  /* get super block */
+  sbi = ext2_sb(inode->i_sb);
+
+  /* check if inode is not reserved */
+  if (inode->i_ino < sbi->s_first_ino || inode->i_ino > le32toh(sbi->s_es->s_inodes_count)) {
+    fprintf(stderr, "Ext2 : trying to free inode reserved or non existent inode %ld\n", inode->i_ino);
+    return -EINVAL;
+  }
+
+  /* get block group */
+  block_group = (inode->i_ino - 1) / sbi->s_inodes_per_group;
+  bit = (inode->i_ino - 1) % sbi->s_inodes_per_group;
+
+  /* get inode bitmap */
+  bitmap_bh = ext2_read_inode_bitmap(inode->i_sb, block_group);
+  if (!bitmap_bh)
+    return -EIO;
+
+  /* clear inode in bitmap */
+  EXT2_BITMAP_CLR(bitmap_bh, bit);
+  bitmap_bh->b_dirt = 1;
+  brelse(bitmap_bh);
+
+  /* update group descriptor */
+  gdp = ext2_get_group_desc(inode->i_sb, block_group, &gdp_bh);
+  gdp->bg_free_inodes_count = htole16(le16toh(gdp->bg_free_inodes_count) + 1);
+  if (S_ISDIR(inode->i_mode))
+    gdp->bg_used_dirs_count = htole16(le16toh(gdp->bg_used_dirs_count) - 1);
+  gdp_bh->b_dirt = 1;
+  bwrite(gdp_bh);
+
+  /* update super block */
+  sbi->s_es->s_free_inodes_count = htole32(le32toh(sbi->s_es->s_free_inodes_count) + 1);
+  sbi->s_sbh->b_dirt = 1;
+  bwrite(sbi->s_sbh);
+
+  return 0;
 }

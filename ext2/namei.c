@@ -223,7 +223,7 @@ int ext2_create(struct inode_t *dir, const char *name, size_t name_len, mode_t m
   }
 
   /* create a new inode */
-  inode = ext2_new_inode(dir);
+  inode = ext2_new_inode(dir, S_IFREG | mode);
   if (!inode) {
     vfs_iput(dir);
     return -ENOSPC;
@@ -231,7 +231,6 @@ int ext2_create(struct inode_t *dir, const char *name, size_t name_len, mode_t m
 
   /* set inode */
   inode->i_op = &ext2_file_iops;
-  inode->i_mode = S_IFREG | mode;
   inode->i_dirt = 1;
 
   /* add new entry to dir */
@@ -279,7 +278,7 @@ int ext2_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mo
   }
 
   /* allocate a new inode */
-  inode = ext2_new_inode(dir);
+  inode = ext2_new_inode(dir, S_IFDIR | mode);
   if (!inode) {
     vfs_iput(dir);
     return -ENOMEM;
@@ -287,7 +286,6 @@ int ext2_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mo
 
   /* set inode */
   inode->i_op = &ext2_dir_iops;
-  inode->i_mode = S_IFDIR | mode;
   inode->i_nlinks = 2;
   inode->i_size = inode->i_sb->s_blocksize;
   inode->i_dirt = 1;

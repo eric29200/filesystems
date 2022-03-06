@@ -10,7 +10,7 @@
 struct super_operations_t ext2_sops = {
   .alloc_inode        = ext2_alloc_inode,
   .put_inode          = ext2_put_inode,
-  .delete_inode       = NULL,
+  .delete_inode       = ext2_delete_inode,
   .read_inode         = ext2_read_inode,
   .write_inode        = ext2_write_inode,
   .put_super          = ext2_put_super,

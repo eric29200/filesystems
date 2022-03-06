@@ -25,7 +25,7 @@ struct inode_operations_t ext2_file_iops = {
   .fops               = &ext2_file_fops,
   .follow_link        = NULL,
   .readlink           = NULL,
-  .truncate           = NULL,
+  .truncate           = ext2_truncate,
 };
 
 /*
@@ -41,7 +41,7 @@ struct inode_operations_t ext2_dir_iops = {
   .mkdir              = ext2_mkdir,
   .rmdir              = NULL,
   .rename             = NULL,
-  .truncate           = NULL,
+  .truncate           = ext2_truncate,
 };
 
 /*
@@ -65,7 +65,7 @@ struct inode_t *ext2_alloc_inode(struct super_block_t *sb)
 }
 
 /*
- * Release a ext2 inode.
+ * Release a Ext2 inode.
  */
 void ext2_put_inode(struct inode_t *inode)
 {
@@ -74,6 +74,23 @@ void ext2_put_inode(struct inode_t *inode)
 
   /* free inode */
   free(ext2_i(inode));
+}
+
+/*
+ * Delete a Ext2 inode.
+ */
+void ext2_delete_inode(struct inode_t *inode)
+{
+  /* check inode */
+  if (!inode)
+    return;
+
+  /* truncate an free inode */
+  if (!inode->i_nlinks) {
+    inode->i_size = 0;
+    ext2_truncate(inode);
+    ext2_free_inode(inode);
+  }
 }
 
 /*

@@ -206,15 +206,20 @@ int ext2_statfs(struct super_block_t *sb, struct statfs *buf);
 struct buffer_head_t *ext2_bread(struct inode_t *inode, uint32_t block, int create);
 struct inode_t *ext2_alloc_inode(struct super_block_t *sb);
 void ext2_put_inode(struct inode_t *inode);
+void ext2_delete_inode(struct inode_t *inode);
 int ext2_read_inode(struct inode_t *inode);
 int ext2_write_inode(struct inode_t *inode);
 
 /* Ext2 inode alloc prototypes */
-struct inode_t *ext2_new_inode(struct inode_t *dir);
+struct inode_t *ext2_new_inode(struct inode_t *dir, mode_t mode);
+int ext2_free_inode(struct inode_t *inode);
 
 /* Ext2 block alloc prototypes */
 struct ext2_group_desc_t *ext2_get_group_desc(struct super_block_t *sb, uint32_t block_group, struct buffer_head_t **bh);
 int ext2_new_block(struct inode_t *inode, uint32_t goal);
+
+/* Ext2 truncate prototypes */
+void ext2_truncate(struct inode_t *inode);
 
 /* Ext2 name resolution prototypes */
 int ext2_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
