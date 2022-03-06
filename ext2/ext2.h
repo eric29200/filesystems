@@ -217,6 +217,7 @@ int ext2_free_inode(struct inode_t *inode);
 /* Ext2 block alloc prototypes */
 struct ext2_group_desc_t *ext2_get_group_desc(struct super_block_t *sb, uint32_t block_group, struct buffer_head_t **bh);
 int ext2_new_block(struct inode_t *inode, uint32_t goal);
+int ext2_free_block(struct inode_t *inode, uint32_t block);
 
 /* Ext2 truncate prototypes */
 void ext2_truncate(struct inode_t *inode);

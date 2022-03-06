@@ -115,3 +115,55 @@ allocated:
   /* compute global position of block */
   return grp_alloc_block + ext2_group_first_block_no(inode->i_sb, group_no);
 }
+
+/*
+ * Free a Ext2 block.
+ */
+int ext2_free_block(struct inode_t *inode, uint32_t block)
+{
+  struct ext2_sb_info_t *sbi = ext2_sb(inode->i_sb);
+  struct buffer_head_t *bitmap_bh, *gdp_bh, *bh;
+  struct ext2_group_desc_t *gdp;
+  uint32_t block_group, bit;
+
+  /* check block number */
+  if (block < le32toh(sbi->s_es->s_first_data_block) || block >= le32toh(sbi->s_es->s_blocks_count)) {
+    fprintf(stderr, "Ext2 : trying to free block %d not in data zone\n", block);
+    return -EINVAL;
+  }
+
+  /* clear block buffer */
+  bh = sb_bread(inode->i_sb, block);
+  if (bh) {
+    memset(bh->b_data, 0, bh->b_size);
+    bh->b_dirt = 1;
+    brelse(bh);
+  }
+
+  /* get block group */
+  block_group = (block - le32toh(sbi->s_es->s_first_data_block)) / sbi->s_blocks_per_group;
+  bit = (block - le32toh(sbi->s_es->s_first_data_block)) % sbi->s_blocks_per_group;
+
+  /* get block bitmap */
+  bitmap_bh = ext2_read_block_bitmap(inode->i_sb, block_group);
+  if (!bitmap_bh)
+    return -EIO;
+
+  /* clear block in bitmap */
+  EXT2_BITMAP_CLR(bitmap_bh, bit);
+  bitmap_bh->b_dirt = 1;
+  brelse(bitmap_bh);
+
+  /* update group descriptor */
+  gdp = ext2_get_group_desc(inode->i_sb, block_group, &gdp_bh);
+  gdp->bg_free_blocks_count = htole16(le16toh(gdp->bg_free_blocks_count) + 1);
+  gdp_bh->b_dirt = 1;
+  bwrite(gdp_bh);
+
+  /* update super block */
+  sbi->s_es->s_free_blocks_count = htole32(le32toh(sbi->s_es->s_free_blocks_count) + 1);
+  sbi->s_sbh->b_dirt = 1;
+  bwrite(sbi->s_sbh);
+
+  return 0;
+}
