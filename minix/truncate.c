@@ -120,7 +120,7 @@ static void minix_free_tindirect_blocks(struct inode_t *inode, int offset, uint3
   blocks = (uint32_t * ) bh->b_data;
   for (i = TINDIRECT_BLOCK(inode, offset, inode->i_sb->s_blocksize); i < inode->i_sb->s_blocksize / 4; i++)
     if (blocks[i])
-      minix_free_indirect_blocks(inode, offset + (i / (inode->i_sb->s_blocksize / 4)), &blocks[i]);
+      minix_free_dindirect_blocks(inode, offset + (i / (inode->i_sb->s_blocksize / 4)), &blocks[i]);
   
   /* get first used address */
   for (i = 0; i < inode->i_sb->s_blocksize / 4; i++)
