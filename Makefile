@@ -35,7 +35,7 @@ test_bfs: fmounter mkfs.bfs
 	./fmounter -t bfs `pwd`/test.img ./mnt
 
 test_ext2: fmounter
-	dd if=/dev/zero of=./test.img bs=60M count=1
+	dd if=/dev/zero of=./test.img bs=20M count=1
 	mkfs.ext2 ./test.img
 	-umount ./mnt
 	-mkdir ./mnt

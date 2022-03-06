@@ -153,7 +153,7 @@ int ext2_read_inode(struct inode_t *inode)
   ext2_inode->i_generation = le32toh(raw_inode->i_generation);
   ext2_inode->i_block_group = block_group;
   for (i = 0; i < EXT2_N_BLOCKS; i++)
-    ext2_inode->i_data[i] = raw_inode->i_block[i];
+    ext2_inode->i_data[i] = le32toh(raw_inode->i_block[i]);
 
   /* set operations */
   if (S_ISDIR(inode->i_mode))
@@ -208,7 +208,7 @@ int ext2_write_inode(struct inode_t *inode)
 
   /* set generic inode */
   raw_inode->i_mode = htole16(inode->i_mode);
-  inode->i_uid = htole16(inode->i_uid & 0xFFFF);
+  raw_inode->i_uid = htole16(inode->i_uid & 0xFFFF);
   raw_inode->i_size = htole32(inode->i_size);
   raw_inode->i_atime = htole32(inode->i_atime.tv_sec);
   raw_inode->i_ctime = htole32(inode->i_ctime.tv_sec);
@@ -223,11 +223,11 @@ int ext2_write_inode(struct inode_t *inode)
   raw_inode->i_dir_acl = htole32(ext2_inode->i_dir_acl);
   raw_inode->i_faddr = htole32(ext2_inode->i_faddr);
   raw_inode->i_frag = ext2_inode->i_frag_no;
-  raw_inode->i_fsize = htole32(ext2_inode->i_frag_size);
+  raw_inode->i_fsize = ext2_inode->i_frag_size;
   raw_inode->i_uid_high = htole16((inode->i_uid & 0xFFFF0000) >> 16);
   raw_inode->i_gid_high = htole16((inode->i_gid & 0xFFFF0000) >> 16);
   for (i = 0; i < EXT2_N_BLOCKS; i++)
-    raw_inode->i_block[i] = ext2_inode->i_data[i];
+    raw_inode->i_block[i] = htole32(ext2_inode->i_data[i]);
 
   /* release block buffer */
   bh->b_dirt = 1;
