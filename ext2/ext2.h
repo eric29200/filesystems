@@ -219,6 +219,7 @@ int ext2_new_block(struct inode_t *inode, uint32_t goal);
 /* Ext2 name resolution prototypes */
 int ext2_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
 int ext2_create(struct inode_t *dir, const char *name, size_t name_len, mode_t mode, struct inode_t **res_inode);
+int ext2_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mode);
 
 /* Ext2 file prototypes */
 int ext2_file_read(struct file_t *filp, char *buf, int count);

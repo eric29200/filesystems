@@ -252,3 +252,82 @@ int ext2_create(struct inode_t *dir, const char *name, size_t name_len, mode_t m
 
   return 0;
 }
+
+/*
+ * Make a Ext2 directory.
+ */
+int ext2_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mode)
+{
+  struct ext2_dir_entry_t *de;
+  struct buffer_head_t *bh;
+  struct inode_t *inode;
+  int err;
+
+  /* check if file exists */
+  bh = ext2_find_entry(dir, name, name_len, &de);
+  if (bh) {
+    brelse(bh);
+    vfs_iput(dir);
+    return -EEXIST;
+  }
+
+  /* allocate a new inode */
+  inode = ext2_new_inode(dir);
+  if (!inode) {
+    vfs_iput(dir);
+    return -ENOMEM;
+  }
+
+  /* set inode */
+  inode->i_op = &ext2_dir_iops;
+  inode->i_mode = S_IFDIR | mode;
+  inode->i_nlinks = 2;
+  inode->i_size = inode->i_sb->s_blocksize;
+  inode->i_dirt = 1;
+
+  /* read first block */
+  bh = ext2_bread(inode, 0, 1);
+  if (!bh) {
+    inode->i_nlinks = 0;
+    vfs_iput(inode);
+    vfs_iput(dir);
+    return -ENOSPC;
+  }
+
+  /* add '.' entry */
+  de = (struct ext2_dir_entry_t *) bh->b_data;
+  de->d_inode = htole32(inode->i_ino);
+  de->d_name_len = 1;
+  de->d_rec_len = htole16(EXT2_DIR_REC_LEN(de->d_name_len));
+  strcpy(de->d_name, ".");
+
+  /* add '.' entry */
+  de = (struct ext2_dir_entry_t *) ((char *) de + le16toh(de->d_rec_len));
+  de->d_inode = htole32(inode->i_ino);
+  de->d_name_len = 2;
+  de->d_rec_len = htole16(EXT2_DIR_REC_LEN(de->d_name_len));
+  strcpy(de->d_name, "..");
+
+  /* release first block */
+  bh->b_dirt = 1;
+  brelse(bh);
+
+  /* add entry to parent dir */
+  err = ext2_add_entry(dir, name, name_len, inode);
+  if (err) {
+    inode->i_nlinks = 0;
+    vfs_iput(inode);
+    vfs_iput(dir);
+    return err;
+  }
+
+  /* update directory links and mark it dirty */
+  dir->i_nlinks++;
+  dir->i_dirt = 1;
+
+  /* release inode */
+  vfs_iput(dir);
+  vfs_iput(inode);
+
+  return 0;
+}
