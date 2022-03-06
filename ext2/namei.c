@@ -43,6 +43,7 @@ static struct buffer_head_t *ext2_find_entry(struct inode_t *dir, const char *na
       /* skip null entry */
       if (le32toh(de->d_inode) == 0) {
         offset += le16toh(de->d_rec_len);
+        pos += le16toh(de->d_rec_len);
         continue;
       }
 
@@ -375,7 +376,7 @@ int ext2_unlink(struct inode_t *dir, const char *name, size_t name_len)
   }
 
   /* reset directory entry */
-  de->d_inode = le32toh(0);
+  de->d_inode = htole32(0);
   bh->b_dirt = 1;
   brelse(bh);
 

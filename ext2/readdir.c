@@ -42,6 +42,7 @@ int ext2_getdents64(struct file_t *filp, void *dirp, size_t count)
       /* skip null entry */
       if (le32toh(de->d_inode) == 0) {
         offset += le16toh(de->d_rec_len);
+        filp->f_pos += le16toh(de->d_rec_len);
         continue;
       }
 
