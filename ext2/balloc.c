@@ -1,4 +1,9 @@
+#include <errno.h>
+
 #include "ext2.h"
+
+#define EXT2_BITMAP_SET(bh, i)       ((bh)->b_data[(i) / 8] |= (0x1 << ((i) % 8)))
+#define EXT2_BITMAP_CLR(bh, i)       ((bh)->b_data[(i) / 8] &= ~(0x1 << ((i) % 8)))
 
 /*
  * Get a group descriptor.
@@ -25,4 +30,108 @@ struct ext2_group_desc_t *ext2_get_group_desc(struct super_block_t *sb, uint32_t
     *bh = sbi->s_group_desc[group_desc];
 
   return desc + offset;
+}
+
+/*
+ * Get first free bit in a bitmap block.
+ */
+static inline int ext2_get_free_bitmap(struct super_block_t *sb, struct buffer_head_t *bh)
+{
+  uint32_t *bits = (uint32_t *) bh->b_data;
+  register int i, j;
+
+  for (i = 0; i < sb->s_blocksize / 4; i++)
+    if (bits[i] != 0xFFFFFFFF)
+      for (j = 0; j < 32; j++)
+        if (!(bits[i] & (0x1 << j)))
+          return 32 * i + j;
+
+  return -1;
+}
+
+/*
+ * Read the bitmap of a block group.
+ */
+static struct buffer_head_t *ext2_read_block_bitmap(struct super_block_t *sb, uint32_t block_group)
+{
+  struct ext2_group_desc_t *gdp;
+
+  /* get group descriptor */
+  gdp = ext2_get_group_desc(sb, block_group, NULL);
+  if (!gdp)
+    return NULL;
+
+  /* load block bitmap */
+  return sb_bread(sb, le32toh(gdp->bg_block_bitmap));
+}
+
+/*
+ * Create a new Ext2 block (try goal block first).
+ */
+int ext2_new_block(struct inode_t *inode, uint32_t goal)
+{
+  struct ext2_sb_info_t *sbi = ext2_sb(inode->i_sb);
+  struct buffer_head_t *gdp_bh, *bitmap_bh;
+  struct ext2_group_desc_t *gdp;
+  int grp_alloc_block, bgi;
+  uint32_t group_no;
+
+  /* adjust goal block */
+  if (goal < le32toh(sbi->s_es->s_first_data_block) || goal >= le32toh(sbi->s_es->s_blocks_count))
+    goal = sbi->s_es->s_first_data_block;
+
+  /* try to find a group with free blocks (start with goal group) */
+  group_no = (goal - le32toh(sbi->s_es->s_first_data_block)) / sbi->s_blocks_per_group;
+  for (bgi = 0; bgi < sbi->s_groups_count; bgi++, group_no++) {
+    /* rewind to first group if needed */
+    if (group_no >= sbi->s_groups_count)
+      group_no = 0;
+
+    /* get group descriptor */
+    gdp = ext2_get_group_desc(inode->i_sb, group_no, &gdp_bh);
+    if (!gdp)
+      return -EIO;
+
+    /* no free blocks in this group */
+    if (!le16toh(gdp->bg_free_blocks_count))
+      continue;
+
+    /* get group bitmap */
+    bitmap_bh = ext2_read_block_bitmap(inode->i_sb, group_no);
+    if (!bitmap_bh)
+      return -EIO;
+
+    /* get first free block from bitmap */
+    grp_alloc_block = ext2_get_free_bitmap(inode->i_sb, bitmap_bh);
+    if (grp_alloc_block != -1)
+      goto allocated;
+
+    /* release bitmap block */
+    brelse(bitmap_bh);
+  }
+
+  return 0;
+allocated:
+  /* set block in bitmap */
+  EXT2_BITMAP_SET(bitmap_bh, grp_alloc_block);
+
+  /* release block bitmap */
+  bitmap_bh->b_dirt = 1;
+  brelse(bitmap_bh);
+
+  /* update group descriptor */
+  gdp->bg_free_blocks_count = htole16(le16toh(gdp->bg_free_blocks_count) - 1);
+  gdp_bh->b_dirt = 1;
+  bwrite(gdp_bh);
+
+  /* update super block */
+  sbi->s_es->s_free_blocks_count = htole32(le32toh(sbi->s_es->s_free_blocks_count) - 1);
+  sbi->s_sbh->b_dirt = 1;
+  bwrite(sbi->s_sbh);
+
+  /* mark inode dirty */
+  inode->i_dirt = 1;
+
+  /* compute global position of block */
+  return grp_alloc_block + ext2_group_first_block_no(inode->i_sb, group_no);
 }

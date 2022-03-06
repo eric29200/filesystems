@@ -24,7 +24,7 @@ int ext2_getdents64(struct file_t *filp, void *dirp, size_t count)
   while (filp->f_pos < inode->i_size) {
     /* read next block */
     block = filp->f_pos >> sb->s_blocksize_bits;
-    bh = ext2_bread(inode, block);
+    bh = ext2_bread(inode, block, 0);
     if (!bh) {
       filp->f_pos += sb->s_blocksize - offset;
       continue;

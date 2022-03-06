@@ -27,7 +27,7 @@ static struct buffer_head_t *ext2_find_entry(struct inode_t *dir, const char *na
   /* read block by block */
   for (block = 0, offset = 0, pos = 0; pos < dir->i_size; block++) {
     /* read next block */
-    bh = ext2_bread(dir, block);
+    bh = ext2_bread(dir, block, 0);
     if (!bh)
       continue;
 

@@ -61,6 +61,7 @@ struct inode_t {
   uid_t                     i_uid;                /* user id */
   gid_t                     i_gid;                /* group id */
   ssize_t                   i_size;               /* file size in byte */
+  uint32_t                  i_blocks;             /* number of blocks */
   struct timespec           i_atime;              /* last access time */
   struct timespec           i_mtime;              /* last modification time */
   struct timespec           i_ctime;              /* creation time */

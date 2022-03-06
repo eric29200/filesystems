@@ -172,7 +172,16 @@ struct ext2_sb_info_t {
  * Ext2 in memory inode.
  */
 struct ext2_inode_info_t {
+  uint32_t          i_block_group;              /* Block group of this inode */
   uint32_t          i_data[15];                 /* Pointers to data blocks */
+  uint32_t          i_flags;                    /* File flags */
+  uint32_t          i_faddr;                    /* Fragment address */
+  uint8_t           i_frag_no;                  /* Fragment number */
+  uint8_t           i_frag_size;                /* Fragment size */
+  uint32_t          i_file_acl;                 /* File ACL */
+  uint32_t          i_dir_acl;                  /* Directory ACL */
+  uint32_t          i_dtime;                    /* Deletion time */
+  uint32_t          i_generation;               /* File version (for NFS) */
   struct inode_t    vfs_inode;                  /* VFS inode */
 };
 
@@ -189,19 +198,22 @@ void ext2_put_super(struct super_block_t *sb);
 int ext2_statfs(struct super_block_t *sb, struct statfs *buf);
 
 /* Ext2 inode prototypes */
-struct buffer_head_t *ext2_bread(struct inode_t *inode, uint32_t block);
+struct buffer_head_t *ext2_bread(struct inode_t *inode, uint32_t block, int create);
 struct inode_t *ext2_alloc_inode(struct super_block_t *sb);
 void ext2_put_inode(struct inode_t *inode);
 int ext2_read_inode(struct inode_t *inode);
+int ext2_write_inode(struct inode_t *inode);
 
 /* Ext2 balloc prototypes */
 struct ext2_group_desc_t *ext2_get_group_desc(struct super_block_t *sb, uint32_t block_group, struct buffer_head_t **bh);
+int ext2_new_block(struct inode_t *inode, uint32_t goal);
 
 /* Ext2 name resolution prototypes */
 int ext2_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
 
 /* Ext2 file prototypes */
 int ext2_file_read(struct file_t *filp, char *buf, int count);
+int ext2_file_write(struct file_t *filp, const char *buf, int count);
 int ext2_getdents64(struct file_t *filp, void *dirp, size_t count);
 
 /*

@@ -58,7 +58,7 @@ int minix_file_write(struct file_t *filp, const char *buf, int count)
   if (filp->f_flags & O_APPEND)
     filp->f_pos = filp->f_inode->i_size;
   
-  /* read block by block */
+  /* write block by block */
   for (left = count; left > 0;) {
     /* read block */
     bh = minix_bread(filp->f_inode, filp->f_pos / filp->f_inode->i_sb->s_blocksize, 1);
