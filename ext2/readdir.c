@@ -39,6 +39,12 @@ int ext2_getdents64(struct file_t *filp, void *dirp, size_t count)
         return entries_size;
       }
 
+      /* skip null entry */
+      if (le32toh(de->d_inode) == 0) {
+        offset += le16toh(de->d_rec_len);
+        continue;
+      }
+
       /* not enough space to fill in next dir entry : break */
       if (count < sizeof(struct dirent64_t) + de->d_name_len + 1) {
         brelse(bh);

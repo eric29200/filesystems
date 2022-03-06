@@ -40,6 +40,12 @@ static struct buffer_head_t *ext2_find_entry(struct inode_t *dir, const char *na
         return NULL;
       }
 
+      /* skip null entry */
+      if (le32toh(de->d_inode) == 0) {
+        offset += le16toh(de->d_rec_len);
+        continue;
+      }
+
       /* check name */
       if (ext2_name_match(name, name_len, de)) {
         *res_de = de;
@@ -177,7 +183,7 @@ int ext2_lookup(struct inode_t *dir, const char *name, size_t name_len, struct i
   }
 
   /* get inode number */
-  ino = de->d_inode;
+  ino = le32toh(de->d_inode);
 
   /* release block buffer */
   brelse(bh);
@@ -328,6 +334,58 @@ int ext2_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mo
   /* release inode */
   vfs_iput(dir);
   vfs_iput(inode);
+
+  return 0;
+}
+
+/*
+ * Unlink (remove) a file.
+ */
+int ext2_unlink(struct inode_t *dir, const char *name, size_t name_len)
+{
+  struct ext2_dir_entry_t *de;
+  struct buffer_head_t *bh;
+  struct inode_t *inode;
+  ino_t ino;
+
+  /* get directory entry */
+  bh = ext2_find_entry(dir, name, name_len, &de);
+  if (!bh) {
+    vfs_iput(dir);
+    return -ENOENT;
+  }
+
+  /* get inode number */
+  ino = le32toh(de->d_inode);
+
+  /* get inode */
+  inode = vfs_iget(dir->i_sb, ino);
+  if (!inode) {
+    vfs_iput(dir);
+    brelse(bh);
+    return -ENOENT;
+  }
+
+  /* remove regular files only */
+  if (S_ISDIR(inode->i_mode)) {
+    vfs_iput(inode);
+    vfs_iput(dir);
+    brelse(bh);
+    return -EPERM;
+  }
+
+  /* reset directory entry */
+  de->d_inode = le32toh(0);
+  bh->b_dirt = 1;
+  brelse(bh);
+
+  /* update inode */
+  inode->i_nlinks--;
+  inode->i_dirt = 1;
+
+  /* release inode */
+  vfs_iput(inode);
+  vfs_iput(dir);
 
   return 0;
 }
