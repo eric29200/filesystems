@@ -168,7 +168,33 @@ void ext2_put_super(struct super_block_t *sb)
   free(sbi);
 }
 
+/*
+ * Get Ext2 File system status.
+ */
 int ext2_statfs(struct super_block_t *sb, struct statfs *buf)
 {
+  struct ext2_sb_info_t *sbi = ext2_sb(sb);
+  uint32_t overhead_per_group, overhead;
+
+  /* compute overhead */
+  overhead_per_group = 1            /* super block */
+    + sbi->s_gdb_count              /* descriptors group */
+    + 1                             /* blocks bitmap */
+    + 1                             /* inodes bitmap */
+    + sbi->s_itb_per_group;         /* inodes table */
+  overhead = le32toh(sbi->s_es->s_first_data_block) + sbi->s_groups_count * overhead_per_group;
+
+  /* set stat buffer */
+  buf->f_type = sb->s_magic;
+  buf->f_bsize = sb->s_blocksize;
+  buf->f_blocks = le32toh(sbi->s_es->s_blocks_count) - overhead;
+  buf->f_bfree = le32toh(sbi->s_es->s_free_blocks_count);
+  buf->f_bavail = buf->f_bfree - le32toh(sbi->s_es->s_r_blocks_count);
+  if (buf->f_bfree < le32toh(sbi->s_es->s_r_blocks_count))
+    buf->f_bavail = 0;
+  buf->f_files = le32toh(sbi->s_es->s_inodes_count);
+  buf->f_ffree = le32toh(sbi->s_es->s_free_inodes_count);
+  buf->f_namelen = EXT2_NAME_LEN;
+
   return 0;
 }

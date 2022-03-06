@@ -204,7 +204,7 @@ void ext2_put_inode(struct inode_t *inode);
 int ext2_read_inode(struct inode_t *inode);
 int ext2_write_inode(struct inode_t *inode);
 
-/* Ext2 balloc prototypes */
+/* Ext2 block alloc prototypes */
 struct ext2_group_desc_t *ext2_get_group_desc(struct super_block_t *sb, uint32_t block_group, struct buffer_head_t **bh);
 int ext2_new_block(struct inode_t *inode, uint32_t goal);
 
