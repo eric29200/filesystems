@@ -21,7 +21,7 @@ fmounter: vfs/buffer_head.o vfs/super.o vfs/inode.o vfs/namei.o vfs/open.o vfs/r
 	$(CC) $(CFLAGS) -c $^
 
 test_minix: fmounter mkfs.minix
-	dd if=/dev/zero of=./test.img bs=40M count=1
+	dd if=/dev/zero of=./test.img bs=60M count=1
 	./mkfs.minix -3 ./test.img
 	-umount ./mnt
 	-mkdir ./mnt
@@ -35,7 +35,7 @@ test_bfs: fmounter mkfs.bfs
 	./fmounter -t bfs `pwd`/test.img ./mnt
 
 test_ext2: fmounter
-	dd if=/dev/zero of=./test.img bs=10M count=1
+	dd if=/dev/zero of=./test.img bs=60M count=1
 	mkfs.ext2 ./test.img
 	-umount ./mnt
 	-mkdir ./mnt
