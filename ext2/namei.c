@@ -60,6 +60,97 @@ static struct buffer_head_t *ext2_find_entry(struct inode_t *dir, const char *na
 }
 
 /*
+ * Add a Ext2 entry in a directory.
+ */
+static int ext2_add_entry(struct inode_t *dir, const char *name, size_t name_len, struct inode_t *inode)
+{
+  struct ext2_dir_entry_t *de, *de1;
+  struct buffer_head_t *bh = NULL;
+  uint16_t rec_len;
+  uint32_t offset;
+
+  /* truncate name if needed */
+  if (name_len > EXT2_NAME_LEN)
+    name_len = EXT2_NAME_LEN;
+
+  /* compute record length */
+  rec_len = EXT2_DIR_REC_LEN(name_len);
+
+  /* read first block */
+  bh = ext2_bread(dir, 0, 0);
+  if (!bh)
+    return -EIO;
+
+  /* find a free entry */
+  for (de = (struct ext2_dir_entry_t *) bh->b_data, offset = 0;;) {
+    /* read next block */
+    if ((char *) de >= bh->b_data + dir->i_sb->s_blocksize) {
+      /* release previous block */
+      brelse(bh);
+
+      /* read next block */
+      bh = ext2_bread(dir, offset / dir->i_sb->s_blocksize, 1);
+      if (!bh)
+        return -EIO;
+
+      /* get first entry */
+      de = (struct ext2_dir_entry_t *) bh->b_data;
+
+      /* update directory size and create a new null entry */
+      if (offset >= dir->i_size) {
+        de->d_inode = 0;
+        de->d_rec_len = htole16(dir->i_sb->s_blocksize);
+        dir->i_size = offset + dir->i_sb->s_blocksize;
+        dir->i_dirt = 1;
+      }
+    }
+
+    /* check entry */
+    if (le16toh(de->d_rec_len) <= 0) {
+      brelse(bh);
+      return -ENOENT;
+    }
+
+    /* free entry with enough space */
+    if ((le32toh(de->d_inode) == 0 && le16toh(de->d_rec_len) >= rec_len)
+        || (le16toh(de->d_rec_len) >= EXT2_DIR_REC_LEN(de->d_name_len) + rec_len)) {
+      /* null entry : adjust record length */
+      if (le32toh(de->d_inode)) {
+        de1 = (struct ext2_dir_entry_t *) ((char *) de + EXT2_DIR_REC_LEN(de->d_name_len));
+        de1->d_rec_len = htole16(le16toh(de->d_rec_len) - EXT2_DIR_REC_LEN(de->d_name_len));
+        de->d_rec_len = htole16(EXT2_DIR_REC_LEN(de->d_name_len));
+        de = de1;
+      }
+
+      goto found_entry;
+    }
+
+    /* go to next entry */
+    offset += le16toh(de->d_rec_len);
+    de = (struct ext2_dir_entry_t *) ((char *) de + le16toh(de->d_rec_len));
+  }
+
+  brelse(bh);
+  return -EINVAL;
+found_entry:
+  /* set new entry */
+  de->d_inode = htole32(inode->i_ino);
+  de->d_name_len = name_len;
+  de->d_file_type = 0;
+  memcpy(de->d_name, name, name_len);
+
+  /* mark buffer dirty and release it */
+  bh->b_dirt = 1;
+  brelse(bh);
+
+  /* update parent directory */
+  dir->i_mtime = dir->i_ctime = current_time();
+  dir->i_dirt = 1;
+
+  return 0;
+}
+
+/*
  * Lookup for a file in a directory.
  */
 int ext2_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode)
@@ -99,5 +190,65 @@ int ext2_lookup(struct inode_t *dir, const char *name, size_t name_len, struct i
   }
 
   vfs_iput(dir);
+  return 0;
+}
+
+/*
+ * Create a file in a directory.
+ */
+int ext2_create(struct inode_t *dir, const char *name, size_t name_len, mode_t mode, struct inode_t **res_inode)
+{
+  struct inode_t *inode, *tmp;
+  ino_t ino;
+  int err;
+
+  /* check directory */
+  *res_inode = NULL;
+  if (!dir)
+    return -ENOENT;
+
+  /* check if file already exists */
+  dir->i_ref++;
+  if (ext2_lookup(dir, name, name_len, &tmp) == 0) {
+    vfs_iput(tmp);
+    vfs_iput(dir);
+    return -EEXIST;
+  }
+
+  /* create a new inode */
+  inode = ext2_new_inode(dir);
+  if (!inode) {
+    vfs_iput(dir);
+    return -ENOSPC;
+  }
+
+  /* set inode */
+  inode->i_op = &ext2_file_iops;
+  inode->i_mode = S_IFREG | mode;
+  inode->i_dirt = 1;
+
+  /* add new entry to dir */
+  err = ext2_add_entry(dir, name, name_len, inode);
+  if (err) {
+    inode->i_nlinks--;
+    vfs_iput(inode);
+    vfs_iput(dir);
+    return err;
+  }
+
+  /* release inode (to write it on disk) */
+  ino = inode->i_ino;
+  vfs_iput(inode);
+
+  /* read inode from disk */
+  *res_inode = vfs_iget(dir->i_sb, ino);
+  if (!*res_inode) {
+    vfs_iput(dir);
+    return -EACCES;
+  }
+
+  /* release directory */
+  vfs_iput(dir);
+
   return 0;
 }

@@ -21,14 +21,19 @@
 
 #define EXT2_DIRENT_SIZE            (sizeof(struct ext2_dir_entry_t))
 
-/*
- * Constants relative to the data blocks
- */
 #define EXT2_NDIR_BLOCKS            12
 #define EXT2_IND_BLOCK              EXT2_NDIR_BLOCKS
 #define EXT2_DIND_BLOCK             (EXT2_IND_BLOCK + 1)
 #define EXT2_TIND_BLOCK             (EXT2_DIND_BLOCK + 1)
 #define EXT2_N_BLOCKS               (EXT2_TIND_BLOCK + 1)
+
+#define EXT2_DIR_PAD                4
+#define EXT2_DIR_ROUND              (EXT2_DIR_PAD - 1)
+#define EXT2_DIR_REC_LEN(name_len)  (((name_len) + 8 + EXT2_DIR_ROUND) & ~EXT2_DIR_ROUND)
+
+#define EXT2_BITMAP_SET(bh, i)      ((bh)->b_data[(i) / 8] |= (0x1 << ((i) % 8)))
+#define EXT2_BITMAP_CLR(bh, i)      ((bh)->b_data[(i) / 8] &= ~(0x1 << ((i) % 8)))
+
 
 /*
  * Ext2 on disk super block.
@@ -204,12 +209,16 @@ void ext2_put_inode(struct inode_t *inode);
 int ext2_read_inode(struct inode_t *inode);
 int ext2_write_inode(struct inode_t *inode);
 
+/* Ext2 inode alloc prototypes */
+struct inode_t *ext2_new_inode(struct inode_t *dir);
+
 /* Ext2 block alloc prototypes */
 struct ext2_group_desc_t *ext2_get_group_desc(struct super_block_t *sb, uint32_t block_group, struct buffer_head_t **bh);
 int ext2_new_block(struct inode_t *inode, uint32_t goal);
 
 /* Ext2 name resolution prototypes */
 int ext2_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
+int ext2_create(struct inode_t *dir, const char *name, size_t name_len, mode_t mode, struct inode_t **res_inode);
 
 /* Ext2 file prototypes */
 int ext2_file_read(struct file_t *filp, char *buf, int count);
@@ -238,6 +247,23 @@ static inline struct ext2_inode_info_t *ext2_i(struct inode_t *inode)
 static inline uint32_t ext2_group_first_block_no(struct super_block_t *sb, uint32_t group_no)
 {
   return group_no * ext2_sb(sb)->s_blocks_per_group + le32toh(ext2_sb(sb)->s_es->s_first_data_block);
+}
+
+/*
+ * Get first free bit in a bitmap block.
+ */
+static inline int ext2_get_free_bitmap(struct super_block_t *sb, struct buffer_head_t *bh)
+{
+  uint32_t *bits = (uint32_t *) bh->b_data;
+  register int i, j;
+
+  for (i = 0; i < bh->b_size / 4; i++)
+    if (bits[i] != 0xFFFFFFFF)
+      for (j = 0; j < 32; j++)
+        if (!(bits[i] & (0x1 << j)))
+          return 32 * i + j;
+
+  return -1;
 }
 
 #endif

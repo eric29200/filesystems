@@ -2,9 +2,6 @@
 
 #include "ext2.h"
 
-#define EXT2_BITMAP_SET(bh, i)       ((bh)->b_data[(i) / 8] |= (0x1 << ((i) % 8)))
-#define EXT2_BITMAP_CLR(bh, i)       ((bh)->b_data[(i) / 8] &= ~(0x1 << ((i) % 8)))
-
 /*
  * Get a group descriptor.
  */
@@ -33,24 +30,7 @@ struct ext2_group_desc_t *ext2_get_group_desc(struct super_block_t *sb, uint32_t
 }
 
 /*
- * Get first free bit in a bitmap block.
- */
-static inline int ext2_get_free_bitmap(struct super_block_t *sb, struct buffer_head_t *bh)
-{
-  uint32_t *bits = (uint32_t *) bh->b_data;
-  register int i, j;
-
-  for (i = 0; i < sb->s_blocksize / 4; i++)
-    if (bits[i] != 0xFFFFFFFF)
-      for (j = 0; j < 32; j++)
-        if (!(bits[i] & (0x1 << j)))
-          return 32 * i + j;
-
-  return -1;
-}
-
-/*
- * Read the bitmap of a block group.
+ * Read the blocks bitmap of a block group.
  */
 static struct buffer_head_t *ext2_read_block_bitmap(struct super_block_t *sb, uint32_t block_group)
 {
@@ -96,14 +76,14 @@ int ext2_new_block(struct inode_t *inode, uint32_t goal)
     if (!le16toh(gdp->bg_free_blocks_count))
       continue;
 
-    /* get group bitmap */
+    /* get group blocks bitmap */
     bitmap_bh = ext2_read_block_bitmap(inode->i_sb, group_no);
     if (!bitmap_bh)
       return -EIO;
 
     /* get first free block from bitmap */
     grp_alloc_block = ext2_get_free_bitmap(inode->i_sb, bitmap_bh);
-    if (grp_alloc_block != -1)
+    if (grp_alloc_block != -1 && grp_alloc_block < sbi->s_blocks_per_group)
       goto allocated;
 
     /* release bitmap block */
