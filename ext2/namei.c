@@ -158,6 +158,41 @@ found_entry:
 }
 
 /*
+ * Delete an entry in a directory (by merging it with the previous entry).
+ */
+static int ext2_delete_entry(struct ext2_dir_entry_t *dir, struct buffer_head_t *bh)
+{
+  struct ext2_dir_entry_t *de, *pde;
+  int i;
+
+  /* find dir entry */
+  for (i = 0, pde = NULL, de = (struct ext2_dir_entry_t *) bh->b_data; i < bh->b_size;) {
+    /* check entry */
+    if (le16toh(de->d_rec_len) <= 0)
+      return -EIO;
+
+    /* entry found */
+    if (de == dir) {
+      /* merge with previous entry */
+      if (pde)
+        pde->d_rec_len = htole16(le16toh(pde->d_rec_len) + le16toh(de->d_rec_len));
+
+      /* reset inode */
+      de->d_inode = htole32(0);
+
+      return 0;
+    }
+
+    /* go to next entry */
+    i += le16toh(de->d_rec_len);
+    pde = de;
+    de = (struct ext2_dir_entry_t *) ((char *) de + le16toh(de->d_rec_len));
+  }
+
+  return -ENOENT;
+}
+
+/*
  * Lookup for a file in a directory.
  */
 int ext2_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode)
@@ -382,7 +417,7 @@ int ext2_unlink(struct inode_t *dir, const char *name, size_t name_len)
   struct ext2_dir_entry_t *de;
   struct buffer_head_t *bh;
   struct inode_t *inode;
-  ino_t ino;
+  ino_t ino, err = 0;
 
   /* get directory entry */
   bh = ext2_find_entry(dir, name, name_len, &de);
@@ -404,26 +439,27 @@ int ext2_unlink(struct inode_t *dir, const char *name, size_t name_len)
 
   /* remove regular files only */
   if (S_ISDIR(inode->i_mode)) {
-    vfs_iput(inode);
-    vfs_iput(dir);
-    brelse(bh);
-    return -EPERM;
+    err = -EPERM;
+    goto out;
   }
 
-  /* reset directory entry */
-  de->d_inode = htole32(0);
+  /* delete entry */
+  err = ext2_delete_entry(de, bh);
+  if (err)
+    goto out;
+
+  /* mark buffer dirty */
   bh->b_dirt = 1;
-  brelse(bh);
 
   /* update inode */
   inode->i_nlinks--;
   inode->i_dirt = 1;
 
-  /* release inode */
+out:
+  brelse(bh);
   vfs_iput(inode);
   vfs_iput(dir);
-
-  return 0;
+  return err;
 }
 
 /*
@@ -491,4 +527,92 @@ int ext2_symlink(struct inode_t *dir, const char *name, size_t name_len, const c
   vfs_iput(dir);
 
   return 0;
+}
+
+/*
+ * Rename a file.
+ */
+int ext2_rename(struct inode_t *old_dir, const char *old_name, size_t old_name_len,
+                struct inode_t *new_dir, const char *new_name, size_t new_name_len)
+{
+  struct inode_t *old_inode = NULL, *new_inode = NULL;
+  struct buffer_head_t *old_bh = NULL, *new_bh = NULL;
+  struct ext2_dir_entry_t *old_de, *new_de;
+  ino_t old_ino, new_ino;
+  int err;
+
+  /* find old entry */
+  old_bh = ext2_find_entry(old_dir, old_name, old_name_len, &old_de);
+  if (!old_bh) {
+    err = -ENOENT;
+    goto out;
+  }
+
+  /* get old inode number */
+  old_ino = le32toh(old_de->d_inode);
+
+  /* get old inode */
+  old_inode = vfs_iget(old_dir->i_sb, old_ino);
+  if (!old_inode) {
+    err = -ENOSPC;
+    goto out;
+  }
+
+  /* find new entry (if exists) or add new one */
+  new_bh = ext2_find_entry(new_dir, new_name, new_name_len, &new_de);
+  if (new_bh) {
+    /* get new inode number */
+    new_ino = le32toh(new_de->d_inode);
+
+    /* get new inode */
+    new_inode = vfs_iget(new_dir->i_sb, new_ino);
+    if (!new_inode) {
+      err = -ENOSPC;
+      goto out;
+    }
+
+    /* same inode : exit */
+    if (old_inode->i_ino == new_inode->i_ino) {
+      err = 0;
+      goto out;
+    }
+
+    /* modify new directory entry inode */
+    new_de->d_inode = htole32(old_inode->i_ino);
+
+    /* update new inode */
+    new_inode->i_nlinks--;
+    new_inode->i_atime = new_inode->i_mtime = current_time();
+    new_inode->i_dirt = 1;
+  } else {
+    /* add new entry */
+    err = ext2_add_entry(new_dir, new_name, new_name_len, old_inode);
+    if (err)
+      goto out;
+  }
+
+  /* remove old directory entry */
+  err = ext2_delete_entry(old_de, old_bh);
+  if (err)
+    goto out;
+
+  /* mark old directory buffer dirty */
+  old_bh->b_dirt = 1;
+
+  /* update old and new directories */
+  old_dir->i_atime = old_dir->i_mtime = current_time();
+  old_dir->i_dirt = 1;
+  new_dir->i_atime = new_dir->i_mtime = current_time();
+  new_dir->i_dirt = 1;
+
+  err = 0;
+out:
+  /* release buffers and inodes */
+  brelse(old_bh);
+  brelse(new_bh);
+  vfs_iput(old_inode);
+  vfs_iput(new_inode);
+  vfs_iput(old_dir);
+  vfs_iput(new_dir);
+  return err;
 }

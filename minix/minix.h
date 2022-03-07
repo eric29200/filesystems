@@ -170,7 +170,7 @@ int minix_rmdir(struct inode_t *dir, const char *name, size_t name_len);
 int minix_link(struct inode_t *old_inode, struct inode_t *dir, const char *name, size_t name_len);
 int minix_symlink(struct inode_t *dir, const char *name, size_t name_len, const char *target);
 int minix_rename(struct inode_t *old_dir, const char *old_name, size_t old_name_len,
-                   struct inode_t *new_dir, const char *new_name, size_t new_name_len);
+                 struct inode_t *new_dir, const char *new_name, size_t new_name_len);
 
 /* Minix truncate prototypes */
 void minix_truncate(struct inode_t *inode);
