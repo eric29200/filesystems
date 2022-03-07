@@ -338,6 +338,43 @@ int ext2_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mo
 }
 
 /*
+ * Make a new name for a file (= hard link).
+ */
+int ext2_link(struct inode_t *old_inode, struct inode_t *dir, const char *name, size_t name_len)
+{
+  struct ext2_dir_entry_t *de;
+  struct buffer_head_t *bh;
+  int err;
+
+  /* check if new file exists */
+  bh = ext2_find_entry(dir, name, name_len, &de);
+  if (bh) {
+    brelse(bh);
+    vfs_iput(old_inode);
+    vfs_iput(dir);
+    return -EEXIST;
+  }
+
+  /* add entry */
+  err = ext2_add_entry(dir, name, name_len, old_inode);
+  if (err) {
+    vfs_iput(old_inode);
+    vfs_iput(dir);
+    return err;
+  }
+
+  /* update old inode */
+  old_inode->i_nlinks++;
+  old_inode->i_dirt = 1;
+
+  /* release inodes */
+  vfs_iput(old_inode);
+  vfs_iput(dir);
+
+  return 0;
+}
+
+/*
  * Unlink (remove) a file.
  */
 int ext2_unlink(struct inode_t *dir, const char *name, size_t name_len)
