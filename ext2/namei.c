@@ -425,3 +425,70 @@ int ext2_unlink(struct inode_t *dir, const char *name, size_t name_len)
 
   return 0;
 }
+
+/*
+ * Create a symbolic link.
+ */
+int ext2_symlink(struct inode_t *dir, const char *name, size_t name_len, const char *target)
+{
+  struct ext2_dir_entry_t *de;
+  struct buffer_head_t *bh;
+  struct inode_t *inode;
+  int err, i;
+
+  /* create a new inode */
+  inode = ext2_new_inode(dir, S_IFLNK);
+  if (!inode) {
+    vfs_iput(dir);
+    return -ENOSPC;
+  }
+
+  /* set new inode */
+  inode->i_op = &ext2_symlink_iops;
+  inode->i_mode = S_IFLNK | 0777;
+  inode->i_dirt = 1;
+
+  /* read/create first block */
+  bh = ext2_bread(inode, 0, 1);
+  if(!bh) {
+    inode->i_nlinks = 0;
+    vfs_iput(inode);
+    vfs_iput(dir);
+    return -ENOSPC;
+  }
+
+  /* write file name on first block */
+  for (i = 0; target[i] && i < inode->i_sb->s_blocksize - 1; i++)
+    bh->b_data[i] = target[i];
+  bh->b_data[i] = 0;
+  bh->b_dirt = 1;
+  brelse(bh);
+
+  /* update inode size */
+  inode->i_size = i;
+  inode->i_dirt = 1;
+
+  /* check if file exists */
+  bh = ext2_find_entry(dir, name, name_len, &de);
+  if (bh) {
+    brelse(bh);
+    inode->i_nlinks = 0;
+    vfs_iput(inode);
+    vfs_iput(dir);
+    return -EEXIST;
+  }
+
+  /* add entry */
+  err = ext2_add_entry(dir, name, name_len, inode);
+  if (err) {
+    vfs_iput(inode);
+    vfs_iput(dir);
+    return err;
+  }
+
+  /* release inode */
+  vfs_iput(inode);
+  vfs_iput(dir);
+
+  return 0;
+}

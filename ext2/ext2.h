@@ -193,6 +193,7 @@ struct ext2_inode_info_t {
 /* Ext2 file system operations */
 extern struct super_operations_t ext2_sops;
 extern struct inode_operations_t ext2_file_iops;
+extern struct inode_operations_t ext2_symlink_iops;
 extern struct inode_operations_t ext2_dir_iops;
 extern struct file_operations_t ext2_file_fops;
 extern struct file_operations_t ext2_dir_fops;
@@ -222,12 +223,17 @@ int ext2_free_block(struct inode_t *inode, uint32_t block);
 /* Ext2 truncate prototypes */
 void ext2_truncate(struct inode_t *inode);
 
+/* Ext2 symlink prototypes */
+int ext2_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t **res_inode);
+ssize_t ext2_readlink(struct inode_t *inode, char *buf, size_t bufsize);
+
 /* Ext2 name resolution prototypes */
 int ext2_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
 int ext2_create(struct inode_t *dir, const char *name, size_t name_len, mode_t mode, struct inode_t **res_inode);
 int ext2_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mode);
 int ext2_link(struct inode_t *old_inode, struct inode_t *dir, const char *name, size_t name_len);
 int ext2_unlink(struct inode_t *dir, const char *name, size_t name_len);
+int ext2_symlink(struct inode_t *dir, const char *name, size_t name_len, const char *target);
 
 /* Ext2 file prototypes */
 int ext2_file_read(struct file_t *filp, char *buf, int count);

@@ -23,9 +23,15 @@ struct file_operations_t ext2_dir_fops = {
  */
 struct inode_operations_t ext2_file_iops = {
   .fops               = &ext2_file_fops,
-  .follow_link        = NULL,
-  .readlink           = NULL,
   .truncate           = ext2_truncate,
+};
+
+/*
+ * Ext2 symbolic link inode operations.
+ */
+struct inode_operations_t ext2_symlink_iops = {
+  .follow_link        = ext2_follow_link,
+  .readlink           = ext2_readlink,
 };
 
 /*
@@ -37,7 +43,7 @@ struct inode_operations_t ext2_dir_iops = {
   .create             = ext2_create,
   .link               = ext2_link,
   .unlink             = ext2_unlink,
-  .symlink            = NULL,
+  .symlink            = ext2_symlink,
   .mkdir              = ext2_mkdir,
   .rmdir              = NULL,
   .rename             = NULL,
@@ -158,6 +164,8 @@ int ext2_read_inode(struct inode_t *inode)
   /* set operations */
   if (S_ISDIR(inode->i_mode))
     inode->i_op = &ext2_dir_iops;
+  else if (S_ISLNK(inode->i_mode))
+    inode->i_op = &ext2_symlink_iops;
   else
     inode->i_op = &ext2_file_iops;
 
