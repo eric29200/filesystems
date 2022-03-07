@@ -193,6 +193,81 @@ static int ext2_delete_entry(struct ext2_dir_entry_t *dir, struct buffer_head_t 
 }
 
 /*
+ * Check if a directory is empty.
+ */
+static int ext2_empty_dir(struct inode_t *inode)
+{
+  struct ext2_dir_entry_t *de, *de1;
+  struct buffer_head_t *bh;
+  uint32_t offset;
+
+  /* check directory size : must contain '.' and '..' */
+  if (inode->i_size < EXT2_DIR_REC_LEN(1) + EXT2_DIR_REC_LEN(2)) {
+    fprintf(stderr, "Ext2 : bad directory size %ld (inode = %ld)\n", inode->i_size, inode->i_ino);
+    return 1;
+  }
+
+  /* read first block */
+  bh = ext2_bread(inode, 0, 0);
+  if (!bh) {
+    fprintf(stderr, "Ext2 : bad directory (inode = %ld) : no data block\n", inode->i_ino);
+    return 1;
+  }
+
+  /* get first 2 entries */
+  de = (struct ext2_dir_entry_t *) bh->b_data;
+  de1 = (struct ext2_dir_entry_t *) ((char *) de + le16toh(de->d_rec_len));
+
+  /* first 2 entries must be '.' and '..' */
+  if (le32toh(de->d_inode) != inode->i_ino || !le32toh(de1->d_inode)
+      || strcmp(".", de->d_name) || strcmp("..", de1->d_name)) {
+    fprintf(stderr, "Ext2 : bad directory (inode = %ld) : no '.' or '..'\n", inode->i_ino);
+    return 1;
+  }
+
+  /* try to find an entry */
+  de = (struct ext2_dir_entry_t *) ((char *) de1 + le32toh(de1->d_rec_len));
+  for (offset = le16toh(de->d_rec_len) + le16toh(de1->d_rec_len); offset < inode->i_size;) {
+    /* read next block */
+    if ((char *) de >= bh->b_data + inode->i_sb->s_blocksize) {
+      /* release previous block */
+      brelse(bh);
+
+      /* read next block */
+      bh = ext2_bread(inode, offset / inode->i_sb->s_blocksize, 0);
+      if (!bh) {
+        fprintf(stderr, "Ext2 : directory (inode = %ld) contains a hole at offset %d\n", inode->i_ino, offset);
+        offset += inode->i_sb->s_blocksize;
+        continue;
+      }
+
+      /* get first entry */
+      de = (struct ext2_dir_entry_t *) bh->b_data;
+    }
+
+    /* check entry */
+    if (le16toh(de->d_rec_len) <= 0) {
+      brelse(bh);
+      return 1;
+    }
+
+    /* entry found */
+    if (!le32toh(de->d_inode)) {
+      brelse(bh);
+      return 0;
+    }
+
+    /* go to next entry */
+    offset += le16toh(de->d_rec_len);
+    de = (struct ext2_dir_entry_t *) ((char *) de + le16toh(de->d_rec_len));
+  }
+
+  /* no entry */
+  brelse(bh);
+  return 1;
+}
+
+/*
  * Lookup for a file in a directory.
  */
 int ext2_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode)
@@ -368,6 +443,75 @@ int ext2_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mo
   /* release inode */
   vfs_iput(dir);
   vfs_iput(inode);
+
+  return 0;
+}
+
+/*
+ * Remove a directory.
+ */
+int ext2_rmdir(struct inode_t *dir, const char *name, size_t name_len)
+{
+  struct ext2_dir_entry_t *de;
+  struct buffer_head_t *bh;
+  struct inode_t *inode;
+  ino_t ino;
+  int err;
+
+  /* check if file exists */
+  bh = ext2_find_entry(dir, name, name_len, &de);
+  if (!bh) {
+    vfs_iput(dir);
+    return -ENOENT;
+  }
+
+  /* get inode number */
+  ino = le32toh(de->d_inode);
+
+  /* get inode */
+  inode = vfs_iget(dir->i_sb, ino);
+  if (!inode) {
+    brelse(bh);
+    vfs_iput(dir);
+    return -ENOENT;
+  }
+
+  /* remove directories only and do not allow to remove '.' */
+  if (!S_ISDIR(inode->i_mode) || inode->i_ino == dir->i_ino) {
+    brelse(bh);
+    vfs_iput(inode);
+    vfs_iput(dir);
+    return -EPERM;
+  }
+
+  /* directory must be empty */
+  if (!ext2_empty_dir(inode)) {
+    brelse(bh);
+    vfs_iput(inode);
+    vfs_iput(dir);
+    return -EPERM;
+  }
+
+  /* remove entry */
+  err = ext2_delete_entry(de, bh);
+  if (err)
+    goto out;
+
+  /* mark buffer diry */
+  bh->b_dirt = 1;
+
+  /* update dir */
+  dir->i_nlinks--;
+  dir->i_dirt = 1;
+
+  /* update inode */
+  inode->i_nlinks = 0;
+  inode->i_dirt = 1;
+
+out:
+  brelse(bh);
+  vfs_iput(inode);
+  vfs_iput(dir);
 
   return 0;
 }

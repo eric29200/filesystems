@@ -45,7 +45,7 @@ struct inode_operations_t ext2_dir_iops = {
   .unlink             = ext2_unlink,
   .symlink            = ext2_symlink,
   .mkdir              = ext2_mkdir,
-  .rmdir              = NULL,
+  .rmdir              = ext2_rmdir,
   .rename             = ext2_rename,
   .truncate           = ext2_truncate,
 };
