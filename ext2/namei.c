@@ -501,10 +501,12 @@ int ext2_rmdir(struct inode_t *dir, const char *name, size_t name_len)
   bh->b_dirt = 1;
 
   /* update dir */
+  dir->i_ctime = dir->i_mtime = current_time();
   dir->i_nlinks--;
   dir->i_dirt = 1;
 
   /* update inode */
+  inode->i_ctime = dir->i_ctime;
   inode->i_nlinks = 0;
   inode->i_dirt = 1;
 
@@ -543,6 +545,7 @@ int ext2_link(struct inode_t *old_inode, struct inode_t *dir, const char *name, 
   }
 
   /* update old inode */
+  old_inode->i_ctime = current_time();
   old_inode->i_nlinks++;
   old_inode->i_dirt = 1;
 
@@ -595,7 +598,12 @@ int ext2_unlink(struct inode_t *dir, const char *name, size_t name_len)
   /* mark buffer dirty */
   bh->b_dirt = 1;
 
+  /* update directory */
+  dir->i_ctime = dir->i_mtime = current_time();
+  dir->i_dirt = 1;
+
   /* update inode */
+  inode->i_ctime = dir->i_ctime;
   inode->i_nlinks--;
   inode->i_dirt = 1;
 

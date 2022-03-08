@@ -199,5 +199,6 @@ void minix_truncate(struct inode_t *inode)
                                 addr_per_block);
   
   /* mark inode dirty */
+  inode->i_mtime = inode->i_ctime = current_time();
   inode->i_dirt = 1;
 }

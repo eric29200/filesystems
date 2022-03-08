@@ -43,6 +43,8 @@ int minix_file_read(struct file_t *filp, char *buf, int count)
   }
   
 out:
+  filp->f_inode->i_atime = current_time();
+  filp->f_inode->i_dirt = 1;
   return count - left;
 }
 
@@ -89,5 +91,7 @@ int minix_file_write(struct file_t *filp, const char *buf, int count)
   }
   
 out:
+  filp->f_inode->i_mtime = filp->f_inode->i_ctime = current_time();
+  filp->f_inode->i_dirt = 1;
   return count - left;
 }

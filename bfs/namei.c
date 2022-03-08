@@ -248,6 +248,7 @@ int bfs_link(struct inode_t *old_inode, struct inode_t *dir, const char *name, s
   }
 
   /* update old inode */
+  old_inode->i_ctime = current_time();
   old_inode->i_nlinks++;
   old_inode->i_dirt = 1;
 

@@ -125,7 +125,7 @@ int bfs_file_write(struct file_t *filp, const char *buf, int count);
 int bfs_getdents64(struct file_t *filp, void *dirp, size_t count);
 
 /* BFS truncate prototypes */
-int bfs_truncate(struct inode_t *inode);
+void bfs_truncate(struct inode_t *inode);
 
 /*
  * Get BFS in memory super block from generic super block.

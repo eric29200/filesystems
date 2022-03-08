@@ -367,8 +367,13 @@ int minix_unlink(struct inode_t *dir, const char *name, size_t name_len)
   memset(de, 0, sbi->s_dirsize);
   bh->b_dirt = 1;
   brelse(bh);
+
+  /* update directory */
+  dir->i_ctime = dir->i_mtime = current_time();
+  dir->i_dirt = 1;
   
   /* update inode */
+  inode->i_ctime = dir->i_ctime;
   inode->i_nlinks--;
   inode->i_dirt = 1;
   
@@ -526,10 +531,12 @@ int minix_rmdir(struct inode_t *dir, const char *name, size_t name_len)
   brelse(bh);
   
   /* update dir */
+  dir->i_ctime = dir->i_mtime = current_time();
   dir->i_nlinks--;
   dir->i_dirt = 1;
   
   /* update inode */
+  inode->i_ctime = dir->i_ctime;
   inode->i_nlinks = 0;
   inode->i_dirt = 1;
   
@@ -567,6 +574,7 @@ int minix_link(struct inode_t *old_inode, struct inode_t *dir, const char *name,
   }
   
   /* update old inode */
+  old_inode->i_ctime = current_time();
   old_inode->i_nlinks++;
   old_inode->i_dirt = 1;
   
