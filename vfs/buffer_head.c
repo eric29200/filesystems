@@ -66,7 +66,7 @@ struct buffer_head_t *getblk(struct super_block_t *sb, uint32_t block)
   node = htable_lookup(buffer_htable, block, VFS_BUFFER_HTABLE_BITS);
   while (node) {
     bh = htable_entry(node, struct buffer_head_t, b_htable);
-    if (bh->b_block == block && bh->b_sb == sb) {
+    if (bh->b_block == block && bh->b_sb == sb && bh->b_size == sb->s_blocksize) {
       bh->b_ref++;
       goto out;
     }

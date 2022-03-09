@@ -22,9 +22,9 @@ struct super_operations_t ext2_sops = {
  */
 int ext2_read_super(struct super_block_t *sb)
 {
+  uint32_t block, sb_block = 1, offset = 0, logic_sb_block = 1;
   int err = -ENOSPC, blocksize, i;
   struct ext2_sb_info_t *sbi;
-  uint32_t block;
 
   /* allocate Ext2 in memory super block */
   sb->s_fs_info = sbi = (struct ext2_sb_info_t *) malloc(sizeof(struct ext2_sb_info_t));
@@ -37,7 +37,7 @@ int ext2_read_super(struct super_block_t *sb)
   sb->s_blocksize_bits = EXT2_BLOCK_SIZE_BITS;
 
   /* read first block = super block */
-  sbi->s_sbh = sb_bread(sb, 1);
+  sbi->s_sbh = sb_bread(sb, sb_block);
   if (!sbi->s_sbh) {
     err = -EIO;
     goto err_bad_sb;
@@ -59,8 +59,41 @@ int ext2_read_super(struct super_block_t *sb)
 
   /* check block size */
   blocksize = EXT2_BLOCK_SIZE << le32toh(sbi->s_es->s_log_block_size);
-  if (blocksize != EXT2_BLOCK_SIZE)
+  if (blocksize != 1024 && blocksize != 2048 && blocksize != 4096)
     goto err_bad_blocksize;
+
+  /* specific block size : reread super blockk */
+  if (blocksize != EXT2_BLOCK_SIZE) {
+    /* release super block buffer */
+    brelse(sbi->s_sbh);
+
+    /* set new block size */
+    sb->s_blocksize = blocksize;
+    sb->s_blocksize_bits = log2(blocksize);
+
+    /* compute super block offset */
+    logic_sb_block = (sb_block * EXT2_BLOCK_SIZE) / sb->s_blocksize;
+    offset = (sb_block * EXT2_BLOCK_SIZE) % sb->s_blocksize;
+
+    /* reread super block */
+    sbi->s_sbh = sb_bread(sb, logic_sb_block);
+    if (!sbi->s_sbh) {
+      err = -EIO;
+      goto err_bad_sb;
+    }
+
+    /* set super block */
+    sbi->s_es = (struct ext2_super_block_t *) (sbi->s_sbh->b_data + offset);
+    sb->s_magic = le16toh(sbi->s_es->s_magic);
+
+    /* check magic number */
+    if (sb->s_magic != EXT2_MAGIC)
+      goto err_bad_magic;
+
+    /* check revision level */
+    if (le32toh(sbi->s_es->s_rev_level) > EXT2_DYNAMIC_REV)
+      goto err_bad_rev;
+  }
 
   /* get inode size */
   if (le32toh(sbi->s_es->s_rev_level) == EXT2_GOOD_OLD_REV) {
@@ -77,8 +110,8 @@ int ext2_read_super(struct super_block_t *sb)
   sbi->s_inodes_per_group = le32toh(sbi->s_es->s_inodes_per_group);
   sbi->s_itb_per_group = sbi->s_inodes_per_group / sbi->s_inodes_per_block;
   sbi->s_desc_per_block = sb->s_blocksize / sizeof(struct ext2_group_desc_t);
-  sbi->s_groups_count = ((le32toh(sbi->s_es->s_blocks_count) - le32toh(sbi->s_es->s_first_data_block) - 1)
-                        / sbi->s_blocks_per_group) + 1;
+  sbi->s_groups_count = (le32toh(sbi->s_es->s_blocks_count) - le32toh(sbi->s_es->s_first_data_block)
+                         + sbi->s_blocks_per_group - 1) / sbi->s_blocks_per_group;
   sbi->s_gdb_count = (sbi->s_groups_count + sbi->s_desc_per_block - 1) / sbi->s_desc_per_block;
 
   /* allocate group descriptors buffers */
@@ -95,7 +128,7 @@ int ext2_read_super(struct super_block_t *sb)
   /* read group descriptors */
   for (i = 0; i < sbi->s_gdb_count; i++) {
     /* get group descriptor block = +1 for super block stored in front of each group */
-    block = ext2_group_first_block_no(sb, sbi->s_desc_per_block * i) + 1;
+    block = logic_sb_block + i + 1;
 
     /* read group descriptor */
     sbi->s_group_desc[i] = sb_bread(sb, block);
@@ -125,7 +158,7 @@ err_release_gdb:
   free(sbi->s_group_desc);
   goto err_release_sb;
 err_bad_blocksize:
-  fprintf(stderr, "Ext2 : wrong block size (only %d is supported)\n", EXT2_BLOCK_SIZE);
+  fprintf(stderr, "Ext2 : wrong block size (only 1024, 2048 and 4096 supported)\n");
   goto err_release_sb;
 err_bad_rev:
   fprintf(stderr, "Ext2 : wrong revision level\n");
