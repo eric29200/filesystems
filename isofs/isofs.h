@@ -117,6 +117,7 @@ int isofs_read_inode(struct inode_t *inode);
 int isofs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
 
 /* ISOFS file prototypes */
+int isofs_file_read(struct file_t *filp, char *buf, int count);
 int isofs_getdents64(struct file_t *filp, void *dirp, size_t count);
 
 /* ISOFS utils prototypes */

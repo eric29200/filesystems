@@ -9,7 +9,7 @@
  * ISOFS file operations.
  */
 struct file_operations_t isofs_file_fops = {
-  .read               = NULL,
+  .read               = isofs_file_read,
 };
 
 /*
