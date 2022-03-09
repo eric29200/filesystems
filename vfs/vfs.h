@@ -13,6 +13,7 @@
 #define VFS_MINIX_TYPE                        1
 #define VFS_BFS_TYPE                          2
 #define VFS_EXT2_TYPE                         3
+#define VFS_ISOFS_TYPE                        4
 
 #define VFS_BUFFER_HTABLE_BITS                12
 #define VFS_NR_BUFFER                         (1 << VFS_BUFFER_HTABLE_BITS)
