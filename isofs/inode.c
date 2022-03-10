@@ -90,7 +90,7 @@ int isofs_read_inode(struct inode_t *inode)
   }
 
   /* set inode */
-  inode->i_mode = S_IRWXU | S_IRWXG | S_IRWXO;
+  inode->i_mode = S_IRUSR | S_IRGRP | S_IROTH | S_IXUSR | S_IXGRP | S_IXOTH;
   if (raw_inode->flags[0] & 2)
     inode->i_mode |= S_IFDIR;
   else
