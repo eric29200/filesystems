@@ -243,3 +243,74 @@ out:
   vfs_iput(dir);
   return err;
 }
+
+/*
+ * Rename a file.
+ */
+int memfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_name_len,
+                 struct inode_t *new_dir, const char *new_name, size_t new_name_len)
+{
+  struct inode_t *old_inode = NULL, *new_inode = NULL;
+  struct memfs_dir_entry_t *old_de, *new_de;
+  int err;
+
+  /* find old entry */
+  err = memfs_find_entry(old_dir, old_name, old_name_len, &old_de);
+  if (err)
+    goto out;
+
+  /* get old inode */
+  old_inode = vfs_iget(old_dir->i_sb, old_de->d_inode);
+  if (!old_inode) {
+    err = -ENOSPC;
+    goto out;
+  }
+
+  /* find new entry (if exists) or add new one */
+  err = memfs_find_entry(new_dir, new_name, new_name_len, &new_de);
+  if (!err) {
+    /* get new inode */
+    new_inode = vfs_iget(new_dir->i_sb, new_de->d_inode);
+    if (!new_inode) {
+      err = -ENOSPC;
+      goto out;
+    }
+
+    /* same inode : exit */
+    if (old_inode->i_ino == new_inode->i_ino) {
+      err = 0;
+      goto out;
+    }
+
+    /* modify new directory entry inode */
+    new_de->d_inode = old_inode->i_ino;
+
+    /* update new inode */
+    new_inode->i_nlinks--;
+    new_inode->i_atime = new_inode->i_mtime = current_time();
+    new_inode->i_dirt = 1;
+  } else {
+    /* add new entry */
+    err = memfs_add_entry(new_dir, new_name, new_name_len, old_inode->i_ino);
+    if (err)
+      goto out;
+  }
+
+  /* remove old directory entry */
+  old_de->d_inode = 0;
+
+  /* update old and new directories */
+  old_dir->i_atime = old_dir->i_mtime = current_time();
+  old_dir->i_dirt = 1;
+  new_dir->i_atime = new_dir->i_mtime = current_time();
+  new_dir->i_dirt = 1;
+
+  err = 0;
+out:
+  /* release inodes */
+  vfs_iput(old_inode);
+  vfs_iput(new_inode);
+  vfs_iput(old_dir);
+  vfs_iput(new_dir);
+  return err;
+}
