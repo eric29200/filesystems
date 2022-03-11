@@ -85,7 +85,7 @@ int memfs_statfs(struct super_block_t *sb, struct statfs *buf)
   /* set stat buffer */
   buf->f_type = sb->s_magic;
   buf->f_bsize = sb->s_blocksize;
-  buf->f_blocks = 1;
+  buf->f_blocks = 0;
   buf->f_bfree = 0;
   buf->f_bavail = 0;
   buf->f_files = memfs_sb(sb)->s_ninodes;
