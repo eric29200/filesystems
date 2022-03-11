@@ -438,7 +438,7 @@ int minix_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t m
     
     /* add '..' entry */
     de3 = (struct minix3_dir_entry_t *) (bh->b_data + sbi->s_dirsize);
-    de3->d_inode = inode->i_ino;
+    de3->d_inode = dir->i_ino;
     strcpy(de3->d_name, "..");
   } else {
     /* add '.' entry */
@@ -448,7 +448,7 @@ int minix_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t m
     
     /* add '..' entry */
     de1 = (struct minix1_dir_entry_t *) (bh->b_data + sbi->s_dirsize);
-    de1->d_inode = inode->i_ino;
+    de1->d_inode = dir->i_ino;
     strcpy(de1->d_name, "..");
   }
   

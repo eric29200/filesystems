@@ -418,7 +418,7 @@ int ext2_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mo
 
   /* add '.' entry */
   de = (struct ext2_dir_entry_t *) ((char *) de + le16toh(de->d_rec_len));
-  de->d_inode = htole32(inode->i_ino);
+  de->d_inode = htole32(dir->i_ino);
   de->d_name_len = 2;
   de->d_rec_len = htole16(inode->i_sb->s_blocksize - EXT2_DIR_REC_LEN(1));
   strcpy(de->d_name, "..");

@@ -198,6 +198,70 @@ int memfs_create(struct inode_t *dir, const char *name, size_t name_len, mode_t 
 }
 
 /*
+ * Make a directory.
+ */
+int memfs_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mode)
+{
+  struct memfs_dir_entry_t *de;
+  struct inode_t *inode;
+  int err;
+
+  /* check if file exists */
+  err = memfs_find_entry(dir, name, name_len, &de);
+  if (!err) {
+    vfs_iput(dir);
+    return -EEXIST;
+  }
+
+  /* allocate a new inode */
+  inode = memfs_new_inode(dir->i_sb, S_IFDIR | mode);
+  if (!inode) {
+    vfs_iput(dir);
+    return -ENOMEM;
+  }
+
+  /* mark inode dirty */
+  inode->i_dirt = 1;
+
+  /* add '.' entry */
+  err = memfs_add_entry(inode, ".", 1, inode->i_ino);
+  if (err) {
+    inode->i_nlinks = 0;
+    vfs_iput(inode);
+    vfs_iput(dir);
+    return err;
+  }
+
+  /* add '..' entry */
+  err = memfs_add_entry(inode, "..", 2, dir->i_ino);
+  if (err) {
+    inode->i_nlinks = 0;
+    vfs_iput(inode);
+    vfs_iput(dir);
+    return err;
+  }
+
+  /* add entry to parent dir */
+  err = memfs_add_entry(dir, name, name_len, inode->i_ino);
+  if (err) {
+    inode->i_nlinks = 0;
+    vfs_iput(inode);
+    vfs_iput(dir);
+    return err;
+  }
+
+  /* update directory links and mark it dirty */
+  dir->i_nlinks++;
+  dir->i_dirt = 1;
+
+  /* release inode */
+  vfs_iput(dir);
+  vfs_iput(inode);
+
+  return 0;
+}
+
+/*
  * Unlink (remove) a file.
  */
 int memfs_unlink(struct inode_t *dir, const char *name, size_t name_len)

@@ -60,6 +60,7 @@ void memfs_delete_inode(struct inode_t *inode);
 int memfs_add_entry(struct inode_t *dir, const char *name, size_t name_len, ino_t ino);
 int memfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
 int memfs_create(struct inode_t *dir, const char *name, size_t name_len, mode_t mode, struct inode_t **res_inode);
+int memfs_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mode);
 int memfs_unlink(struct inode_t *dir, const char *name, size_t name_len);
 int memfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_name_len,
                  struct inode_t *new_dir, const char *new_name, size_t new_name_len);
