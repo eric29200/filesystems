@@ -69,7 +69,13 @@ err:
  */
 void memfs_put_super(struct super_block_t *sb)
 {
-  /* TODO */
+  struct memfs_sb_info_t *sbi = memfs_sb(sb);
+
+  /* release root inode */
+  vfs_iput(sb->s_root_inode);
+
+  /* free in memory super block */
+  free(sbi);
 }
 
 /*
@@ -77,6 +83,15 @@ void memfs_put_super(struct super_block_t *sb)
  */
 int memfs_statfs(struct super_block_t *sb, struct statfs *buf)
 {
-  /* TODO */
+  /* set stat buffer */
+  buf->f_type = sb->s_magic;
+  buf->f_bsize = sb->s_blocksize;
+  buf->f_blocks = 1;
+  buf->f_bfree = 0;
+  buf->f_bavail = 0;
+  buf->f_files = 0;
+  buf->f_ffree = 0;
+  buf->f_namelen = MEMFS_NAME_LEN;
+
   return 0;
 }
