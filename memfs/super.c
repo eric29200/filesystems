@@ -33,6 +33,7 @@ int memfs_read_super(struct super_block_t *sb)
   sb->s_magic = MEMFS_MAGIC;
   sb->s_op = &memfs_sops;
   memfs_sb(sb)->s_inodes_cpt = MEMFS_ROOT_INODE;
+  memfs_sb(sb)->s_ninodes = 0;
 
   /* create root inode */
   sb->s_root_inode = memfs_new_inode(sb, S_IFDIR | S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
@@ -87,7 +88,7 @@ int memfs_statfs(struct super_block_t *sb, struct statfs *buf)
   buf->f_blocks = 1;
   buf->f_bfree = 0;
   buf->f_bavail = 0;
-  buf->f_files = 0;
+  buf->f_files = memfs_sb(sb)->s_ninodes;
   buf->f_ffree = 0;
   buf->f_namelen = MEMFS_NAME_LEN;
 

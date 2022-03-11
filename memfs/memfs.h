@@ -13,7 +13,8 @@
  * MemFS in memory super block.
  */
 struct memfs_sb_info_t {
-  ino_t                         s_inodes_cpt;            /* Inodes counter */
+  ino_t                         s_inodes_cpt;           /* Inodes counter */
+  uint64_t                      s_ninodes;              /* Total number of inodes */
 };
 
 /*

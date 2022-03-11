@@ -94,6 +94,9 @@ void memfs_delete_inode(struct inode_t *inode)
   inode->i_size = 0;
   memfs_truncate(inode);
 
+  /* update super block */
+  memfs_sb(inode->i_sb)->s_ninodes--;
+
   /* free inode */
   free(memfs_i(inode));
 }
@@ -137,6 +140,9 @@ struct inode_t *memfs_new_inode(struct super_block_t *sb, mode_t mode)
 
   /* mark inode dirty */
   inode->i_dirt = 1;
+
+  /* update super block */
+  sbi->s_ninodes++;
 
   return inode;
 }
