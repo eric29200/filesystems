@@ -447,6 +447,59 @@ out:
 }
 
 /*
+ * Create a symbolic link.
+ */
+int memfs_symlink(struct inode_t *dir, const char *name, size_t name_len, const char *target)
+{
+  struct memfs_dir_entry_t *de;
+  struct inode_t *inode;
+  int err;
+
+  /* create a new inode */
+  inode = memfs_new_inode(dir->i_sb, S_IFLNK | 0777);
+  if (!inode) {
+    vfs_iput(dir);
+    return -ENOSPC;
+  }
+
+  /* copy file name to file's data */
+  memfs_i(inode)->i_data = strdup(target);
+  if (!memfs_i(inode)->i_data) {
+    inode->i_nlinks = 0;
+    vfs_iput(inode);
+    vfs_iput(dir);
+    return -ENOSPC;
+  }
+
+  /* update inode size */
+  inode->i_size = strlen(target);
+  inode->i_dirt = 1;
+
+  /* check if file exists */
+  err = memfs_find_entry(dir, name, name_len, &de);
+  if (!err) {
+    inode->i_nlinks = 0;
+    vfs_iput(inode);
+    vfs_iput(dir);
+    return -EEXIST;
+  }
+
+  /* add entry */
+  err = memfs_add_entry(dir, name, name_len, inode->i_ino);
+  if (err) {
+    vfs_iput(inode);
+    vfs_iput(dir);
+    return err;
+  }
+
+  /* release inode */
+  vfs_iput(inode);
+  vfs_iput(dir);
+
+  return 0;
+}
+
+/*
  * Rename a file.
  */
 int memfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_name_len,

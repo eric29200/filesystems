@@ -32,8 +32,8 @@ struct inode_operations_t memfs_file_iops = {
  * MemFS symbolic link inode operations.
  */
 struct inode_operations_t memfs_symlink_iops = {
-  .follow_link        = NULL,
-  .readlink           = NULL,
+  .follow_link        = memfs_follow_link,
+  .readlink           = memfs_readlink,
 };
 
 /*
@@ -45,7 +45,7 @@ struct inode_operations_t memfs_dir_iops = {
   .create             = memfs_create,
   .link               = memfs_link,
   .unlink             = memfs_unlink,
-  .symlink            = NULL,
+  .symlink            = memfs_symlink,
   .mkdir              = memfs_mkdir,
   .rmdir              = memfs_rmdir,
   .rename             = memfs_rename,
@@ -87,6 +87,9 @@ void memfs_delete_inode(struct inode_t *inode)
   if (inode->i_nlinks)
     return;
 
+  /* remove inode from list */
+  list_del(&inode->i_list);
+
   /* truncate */
   inode->i_size = 0;
   memfs_truncate(inode);
@@ -116,7 +119,6 @@ struct inode_t *memfs_new_inode(struct super_block_t *sb, mode_t mode)
   inode->i_atime = inode->i_mtime = inode->i_ctime = current_time();
   inode->i_size = 0;
   inode->i_blocks = 0;
-  inode->i_op = NULL;
   inode->i_ref = 1;
   inode->i_dirt = 1;
   memfs_i(inode)->i_data = NULL;
@@ -125,6 +127,9 @@ struct inode_t *memfs_new_inode(struct super_block_t *sb, mode_t mode)
   if (S_ISDIR(mode)) {
     inode->i_nlinks = 2;
     inode->i_op = &memfs_dir_iops;
+  } else if (S_ISLNK(mode)) {
+    inode->i_nlinks = 1;
+    inode->i_op = &memfs_symlink_iops;
   } else {
     inode->i_nlinks = 1;
     inode->i_op = &memfs_file_iops;

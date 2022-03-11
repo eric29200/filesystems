@@ -42,6 +42,7 @@ struct memfs_dir_entry_t {
 extern struct super_operations_t memfs_sops;
 extern struct inode_operations_t memfs_file_iops;
 extern struct inode_operations_t memfs_dir_iops;
+extern struct inode_operations_t memfs_symlink_iops;
 extern struct file_operations_t memfs_file_fops;
 extern struct file_operations_t memfs_dir_fops;
 
@@ -64,8 +65,13 @@ int memfs_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t m
 int memfs_rmdir(struct inode_t *dir, const char *name, size_t name_len);
 int memfs_link(struct inode_t *old_inode, struct inode_t *dir, const char *name, size_t name_len);
 int memfs_unlink(struct inode_t *dir, const char *name, size_t name_len);
+int memfs_symlink(struct inode_t *dir, const char *name, size_t name_len, const char *target);
 int memfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_name_len,
                  struct inode_t *new_dir, const char *new_name, size_t new_name_len);
+
+/* MemFS symlink prototypes */
+int memfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t **res_inode);
+ssize_t memfs_readlink(struct inode_t *inode, char *buf, size_t bufsize);
 
 /* MemFS file prototypes */
 int memfs_file_read(struct file_t *filp, char *buf, int count);
