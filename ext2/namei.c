@@ -226,8 +226,9 @@ static int ext2_empty_dir(struct inode_t *inode)
   }
 
   /* try to find an entry */
-  de = (struct ext2_dir_entry_t *) ((char *) de1 + le32toh(de1->d_rec_len));
-  for (offset = le16toh(de->d_rec_len) + le16toh(de1->d_rec_len); offset < inode->i_size;) {
+  offset = le16toh(de->d_rec_len) + le16toh(de1->d_rec_len);
+  de = (struct ext2_dir_entry_t *) ((char *) de1 + le16toh(de1->d_rec_len));
+  while (offset < inode->i_size) {
     /* read next block */
     if ((char *) de >= bh->b_data + inode->i_sb->s_blocksize) {
       /* release previous block */
@@ -252,7 +253,7 @@ static int ext2_empty_dir(struct inode_t *inode)
     }
 
     /* entry found */
-    if (!le32toh(de->d_inode)) {
+    if (le32toh(de->d_inode)) {
       brelse(bh);
       return 0;
     }

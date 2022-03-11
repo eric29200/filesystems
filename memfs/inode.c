@@ -47,7 +47,7 @@ struct inode_operations_t memfs_dir_iops = {
   .unlink             = memfs_unlink,
   .symlink            = NULL,
   .mkdir              = memfs_mkdir,
-  .rmdir              = NULL,
+  .rmdir              = memfs_rmdir,
   .rename             = memfs_rename,
   .truncate           = memfs_truncate,
 };

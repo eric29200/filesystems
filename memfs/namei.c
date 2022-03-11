@@ -109,6 +109,51 @@ found_entry:
 }
 
 /*
+ * Check if a directory is empty.
+ */
+static int memfs_empty_dir(struct inode_t *inode)
+{
+  struct memfs_dir_entry_t *de, *de1;
+  uint32_t offset;
+
+  /* check directory size : must contain '.' and '..' */
+  if (inode->i_size < MEMFS_DIR_REC_LEN(1) + MEMFS_DIR_REC_LEN(2)) {
+    fprintf(stderr, "MemFS : bad directory size %ld (inode = %ld)\n", inode->i_size, inode->i_ino);
+    return 1;
+  }
+
+  /* get first 2 entries */
+  de = (struct memfs_dir_entry_t *) memfs_i(inode)->i_data;
+  de1 = (struct memfs_dir_entry_t *) ((char *) de + de->d_rec_len);
+
+  /* first 2 entries must be '.' and '..' */
+  if (de->d_inode != inode->i_ino || !de1->d_inode || de->d_name_len != 1
+      || memcmp(".", de->d_name, 1) || de1->d_name_len != 2 || memcmp("..", de1->d_name, 2)) {
+    fprintf(stderr, "MemFS : bad directory (inode = %ld) : no '.' or '..'\n", inode->i_ino);
+    return 1;
+  }
+
+  /* try to find an entry */
+  offset = de->d_rec_len + de1->d_rec_len;
+  de = (struct memfs_dir_entry_t *) ((char *) de1 + de1->d_rec_len);
+  while (offset < inode->i_size) {
+    /* check entry */
+    if (de->d_rec_len <= 0)
+      return 1;
+
+    /* entry found */
+    if (de->d_inode)
+      return 0;
+
+    /* go to next entry */
+    offset += de->d_rec_len;
+    de = (struct memfs_dir_entry_t *) ((char *) de + de->d_rec_len);
+  }
+
+  return 1;
+}
+
+/*
  * Lookup for a file in a directory.
  */
 int memfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode)
@@ -257,6 +302,63 @@ int memfs_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t m
   /* release inode */
   vfs_iput(dir);
   vfs_iput(inode);
+
+  return 0;
+}
+
+/*
+ * Remove a directory.
+ */
+int memfs_rmdir(struct inode_t *dir, const char *name, size_t name_len)
+{
+  struct memfs_dir_entry_t *de;
+  struct inode_t *inode;
+  int err;
+
+  /* check if file exists */
+  err = memfs_find_entry(dir, name, name_len, &de);
+  if (err) {
+    vfs_iput(dir);
+    return err;
+  }
+
+  /* get inode */
+  inode = vfs_iget(dir->i_sb, de->d_inode);
+  if (!inode) {
+    vfs_iput(dir);
+    return -ENOENT;
+  }
+
+  /* remove directories only and do not allow to remove '.' */
+  if (!S_ISDIR(inode->i_mode) || inode->i_ino == dir->i_ino) {
+    vfs_iput(inode);
+    vfs_iput(dir);
+    return -EPERM;
+  }
+
+  /* directory must be empty */
+  if (!memfs_empty_dir(inode)) {
+    vfs_iput(inode);
+    vfs_iput(dir);
+    return -EPERM;
+  }
+
+  /* remove entry */
+  de->d_inode = 0;
+
+  /* update dir */
+  dir->i_ctime = dir->i_mtime = current_time();
+  dir->i_nlinks--;
+  dir->i_dirt = 1;
+
+  /* update inode */
+  inode->i_ctime = dir->i_ctime;
+  inode->i_nlinks = 0;
+  inode->i_dirt = 1;
+
+  /* release inode and directory */
+  vfs_iput(inode);
+  vfs_iput(dir);
 
   return 0;
 }
