@@ -262,6 +262,42 @@ int memfs_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t m
 }
 
 /*
+ * Make a new name for a file (= hard link).
+ */
+int memfs_link(struct inode_t *old_inode, struct inode_t *dir, const char *name, size_t name_len)
+{
+  struct memfs_dir_entry_t *de;
+  int err;
+
+  /* check if new file exists */
+  err = memfs_find_entry(dir, name, name_len, &de);
+  if (!err) {
+    vfs_iput(old_inode);
+    vfs_iput(dir);
+    return -EEXIST;
+  }
+
+  /* add entry */
+  err = memfs_add_entry(dir, name, name_len, old_inode->i_ino);
+  if (err) {
+    vfs_iput(old_inode);
+    vfs_iput(dir);
+    return err;
+  }
+
+  /* update old inode */
+  old_inode->i_ctime = current_time();
+  old_inode->i_nlinks++;
+  old_inode->i_dirt = 1;
+
+  /* release inodes */
+  vfs_iput(old_inode);
+  vfs_iput(dir);
+
+  return 0;
+}
+
+/*
  * Unlink (remove) a file.
  */
 int memfs_unlink(struct inode_t *dir, const char *name, size_t name_len)
