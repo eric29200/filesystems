@@ -73,8 +73,10 @@ int memfs_add_entry(struct inode_t *dir, const char *name, size_t name_len, ino_
       return -ENOENT;
 
     /* free entry with enough space */
-    if (de->d_inode == 0 && de->d_rec_len >= rec_len)
+    if (de->d_inode == 0 && de->d_rec_len >= rec_len) {
+      rec_len = de->d_rec_len;
       goto found_entry;
+    }
 
     /* go to next entry */
     pos += de->d_rec_len;
