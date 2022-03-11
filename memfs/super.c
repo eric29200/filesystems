@@ -10,8 +10,6 @@ struct super_operations_t memfs_sops = {
   .alloc_inode        = memfs_alloc_inode,
   .put_inode          = memfs_put_inode,
   .delete_inode       = memfs_delete_inode,
-  .read_inode         = NULL,
-  .write_inode        = NULL,
   .put_super          = memfs_put_super,
   .statfs             = memfs_statfs,
 };
@@ -30,8 +28,8 @@ int memfs_read_super(struct super_block_t *sb)
     return -ENOMEM;
 
   /* set super block */
-  sb->s_blocksize = MEMFS_BLOCK_SIZE;
-  sb->s_blocksize_bits = MEMFS_BLOCK_SIZE_BITS;
+  sb->s_blocksize = 1;
+  sb->s_blocksize_bits = 0;
   sb->s_magic = MEMFS_MAGIC;
   sb->s_op = &memfs_sops;
   memfs_sb(sb)->s_inodes_cpt = MEMFS_ROOT_INODE;

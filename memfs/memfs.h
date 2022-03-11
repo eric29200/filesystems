@@ -3,8 +3,6 @@
 
 #include "../vfs/vfs.h"
 
-#define MEMFS_BLOCK_SIZE_BITS           10
-#define MEMFS_BLOCK_SIZE                (1 << MEMFS_BLOCK_SIZE_BITS)  /* = 1024 bytes */
 #define MEMFS_MAGIC                     0xABAB
 #define MEMFS_NAME_LEN                  255
 #define MEMFS_ROOT_INODE                1
