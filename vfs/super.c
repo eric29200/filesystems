@@ -10,6 +10,7 @@
 #include "../bfs/bfs.h"
 #include "../ext2/ext2.h"
 #include "../isofs/isofs.h"
+#include "../memfs/memfs.h"
 
 /*
  * Mount a file system.
@@ -48,6 +49,9 @@ struct super_block_t *vfs_mount(const char *dev, int fs_type)
       break;
     case VFS_ISOFS_TYPE:
       err = isofs_read_super(sb);
+      break;
+    case VFS_MEMFS_TYPE:
+      err = memfs_read_super(sb);
       break;
     default:
       fprintf(stderr, "VFS: file system type (fs_type = %d) not implemented\n", fs_type);

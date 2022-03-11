@@ -128,6 +128,9 @@ void isofs_put_inode(struct inode_t *inode)
   if (!inode)
     return;
 
+  /* remove inode from list */
+  list_del(&inode->i_list);
+
   /* free inode */
   free(isofs_i(inode));
 }

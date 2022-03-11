@@ -301,6 +301,9 @@ void minix_put_inode(struct inode_t *inode)
   if (!inode)
     return;
 
+  /* remove inode from list */
+  list_del(&inode->i_list);
+
   /* free inode */
   free(minix_i(inode));
 }

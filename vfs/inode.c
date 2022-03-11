@@ -101,9 +101,6 @@ void vfs_iput(struct inode_t *inode)
   
   /* put inode */
   if (!inode->i_ref) {
-    /* remove inode from list */
-    list_del(&inode->i_list);
-
     /* delete inode */
     if (!inode->i_nlinks && op && op->delete_inode)
       op->delete_inode(inode);

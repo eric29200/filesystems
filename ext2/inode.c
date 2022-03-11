@@ -78,6 +78,9 @@ void ext2_put_inode(struct inode_t *inode)
   if (!inode)
     return;
 
+  /* remove inode from list */
+  list_del(&inode->i_list);
+
   /* free inode */
   free(ext2_i(inode));
 }
