@@ -16,6 +16,7 @@ int memfs_file_read(struct file_t *filp, char *buf, int count)
 
   /* copy data */
   memcpy(buf, memfs_i(filp->f_inode)->i_data + filp->f_pos, count);
+  filp->f_pos += count;
 
   /* update inode */
   filp->f_inode->i_atime = current_time();
@@ -44,6 +45,7 @@ int memfs_file_write(struct file_t *filp, const char *buf, int count)
 
   /* copy data */
   memcpy(memfs_i(filp->f_inode)->i_data + filp->f_pos, buf, count);
+  filp->f_pos += count;
 
   /* update inode */
   filp->f_inode->i_mtime = filp->f_inode->i_ctime = current_time();
