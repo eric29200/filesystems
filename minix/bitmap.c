@@ -125,7 +125,6 @@ uint32_t minix_new_block(struct super_block_t *sb)
   /* memzero buffer and release it */
   memset(bh->b_data, 0, sb->s_blocksize);
   bh->b_dirt = 1;
-  bh->b_uptodate = 1;
   brelse(bh);
   
   /* set block in bitmap */

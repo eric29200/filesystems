@@ -117,6 +117,7 @@ struct buffer_head_t *sb_bread(struct super_block_t *sb, uint32_t block)
   if (read(sb->s_fd, bh->b_data, sb->s_blocksize) != sb->s_blocksize)
     goto err;
   
+  bh->b_uptodate = 1;
   return bh;
 err:
   bh->b_ref = 0;
