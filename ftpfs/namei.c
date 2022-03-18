@@ -24,6 +24,10 @@ static int ftpfs_find_entry(struct inode_t *dir, const char *name, size_t name_l
       return -EIO;
   }
 
+  /* no data : exit */
+  if (!ftpfs_dir->i_cache.data)
+    return -ENOENT;
+
   /* walk through all entries */
   start = ftpfs_dir->i_cache.data;
   while ((end = strchr(start, '\n')) != NULL) {

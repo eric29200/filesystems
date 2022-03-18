@@ -42,7 +42,6 @@ struct inode_t *vfs_iget(struct super_block_t *sb, ino_t ino)
   struct inode_t *inode;
   int err;
 
-
   /* try to find inode in cache */
   node = htable_lookup64(inode_htable, ino, VFS_INODE_HTABLE_BITS);
   while (node) {

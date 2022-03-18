@@ -28,6 +28,10 @@ int ftpfs_getdents64(struct file_t *filp, void *dirp, size_t count)
       return -EIO;
   }
 
+  /* no data : exit */
+  if (!ftpfs_inode->i_cache.data)
+    return -ENOENT;
+
   /* set start offset */
   dirent = (struct dirent64_t *) dirp;
   start = ftpfs_inode->i_cache.data + filp->f_pos;

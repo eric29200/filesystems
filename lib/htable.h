@@ -22,7 +22,7 @@ struct htable_link_t {
  */
 static inline uint32_t hash_32(uint32_t val, uint32_t bits)
 {
-  return (val * GOLDEN_RATIO_32) >> (32 - bits);
+  return (val * GOLDEN_RATIO_32) % (1 << bits);
 }
 
 /*
@@ -30,7 +30,20 @@ static inline uint32_t hash_32(uint32_t val, uint32_t bits)
  */
 static inline uint32_t hash_64(uint64_t val, uint32_t bits)
 {
-  return (val * GOLDEN_RATIO_64) >> (64 - bits);
+  return (val * GOLDEN_RATIO_64) % (1 << bits);
+}
+
+/* Hash function.
+ */
+static inline uint32_t hash_str(const char *val, uint32_t bits)
+{
+  uint32_t h = (uint32_t) *val;
+
+  if (h)
+    for (++val; *val; ++val)
+      h = (h << 5) - h + (uint32_t) *val;
+
+  return h % (1 << bits);
 }
 
 /*
@@ -58,6 +71,14 @@ static inline struct htable_link_t *htable_lookup64(struct htable_link_t **htabl
 }
 
 /*
+ * Get an element from a hash table.
+ */
+static inline struct htable_link_t *htable_lookupstr(struct htable_link_t **htable, const char *key, uint32_t bits)
+{
+  return htable[hash_str(key, bits)];
+}
+
+/*
  * Insert an element into a hash table.
  */
 static inline void htable_insert32(struct htable_link_t **htable, struct htable_link_t *node, uint32_t key, uint32_t bits)
@@ -80,6 +101,21 @@ static inline void htable_insert64(struct htable_link_t **htable, struct htable_
   int i;
 
   i = hash_64(key, bits);
+  node->next = htable[i];
+  node->pprev = &htable[i];
+  if (htable[i])
+    htable[i]->pprev = (struct htable_link_t **) node;
+  htable[i] = node;
+}
+
+/*
+ * Insert an element into a hash table.
+ */
+static inline void htable_insertstr(struct htable_link_t **htable, struct htable_link_t *node, const char *key, uint32_t bits)
+{
+  int i;
+
+  i = hash_str(key, bits);
   node->next = htable[i];
   node->pprev = &htable[i];
   if (htable[i])

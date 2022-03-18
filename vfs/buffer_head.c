@@ -12,6 +12,7 @@
 static struct buffer_head_t *buffer_table = NULL;
 static struct htable_link_t **buffer_htable = NULL;
 static LIST_HEAD(lru_buffers);
+
 /*
  * Get an empty buffer.
  */

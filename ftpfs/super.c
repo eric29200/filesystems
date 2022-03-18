@@ -40,7 +40,7 @@ static struct inode_t *ftpfs_create_root_inode(struct super_block_t *sb)
 
   /* list root directory */
   err = ftp_list(sb->s_fd, &ftpfs_sb(sb)->s_addr, ftpfs_i(inode)->i_path, &ftpfs_i(inode)->i_cache);
-  if (err) {
+  if (err || !ftpfs_i(inode)->i_cache.data) {
     inode->i_ref = 0;
     vfs_iput(inode);
     return NULL;
@@ -61,6 +61,16 @@ int ftpfs_read_super(struct super_block_t *sb)
   sb->s_fs_info = sbi = (struct ftpfs_sb_info_t *) malloc(sizeof(struct ftpfs_sb_info_t));
   if (!sbi)
     return -ENOMEM;
+
+  /* create inodes cache hash table */
+  sbi->s_inodes_cache_htable = (struct htable_link_t **) malloc(sizeof(struct htable_link_t *) * FTPFS_INODE_HTABLE_SIZE);
+  if (!sbi->s_inodes_cache_htable)
+    goto err_inodes_cache;
+
+  /* init inodes cache */
+  INIT_LIST_HEAD(&sbi->s_inodes_cache_list);
+  htable_init(sbi->s_inodes_cache_htable, FTPFS_INODE_HTABLE_BITS);
+  sbi->s_inodes_cache_size = 0;
 
   /* set super block */
   sb->s_blocksize_bits = 0;
@@ -85,6 +95,9 @@ err_root_inode:
   goto err;
 err_connect:
   fprintf(stderr, "FTPFS : can't connect to server\n");
+  goto err;
+err_inodes_cache:
+  fprintf(stderr, "FTPFS : can't create inodes cache\n");
 err:
   free(sbi);
   return err;
