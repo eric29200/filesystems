@@ -11,6 +11,7 @@
 #include "../ext2/ext2.h"
 #include "../isofs/isofs.h"
 #include "../memfs/memfs.h"
+#include "../ftpfs/ftpfs.h"
 
 /*
  * Mount a file system.
@@ -25,17 +26,34 @@ struct super_block_t *vfs_mount(const char *dev, int fs_type)
   if (!sb)
     return NULL;
   
-  /* open device */
-  sb->s_fd = -1;
+  /* set device path */
+  sb->s_dev = NULL;
   if (dev) {
-    sb->s_fd = open(dev, O_RDWR);
-    if (sb->s_fd < 0) {
+    sb->s_dev = strdup(dev);
+    if (!sb->s_dev) {
       free(sb);
-      fprintf(stderr, "VFS: can't open device %s\n", dev);
       return NULL;
     }
   }
   
+  /* open device (only for disk file systems) */
+  sb->s_fd = -1;
+  switch (fs_type) {
+    case VFS_MINIX_TYPE:
+    case VFS_BFS_TYPE:
+    case VFS_EXT2_TYPE:
+    case VFS_ISOFS_TYPE:
+      sb->s_fd = open(dev, O_RDWR);
+      if (sb->s_fd < 0) {
+        free(sb);
+        fprintf(stderr, "VFS: can't open device %s\n", dev);
+        return NULL;
+      }
+      break;
+    default:
+      break;
+  }
+
   /* read super block on disk */
   switch (fs_type) {
     case VFS_MINIX_TYPE:
@@ -52,6 +70,9 @@ struct super_block_t *vfs_mount(const char *dev, int fs_type)
       break;
     case VFS_MEMFS_TYPE:
       err = memfs_read_super(sb);
+      break;
+    case VFS_FTPFS_TYPE:
+      err = ftpfs_read_super(sb);
       break;
     default:
       fprintf(stderr, "VFS: file system type (fs_type = %d) not implemented\n", fs_type);
@@ -86,6 +107,10 @@ int vfs_umount(struct super_block_t *sb)
   if (sb->s_fd > 0)
     close(sb->s_fd);
   
+  /* free device path */
+  if (sb->s_dev)
+    free(sb->s_dev);
+
   /* free super block */
   free(sb);
   

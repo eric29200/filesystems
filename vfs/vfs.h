@@ -15,6 +15,7 @@
 #define VFS_EXT2_TYPE                         3
 #define VFS_ISOFS_TYPE                        4
 #define VFS_MEMFS_TYPE                        5
+#define VFS_FTPFS_TYPE                        6
 
 #define VFS_BUFFER_HTABLE_BITS                12
 #define VFS_NR_BUFFER                         (1 << VFS_BUFFER_HTABLE_BITS)
@@ -45,6 +46,7 @@ struct buffer_head_t {
  * Generic super block.
  */
 struct super_block_t {
+  char                      *s_dev;               /* device path */
   int                       s_fd;                 /* device file descriptor */
   uint16_t                  s_blocksize;          /* block size in byte */
   uint8_t                   s_blocksize_bits;     /* block size in bit (log2) */
