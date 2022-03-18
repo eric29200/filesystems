@@ -69,8 +69,8 @@ void ftpfs_put_inode(struct inode_t *inode)
   if (!inode)
     return;
 
-  /* remove inode from list */
-  list_del(&inode->i_list);
+  /* unhash inode */
+  htable_delete(&inode->i_htable);
 
   /* free cached data */
   if (ftpfs_i(inode)->i_cache.data)

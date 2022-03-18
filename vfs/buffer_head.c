@@ -63,7 +63,7 @@ struct buffer_head_t *getblk(struct super_block_t *sb, uint32_t block)
   struct buffer_head_t *bh;
 
   /* try to find buffer in cache */
-  node = htable_lookup(buffer_htable, block, VFS_BUFFER_HTABLE_BITS);
+  node = htable_lookup32(buffer_htable, block, VFS_BUFFER_HTABLE_BITS);
   while (node) {
     bh = htable_entry(node, struct buffer_head_t, b_htable);
     if (bh->b_block == block && bh->b_sb == sb && bh->b_size == sb->s_blocksize) {
@@ -85,7 +85,7 @@ struct buffer_head_t *getblk(struct super_block_t *sb, uint32_t block)
 
   /* hash the new buffer */
   htable_delete(&bh->b_htable);
-  htable_insert(buffer_htable, &bh->b_htable, block, VFS_BUFFER_HTABLE_BITS);
+  htable_insert32(buffer_htable, &bh->b_htable, block, VFS_BUFFER_HTABLE_BITS);
 out:
   /* put it at the end of LRU list */
   list_del(&bh->b_list);

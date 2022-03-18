@@ -145,5 +145,10 @@ int vfs_init()
   if (err)
     return err;
 
+  /* init inodes buffers */
+  err = vfs_iinit();
+  if (err)
+    return err;
+
   return 0;
 }

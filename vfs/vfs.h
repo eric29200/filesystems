@@ -20,6 +20,9 @@
 #define VFS_BUFFER_HTABLE_BITS                12
 #define VFS_NR_BUFFER                         (1 << VFS_BUFFER_HTABLE_BITS)
 
+#define VFS_INODE_HTABLE_BITS                 12
+#define VFS_NR_INODE                          (1 << VFS_INODE_HTABLE_BITS)
+
 #define container_of(ptr, type, member)       ({void *__mptr = (void *)(ptr);                   \
                                               ((type *)(__mptr - offsetof(type, member))); })
 
@@ -74,7 +77,7 @@ struct inode_t {
   int                       i_ref;                /* reference counter */
   char                      i_dirt;               /* dirty flag */
   struct inode_operations_t *i_op;                /* inode operations */
-  struct list_head_t        i_list;               /* global inodes linked list */
+  struct htable_link_t      i_htable;             /* global inodes hash table */
 };
 
 /*
@@ -159,6 +162,7 @@ int vfs_open_namei(struct inode_t *root, const char *pathname, int flags, mode_t
 /* VFS system calls */
 int vfs_init();
 int vfs_binit();
+int vfs_iinit();
 struct super_block_t *vfs_mount(const char *dev, int fs_type);
 int vfs_umount(struct super_block_t *sb);
 int vfs_statfs(struct super_block_t *sb, struct statfs *buf);

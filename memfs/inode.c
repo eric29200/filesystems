@@ -87,8 +87,8 @@ void memfs_delete_inode(struct inode_t *inode)
   if (inode->i_nlinks)
     return;
 
-  /* remove inode from list */
-  list_del(&inode->i_list);
+  /* unhash inode */
+  htable_delete(&inode->i_htable);
 
   /* truncate */
   inode->i_size = 0;

@@ -1,10 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "vfs.h"
 
-/* global inodes list */
-static LIST_HEAD(inodes_list);
+/* global inodes hash table */
+static struct htable_link_t **inode_htable = NULL;
 
 /*
  * Get an empty inode.
@@ -28,10 +29,6 @@ struct inode_t *vfs_get_empty_inode(struct super_block_t *sb)
   /* set new inode */
   inode->i_sb = sb;
   inode->i_ref = 1;
-  INIT_LIST_HEAD(&inode->i_list);
-
-  /* add inode to global list */
-  list_add(&inode->i_list, &inodes_list);
   
   return inode;
 }
@@ -41,17 +38,21 @@ struct inode_t *vfs_get_empty_inode(struct super_block_t *sb)
  */
 struct inode_t *vfs_iget(struct super_block_t *sb, ino_t ino)
 {
-  struct list_head_t *pos;
+  struct htable_link_t *node;
   struct inode_t *inode;
   int err;
 
-  /* try to find inode in table */
-  list_for_each(pos, &inodes_list) {
-    inode = list_entry(pos, struct inode_t, i_list);
-    if (inode->i_ino == ino && inode->i_sb == sb) {
+
+  /* try to find inode in cache */
+  node = htable_lookup64(inode_htable, ino, VFS_INODE_HTABLE_BITS);
+  while (node) {
+    inode = htable_entry(node, struct inode_t, i_htable);
+    if (inode->i_sb == sb && inode->i_ino == ino) {
       inode->i_ref++;
       return inode;
     }
+
+    node = node->next;
   }
   
   /* check if read_inode is implemented */
@@ -65,6 +66,7 @@ struct inode_t *vfs_iget(struct super_block_t *sb, ino_t ino)
   
   /* set inode number */
   inode->i_ino = ino;
+  htable_insert64(inode_htable, &inode->i_htable, ino, VFS_INODE_HTABLE_BITS);
   
   /* read inode */
   err = sb->s_op->read_inode(inode);
@@ -111,3 +113,18 @@ void vfs_iput(struct inode_t *inode)
   }
 }
 
+/*
+ * Init inodes.
+ */
+int vfs_iinit()
+{
+  /* allocate inodes hash table */
+  inode_htable = (struct htable_link_t **) malloc(sizeof(struct htable_link_t *) * VFS_NR_INODE);
+  if (!inode_htable)
+    return -ENOMEM;
+
+  /* init inodes hash table */
+  htable_init(inode_htable, VFS_INODE_HTABLE_BITS);
+
+  return 0;
+}
