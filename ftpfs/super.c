@@ -24,7 +24,6 @@ struct super_operations_t ftpfs_sops = {
 static struct inode_t *ftpfs_create_root_inode(struct super_block_t *sb)
 {
   struct ftpfs_fattr_t fattr;
-  struct inode_t *inode;
 
   /* set attributes */
   memset(fattr.name, 0, FTPFS_NAME_LEN);

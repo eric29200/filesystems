@@ -50,7 +50,7 @@ int ftpfs_getdents64(struct file_t *filp, void *dirp, size_t count)
     dirent->d_name[0] = '.';
     dirent->d_name[1] = 0;
     count -= dirent->d_reclen;
-    entries_size++;
+    entries_size += dirent->d_reclen;
     dirent = (struct dirent64_t *) ((char *) dirent + dirent->d_reclen);
 
     /* add ".." entry */
@@ -62,7 +62,7 @@ int ftpfs_getdents64(struct file_t *filp, void *dirp, size_t count)
     dirent->d_name[1] = '.';
     dirent->d_name[2] = 0;
     count -= dirent->d_reclen;
-    entries_size++;
+    entries_size += dirent->d_reclen;
     dirent = (struct dirent64_t *) ((char *) dirent + dirent->d_reclen);
   }
 
