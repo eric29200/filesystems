@@ -4,13 +4,24 @@
 #include "ftpfs.h"
 
 /*
+ * Test file names equality.
+ */
+static inline int ftpfs_name_match(const char *name1, size_t len1, const char *name2)
+{
+  /* check overflow */
+  if (len1 > FTPFS_NAME_LEN)
+    return 0;
+
+  return strncmp(name1, name2, len1) == 0 && (len1 == FTPFS_NAME_LEN || name2[len1] == 0);
+}
+
+/*
  * Find an entry in a directory.
  */
-static int ftpfs_find_entry(struct inode_t *dir, const char *name, size_t name_len, struct stat *res_statbuf)
+static int ftpfs_find_entry(struct inode_t *dir, const char *name, size_t name_len, struct ftpfs_fattr_t *res_fattr)
 {
-  char *start, *end, *line, filename[FTPFS_NAME_LEN], link[FTPFS_NAME_LEN];
   struct ftpfs_inode_info_t *ftpfs_dir = ftpfs_i(dir);
-  struct stat statbuf;
+  char *start, *end, *line;
   int err;
 
   /* check file name length */
@@ -45,13 +56,11 @@ static int ftpfs_find_entry(struct inode_t *dir, const char *name, size_t name_l
     line[end - start] = 0;
 
     /* parse line */
-    memset(&statbuf, 0, sizeof(struct stat));
-    if (ftp_parse_dir_line(line, filename, link, &statbuf))
+    if (ftp_parse_dir_line(line, res_fattr))
       goto next_line;
 
     /* found */
-    if (strncmp(filename, name, name_len) == 0) {
-      memcpy(res_statbuf, &statbuf, sizeof(struct stat));
+    if (ftpfs_name_match(name, name_len, res_fattr->name)) {
       free(line);
       return 0;
     }
@@ -72,7 +81,7 @@ next_line:
  */
 int ftpfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode)
 {
-  struct stat statbuf;
+  struct ftpfs_fattr_t fattr;
   int err;
 
   /* check dir */
@@ -86,14 +95,14 @@ int ftpfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct 
   }
 
   /* find entry */
-  err = ftpfs_find_entry(dir, name, name_len, &statbuf);
+  err = ftpfs_find_entry(dir, name, name_len, &fattr);
   if (err) {
     vfs_iput(dir);
     return err;
   }
 
   /* get inode */
-  *res_inode = ftpfs_iget(dir->i_sb, dir, name, name_len, &statbuf);
+  *res_inode = ftpfs_iget(dir->i_sb, dir, &fattr);
   if (!res_inode) {
     vfs_iput(dir);
     return -ENOSPC;

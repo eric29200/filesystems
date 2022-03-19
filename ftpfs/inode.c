@@ -112,10 +112,13 @@ void ftpfs_put_inode(struct inode_t *inode)
 /*
  * Build full path (concat dir and name).
  */
-static char *ftpfs_build_path(struct inode_t *dir, const char *name, size_t name_len)
+static char *ftpfs_build_path(struct inode_t *dir, struct ftpfs_fattr_t *fattr)
 {
-  size_t dir_path_len;
+  size_t dir_path_len, name_len;
   char *path;
+
+  /* compute name length */
+  name_len = strlen(fattr->name);
 
   /* allocate path */
   dir_path_len = dir ? strlen(ftpfs_i(dir)->i_path) : 0;
@@ -131,8 +134,7 @@ static char *ftpfs_build_path(struct inode_t *dir, const char *name, size_t name
   path[dir_path_len] = '/';
 
   /* add filename */
-  if (name)
-    memcpy(path + dir_path_len + 1, name, name_len);
+  memcpy(path + dir_path_len + 1, fattr->name, name_len);
 
   /* end last 0 */
   path[dir_path_len + 1 + name_len] = 0;
@@ -143,14 +145,14 @@ static char *ftpfs_build_path(struct inode_t *dir, const char *name, size_t name
 /*
  * Read an inode.
  */
-static void ftpfs_read_inode(struct inode_t *inode, struct stat *statbuf, char *path)
+static void ftpfs_read_inode(struct inode_t *inode, struct ftpfs_fattr_t *fattr, char *path)
 {
   /* set inode */
-  inode->i_mode = statbuf->st_mode;
-  inode->i_nlinks = statbuf->st_nlink;
+  inode->i_mode = fattr->statbuf.st_mode;
+  inode->i_nlinks = fattr->statbuf.st_nlink;
   inode->i_uid = getuid();
   inode->i_gid = getgid();
-  inode->i_size = statbuf->st_size;
+  inode->i_size = fattr->statbuf.st_size;
   inode->i_blocks = 0;
   inode->i_atime = inode->i_mtime = inode->i_ctime = current_time();
   inode->i_ino = 0;
@@ -171,15 +173,14 @@ static void ftpfs_read_inode(struct inode_t *inode, struct stat *statbuf, char *
 /*
  * Get a FTPFS inode.
  */
-struct inode_t *ftpfs_iget(struct super_block_t *sb, struct inode_t *dir, const char *name, size_t name_len,
-                           struct stat *statbuf)
+struct inode_t *ftpfs_iget(struct super_block_t *sb, struct inode_t *dir, struct ftpfs_fattr_t *fattr)
 {
   struct htable_link_t *node;
   struct inode_t *inode;
   char *path;
 
   /* build full path */
-  path = ftpfs_build_path(dir, name, name_len);
+  path = ftpfs_build_path(dir, fattr);
   if (!path)
     return NULL;
 
@@ -204,7 +205,7 @@ struct inode_t *ftpfs_iget(struct super_block_t *sb, struct inode_t *dir, const 
   }
 
   /* read/set inode */
-  ftpfs_read_inode(inode, statbuf, path);
+  ftpfs_read_inode(inode, fattr, path);
 
   /* hash inode */
   list_add(&ftpfs_i(inode)->i_list, &ftpfs_sb(sb)->s_inodes_cache_list);

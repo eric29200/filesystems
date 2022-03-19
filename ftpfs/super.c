@@ -23,18 +23,20 @@ struct super_operations_t ftpfs_sops = {
  */
 static struct inode_t *ftpfs_create_root_inode(struct super_block_t *sb)
 {
+  struct ftpfs_fattr_t fattr;
   struct inode_t *inode;
-  struct stat statbuf;
   int err;
 
   /* set attributes */
-  memset(&statbuf, 0, sizeof(struct stat));
-  statbuf.st_mode = S_IFDIR | 0755;
-  statbuf.st_nlink = 2;
-  statbuf.st_size = 0;
+  memset(fattr.name, 0, FTPFS_NAME_LEN);
+  memset(fattr.link, 0, FTPFS_NAME_LEN);
+  memset(&fattr.statbuf, 0, sizeof(struct stat));
+  fattr.statbuf.st_mode = S_IFDIR | 0755;
+  fattr.statbuf.st_nlink = 2;
+  fattr.statbuf.st_size = 0;
 
   /* get inode */
-  inode = ftpfs_iget(sb, NULL, NULL, 0, &statbuf);
+  inode = ftpfs_iget(sb, NULL, &fattr);
   if (!inode)
     return NULL;
 

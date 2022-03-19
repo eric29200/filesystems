@@ -13,12 +13,12 @@
  */
 int ftpfs_getdents64(struct file_t *filp, void *dirp, size_t count)
 {
-  char *start, *end, *line, filename[FTPFS_NAME_LEN], link[FTPFS_NAME_LEN];
   struct ftpfs_inode_info_t *ftpfs_inode = ftpfs_i(filp->f_inode);
   struct super_block_t *sb = filp->f_inode->i_sb;
+  struct ftpfs_fattr_t fattr;
   struct dirent64_t *dirent;
   int err, entries_size = 0;
-  struct stat statbuf;
+  char *start, *end, *line;
   size_t filename_len;
 
   /* get list from server if needed */
@@ -82,12 +82,11 @@ int ftpfs_getdents64(struct file_t *filp, void *dirp, size_t count)
     line[end - start] = 0;
 
     /* parse line */
-    memset(&statbuf, 0, sizeof(struct stat));
-    if (ftp_parse_dir_line(line, filename, link, &statbuf))
+    if (ftp_parse_dir_line(line, &fattr))
       goto next_line;
 
     /* not enough space to fill in next dir entry : break */
-    filename_len = strlen(filename);
+    filename_len = strlen(fattr.name);
     if (count < sizeof(struct dirent64_t) + filename_len + 1) {
       free(line);
       return entries_size;
@@ -98,7 +97,7 @@ int ftpfs_getdents64(struct file_t *filp, void *dirp, size_t count)
     dirent->d_off = 0;
     dirent->d_reclen = sizeof(struct dirent64_t) + filename_len + 1;
     dirent->d_type = 0;
-    memcpy(dirent->d_name, filename, filename_len);
+    memcpy(dirent->d_name, fattr.name, filename_len);
     dirent->d_name[filename_len] = 0;
 
     /* go to next entry */

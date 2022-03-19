@@ -387,15 +387,17 @@ int ftp_list(int sockfd, struct sockaddr *addr, const char *dir, struct ftp_buf_
 /*
  * Parse a FTP dir line.
  */
-int ftp_parse_dir_line(const char *line, char *filename, char *link, struct stat *statbuf)
+int ftp_parse_dir_line(const char *line, struct ftpfs_fattr_t *fattr)
 {
   char mode[12], user[33], group[3], month[4], day[3], year[6], *link_marker;
   unsigned long nlinks = 1;
   unsigned long long size;
   int res, i;
 
-  /* reset file name */
-  memset(filename, 0, FTPFS_NAME_LEN);
+  /* reset file attributes */
+  memset(fattr->name, 0, FTPFS_NAME_LEN);
+  memset(fattr->link, 0, FTPFS_NAME_LEN);
+  memset(&fattr->statbuf, 0, sizeof(struct stat));
 
   /* parse line */
   res = sscanf(line,
@@ -408,33 +410,33 @@ int ftp_parse_dir_line(const char *line, char *filename, char *link, struct stat
                "%2s"  SPACES
                "%5s"  "%*c"
                "%1023c",
-               mode, &nlinks, user, group, &size, month, day, year, filename);
+               mode, &nlinks, user, group, &size, month, day, year, fattr->name);
 
   /* not a directory entry */
   if (res < 9)
     return FTP_ERR;
 
   /* resolve link */
-  link_marker = strstr(filename, " -> ");
+  link_marker = strstr(fattr->name, " -> ");
   if (link_marker) {
-    strncpy(link, link_marker + 4, 1023);
+    strcpy(fattr->link, link_marker + 4);
     *link_marker = 0;
   }
 
   /* set statbuf */
-  statbuf->st_nlink = nlinks;
-  statbuf->st_size = size;
+  fattr->statbuf.st_nlink = nlinks;
+  fattr->statbuf.st_size = size;
 
   /* parse mode */
   if (mode[0] == 'd')
-    statbuf->st_mode |= S_IFDIR;
+    fattr->statbuf.st_mode |= S_IFDIR;
   else if (mode[0] == 'l')
-    statbuf->st_mode |= S_IFLNK;
+    fattr->statbuf.st_mode |= S_IFLNK;
   else
-    statbuf->st_mode |= S_IFREG;
+    fattr->statbuf.st_mode |= S_IFREG;
   for (i = 1; i < 10; i++)
     if (mode[i] != '-')
-      statbuf->st_mode |= 1 << (9 - i);
+      fattr->statbuf.st_mode |= 1 << (9 - i);
 
   return FTP_OK;
 }

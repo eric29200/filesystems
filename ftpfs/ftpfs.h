@@ -22,6 +22,15 @@ struct ftp_buf_t {
 };
 
 /*
+ * FTPFS file attributes.
+ */
+struct ftpfs_fattr_t {
+  char                            name[FTPFS_NAME_LEN];         /* file name */
+  char                            link[FTPFS_NAME_LEN];         /* link target */
+  struct stat                     statbuf;                      /* stat buf */
+};
+
+/*
  * FTPFS in memory super block.
  */
 struct ftpfs_sb_info_t {
@@ -52,7 +61,7 @@ extern struct file_operations_t ftpfs_dir_fops;
 int ftp_connect(const char *hostname, const char *user, const char *passwd, struct sockaddr *addr);
 int ftp_quit(int sockfd);
 int ftp_list(int sockfd, struct sockaddr *addr, const char *dir, struct ftp_buf_t *ftp_buf);
-int ftp_parse_dir_line(const char *line, char *filename, char *link, struct stat *statbuf);
+int ftp_parse_dir_line(const char *line, struct ftpfs_fattr_t *fattr);
 
 /* FTPFS super prototypes */
 int ftpfs_read_super(struct super_block_t *sb);
@@ -60,8 +69,7 @@ void ftpfs_put_super(struct super_block_t *sb);
 int ftpfs_statfs(struct super_block_t *sb, struct statfs *buf);
 
 /* FTPFS inode prototypes */
-struct inode_t *ftpfs_iget(struct super_block_t *sb, struct inode_t *dir, const char *name, size_t name_len,
-                           struct stat *statbuf);
+struct inode_t *ftpfs_iget(struct super_block_t *sb, struct inode_t *dir, struct ftpfs_fattr_t *fattr);
 struct inode_t *ftpfs_alloc_inode(struct super_block_t *sb);
 void ftpfs_put_inode(struct inode_t *inode);
 
