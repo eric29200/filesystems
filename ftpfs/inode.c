@@ -108,6 +108,9 @@ static void ftpfs_clear_inode_cache(struct super_block_t *sb)
     /* if inode is unused delete it */
     if (inode->vfs_inode.i_ref <= 0)
       ftpfs_clear_inode(sb, inode);
+
+    if (ftpfs_sb(sb)->s_inodes_cache_size <= FTPFS_INODE_HTABLE_SIZE / 3)
+      break;
   }
 }
 
@@ -116,12 +119,7 @@ static void ftpfs_clear_inode_cache(struct super_block_t *sb)
  */
 void ftpfs_put_inode(struct inode_t *inode)
 {
-  if (!inode)
-    return;
-
-  /* if inode cache is full, clear cache */
-  if (ftpfs_sb(inode->i_sb)->s_inodes_cache_size >= FTPFS_INODE_HTABLE_SIZE)
-    ftpfs_clear_inode_cache(inode->i_sb);
+  return;
 }
 
 /*
@@ -246,6 +244,10 @@ struct inode_t *ftpfs_iget(struct super_block_t *sb, struct inode_t *dir, struct
   err = ftpfs_read_inode(inode, fattr, path);
   if (err)
     return NULL;
+
+  /* if inode cache is full, clear cache */
+  if (ftpfs_sb(inode->i_sb)->s_inodes_cache_size >= FTPFS_INODE_HTABLE_SIZE)
+    ftpfs_clear_inode_cache(inode->i_sb);
 
   /* hash inode */
   list_add(&ftpfs_i(inode)->i_list, &ftpfs_sb(sb)->s_inodes_cache_list);
