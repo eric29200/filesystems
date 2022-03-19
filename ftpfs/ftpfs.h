@@ -54,6 +54,7 @@ struct ftpfs_inode_info_t {
 extern struct super_operations_t ftpfs_sops;
 extern struct inode_operations_t ftpfs_file_iops;
 extern struct inode_operations_t ftpfs_dir_iops;
+extern struct inode_operations_t ftpfs_symlink_iops;
 extern struct file_operations_t ftpfs_file_fops;
 extern struct file_operations_t ftpfs_dir_fops;
 
@@ -75,6 +76,10 @@ void ftpfs_put_inode(struct inode_t *inode);
 
 /* FTPFS name resolution prototypes */
 int ftpfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
+
+/* FTPFS symlink prototypes */
+int ftpfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t **res_inode);
+ssize_t ftpfs_readlink(struct inode_t *inode, char *buf, size_t bufsize);
 
 /* FTPFS file prototypes */
 int ftpfs_getdents64(struct file_t *filp, void *dirp, size_t count);

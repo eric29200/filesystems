@@ -16,7 +16,7 @@ fmounter: vfs/buffer_head.o vfs/super.o vfs/inode.o vfs/namei.o vfs/open.o vfs/r
 	ext2/super.o ext2/inode.o ext2/balloc.o ext2/ialloc.o ext2/read_write.o ext2/readdir.o ext2/namei.o ext2/truncate.o ext2/symlink.o \
 	isofs/utils.o isofs/super.o isofs/inode.o isofs/namei.o isofs/readdir.o isofs/read_write.o \
 	memfs/super.o memfs/inode.o memfs/namei.o memfs/readdir.o memfs/read_write.o memfs/truncate.o memfs/symlink.o \
-	ftpfs/proc.o ftpfs/super.o ftpfs/inode.o ftpfs/namei.o ftpfs/readdir.o \
+	ftpfs/proc.o ftpfs/super.o ftpfs/inode.o ftpfs/namei.o ftpfs/readdir.o ftpfs/symlink.o \
 	fmounter.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
