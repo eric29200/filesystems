@@ -25,7 +25,6 @@ static struct inode_t *ftpfs_create_root_inode(struct super_block_t *sb)
 {
   struct ftpfs_fattr_t fattr;
   struct inode_t *inode;
-  int err;
 
   /* set attributes */
   memset(fattr.name, 0, FTPFS_NAME_LEN);
@@ -36,19 +35,7 @@ static struct inode_t *ftpfs_create_root_inode(struct super_block_t *sb)
   fattr.statbuf.st_size = 0;
 
   /* get inode */
-  inode = ftpfs_iget(sb, NULL, &fattr);
-  if (!inode)
-    return NULL;
-
-  /* list root directory */
-  err = ftp_list(sb->s_fd, &ftpfs_sb(sb)->s_addr, ftpfs_i(inode)->i_path, &ftpfs_i(inode)->i_cache);
-  if (err || !ftpfs_i(inode)->i_cache.data) {
-    inode->i_ref = 0;
-    vfs_iput(inode);
-    return NULL;
-  }
-
-  return inode;
+  return ftpfs_iget(sb, NULL, &fattr);
 }
 
 /*
