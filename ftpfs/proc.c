@@ -208,7 +208,7 @@ static int ftp_opendatasock(int sockfd_ctrl, struct sockaddr *addr_ctrl)
 /*
  * Receive FTP data.
  */
-static int ftp_receive_data(int sockfd_data, struct ftp_buf_t *ftp_buf)
+static int ftp_receive_data(int sockfd_data, struct ftp_buffer_t *ftp_buf)
 {
   char buf[BUFSIZ];
   int sockfd, len;
@@ -350,7 +350,7 @@ int ftp_quit(int sockfd)
 /*
  * List a FTP directory.
  */
-int ftp_list(int sockfd, struct sockaddr *addr, const char *dir, struct ftp_buf_t *buf)
+int ftp_list(int sockfd, struct sockaddr *addr, const char *dir, struct ftp_buffer_t *buf)
 {
   int sockfd_data, err;
 
