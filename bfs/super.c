@@ -20,7 +20,7 @@ struct super_operations_t bfs_sops = {
 /*
  * Read a BFS super block.
  */
-int bfs_read_super(struct super_block_t *sb)
+int bfs_read_super(struct super_block_t *sb, void *data)
 {
   struct bfs_super_block_t *bfs_sb;
   int err = -ENOSPC, i, block, off;

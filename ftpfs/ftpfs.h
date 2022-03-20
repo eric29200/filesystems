@@ -66,7 +66,7 @@ int ftp_retrieve(int sockfd, struct sockaddr *addr, const char *pathname, int fd
 int ftp_parse_dir_line(const char *line, struct ftpfs_fattr_t *fattr);
 
 /* FTPFS super prototypes */
-int ftpfs_read_super(struct super_block_t *sb);
+int ftpfs_read_super(struct super_block_t *sb, void *data);
 void ftpfs_put_super(struct super_block_t *sb);
 int ftpfs_statfs(struct super_block_t *sb, struct statfs *buf);
 

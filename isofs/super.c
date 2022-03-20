@@ -20,7 +20,7 @@ struct super_operations_t isofs_sops = {
 /*
  * Read a ISOFS super block.
  */
-int isofs_read_super(struct super_block_t *sb)
+int isofs_read_super(struct super_block_t *sb, void *data)
 {
   struct iso_directory_record_t *root_dir;
   struct iso_primary_descriptor_t *pri;

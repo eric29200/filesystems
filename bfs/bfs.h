@@ -95,7 +95,7 @@ extern struct inode_operations_t bfs_file_iops;
 extern struct inode_operations_t bfs_dir_iops;
 
 /* BFS super prototypes */
-int bfs_read_super(struct super_block_t *sb);
+int bfs_read_super(struct super_block_t *sb, void *data);
 void bfs_put_super(struct super_block_t *sb);
 int bfs_statfs(struct super_block_t *sb, struct statfs *buf);
 

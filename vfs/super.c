@@ -16,7 +16,7 @@
 /*
  * Mount a file system.
  */
-struct super_block_t *vfs_mount(const char *dev, int fs_type)
+struct super_block_t *vfs_mount(const char *dev, int fs_type, void *data)
 {
   struct super_block_t *sb;
   int err;
@@ -57,22 +57,22 @@ struct super_block_t *vfs_mount(const char *dev, int fs_type)
   /* read super block on disk */
   switch (fs_type) {
     case VFS_MINIX_TYPE:
-      err = minix_read_super(sb);
+      err = minix_read_super(sb, data);
       break;
     case VFS_BFS_TYPE:
-      err = bfs_read_super(sb);
+      err = bfs_read_super(sb, data);
       break;
     case VFS_EXT2_TYPE:
-      err = ext2_read_super(sb);
+      err = ext2_read_super(sb, data);
       break;
     case VFS_ISOFS_TYPE:
-      err = isofs_read_super(sb);
+      err = isofs_read_super(sb, data);
       break;
     case VFS_MEMFS_TYPE:
-      err = memfs_read_super(sb);
+      err = memfs_read_super(sb, data);
       break;
     case VFS_FTPFS_TYPE:
-      err = ftpfs_read_super(sb);
+      err = ftpfs_read_super(sb, data);
       break;
     default:
       fprintf(stderr, "VFS: file system type (fs_type = %d) not implemented\n", fs_type);

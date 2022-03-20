@@ -141,7 +141,7 @@ extern struct file_operations_t minix_file_fops;
 extern struct file_operations_t minix_dir_fops;
 
 /* Minix super operations */
-int minix_read_super(struct super_block_t *sb);
+int minix_read_super(struct super_block_t *sb, void *data);
 void minix_put_super(struct super_block_t *sb);
 int minix_statfs(struct super_block_t *sb, struct statfs *buf);
 

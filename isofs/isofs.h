@@ -104,7 +104,7 @@ extern struct inode_operations_t isofs_file_iops;
 extern struct inode_operations_t isofs_dir_iops;
 
 /* ISOFS super prototypes */
-int isofs_read_super(struct super_block_t *sb);
+int isofs_read_super(struct super_block_t *sb, void *data);
 void isofs_put_super(struct super_block_t *sb);
 int isofs_statfs(struct super_block_t *sb, struct statfs *buf);
 

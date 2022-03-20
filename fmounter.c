@@ -437,7 +437,7 @@ static void *op_init(struct fuse_conn_info *conn, struct fuse_config *cfg)
   vfs_data = ctx->private_data;
   
   /* mount file system */
-  vfs_data->sb = vfs_mount(vfs_data->dev, vfs_data->fs_type);
+  vfs_data->sb = vfs_mount(vfs_data->dev, vfs_data->fs_type, NULL);
   if (!vfs_data->sb)
     fuse_exit(ctx->fuse);
 

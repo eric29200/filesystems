@@ -46,7 +46,7 @@ extern struct file_operations_t memfs_file_fops;
 extern struct file_operations_t memfs_dir_fops;
 
 /* MemFS super operations */
-int memfs_read_super(struct super_block_t *sb);
+int memfs_read_super(struct super_block_t *sb, void *data);
 void memfs_put_super(struct super_block_t *sb);
 int memfs_statfs(struct super_block_t *sb, struct statfs *buf);
 

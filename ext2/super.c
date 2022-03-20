@@ -20,7 +20,7 @@ struct super_operations_t ext2_sops = {
 /*
  * Read a Ext2 super block.
  */
-int ext2_read_super(struct super_block_t *sb)
+int ext2_read_super(struct super_block_t *sb, void *data)
 {
   uint32_t block, sb_block = 1, offset = 0, logic_sb_block = 1;
   int err = -ENOSPC, blocksize, i;

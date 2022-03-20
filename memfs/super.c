@@ -17,7 +17,7 @@ struct super_operations_t memfs_sops = {
 /*
  * Read a MemFS super block.
  */
-int memfs_read_super(struct super_block_t *sb)
+int memfs_read_super(struct super_block_t *sb, void *data)
 {
   struct memfs_sb_info_t *sbi;
   int err = -EINVAL;

@@ -40,7 +40,7 @@ static struct inode_t *ftpfs_create_root_inode(struct super_block_t *sb)
 /*
  * Read a FTPFS super block.
  */
-int ftpfs_read_super(struct super_block_t *sb)
+int ftpfs_read_super(struct super_block_t *sb, void *data)
 {
   struct ftpfs_sb_info_t *sbi;
   int err = -ENOSPC;

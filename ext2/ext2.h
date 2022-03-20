@@ -199,7 +199,7 @@ extern struct file_operations_t ext2_file_fops;
 extern struct file_operations_t ext2_dir_fops;
 
 /* Ext2 super operations */
-int ext2_read_super(struct super_block_t *sb);
+int ext2_read_super(struct super_block_t *sb, void *data);
 void ext2_put_super(struct super_block_t *sb);
 int ext2_statfs(struct super_block_t *sb, struct statfs *buf);
 

@@ -25,7 +25,7 @@ struct super_operations_t minix_sops = {
 /*
  * Read a minix super block.
  */
-int minix_read_super(struct super_block_t *sb)
+int minix_read_super(struct super_block_t *sb, void *data)
 {
   struct minix1_super_block_t *msb1;
   struct minix3_super_block_t *msb3;
