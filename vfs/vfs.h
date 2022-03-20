@@ -99,6 +99,7 @@ struct file_t {
   int                       f_flags;              /* file flags */
   size_t                    f_pos;                /* file position */
   int                       f_ref;                /* reference counter */
+  void                      *f_private;           /* private data */
   struct inode_t            *f_inode;             /* inode */
   struct file_operations_t  *f_op;                /* file operations */
 };

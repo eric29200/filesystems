@@ -62,6 +62,7 @@ extern struct file_operations_t ftpfs_dir_fops;
 int ftp_connect(const char *hostname, const char *user, const char *passwd, struct sockaddr *addr);
 int ftp_quit(int sockfd);
 int ftp_list(int sockfd, struct sockaddr *addr, const char *dir, struct ftp_buffer_t *ftp_buf);
+int ftp_retrieve(int sockfd, struct sockaddr *addr, const char *pathname, int fd_out);
 int ftp_parse_dir_line(const char *line, struct ftpfs_fattr_t *fattr);
 
 /* FTPFS super prototypes */
@@ -83,6 +84,9 @@ int ftpfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t
 ssize_t ftpfs_readlink(struct inode_t *inode, char *buf, size_t bufsize);
 
 /* FTPFS file prototypes */
+int ftpfs_open(struct file_t *filp);
+int ftpfs_close(struct file_t *filp);
+int ftpfs_file_read(struct file_t *filp, char *buf, int count);
 int ftpfs_getdents64(struct file_t *filp, void *dirp, size_t count);
 
 /*

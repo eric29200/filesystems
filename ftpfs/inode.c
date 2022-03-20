@@ -9,7 +9,9 @@
  * FTPFS file operations.
  */
 struct file_operations_t ftpfs_file_fops = {
-  .read               = NULL,
+  .open               = ftpfs_open,
+  .close              = ftpfs_close,
+  .read               = ftpfs_file_read,
   .write              = NULL,
 };
 
