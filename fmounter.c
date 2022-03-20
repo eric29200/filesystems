@@ -15,10 +15,11 @@
  * VFS data.
  */
 struct vfs_data_t {
-  char *dev;                    /* device path */
-  char *mnt_point;              /* mount point */
-  int fs_type;                  /* file system type */
-  struct super_block_t *sb;     /* mounted super block */
+  char                  *dev;                   /* device path */
+  char                  *mnt_point;             /* mount point */
+  int                   fs_type;                /* file system type */
+  char                  *fs_options;            /* file system options */
+  struct super_block_t  *sb;                    /* mounted super block */
 };
 
 /*
@@ -437,7 +438,7 @@ static void *op_init(struct fuse_conn_info *conn, struct fuse_config *cfg)
   vfs_data = ctx->private_data;
   
   /* mount file system */
-  vfs_data->sb = vfs_mount(vfs_data->dev, vfs_data->fs_type, NULL);
+  vfs_data->sb = vfs_mount(vfs_data->dev, vfs_data->fs_type, vfs_data->fs_options);
   if (!vfs_data->sb)
     fuse_exit(ctx->fuse);
 
@@ -550,9 +551,10 @@ static const struct fuse_operations vfs_ops = {
 };
 
 /* Mount parameters */
-static const char *sopt = "t:h";
+static const char *sopt = "t:o:h";
 static const struct option lopt[] = {
     { "type",     required_argument,    NULL,   't'},
+    { "options",  required_argument,    NULL,   'o'},
     { "help",     no_argument,          NULL,   'h'},
     { NULL,       0,                    NULL,    0 }
 };
@@ -562,11 +564,12 @@ static const struct option lopt[] = {
  */
 static void usage(char *prog_name)
 {
-  printf("%s -t fstype [image_file] <mount_point>\n", prog_name);
+  printf("%s -t fstype -o options [image_file] <mount_point>\n", prog_name);
   printf("\n");
   printf("Options :\n");
   printf(" -h               print help\n");
   printf(" -t               file system type (minix,bfs,ext2,isofs,memfs,ftpfs)\n");
+  printf(" -o               options\n");
 }
 
 /*
@@ -574,7 +577,7 @@ static void usage(char *prog_name)
  */
 static int parse_options(int argc, char **argv, struct vfs_data_t *vfs_data)
 {
-  char *fs_type = NULL;
+  char *fs_type = NULL, *fs_options = NULL;
   int c;
 
   /* reset VFS data */
@@ -589,6 +592,9 @@ static int parse_options(int argc, char **argv, struct vfs_data_t *vfs_data)
         break;
       case 't':
         fs_type = optarg;
+        break;
+      case 'o':
+        fs_options = optarg;
         break;
       default:
         break;
@@ -637,6 +643,14 @@ static int parse_options(int argc, char **argv, struct vfs_data_t *vfs_data)
     return -1;
   }
   
+  /* set options */
+  vfs_data->fs_options = NULL;
+  if (fs_options) {
+    vfs_data->fs_options = strdup(fs_options);
+    if (!vfs_data->fs_options)
+      return -1;
+  }
+
   return 0;
 }
 
