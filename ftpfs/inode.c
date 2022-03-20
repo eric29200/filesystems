@@ -156,11 +156,50 @@ static char *ftpfs_build_path(struct inode_t *dir, struct ftpfs_fattr_t *fattr)
 }
 
 /*
+ * Load inode data (= store directory listing or link target).
+ */
+int ftpfs_load_inode_data(struct inode_t *inode, struct ftpfs_fattr_t *fattr)
+{
+  struct ftpfs_inode_info_t *ftpfs_inode = ftpfs_i(inode);
+  struct super_block_t *sb = inode->i_sb;
+  size_t link_len;
+
+  /* data cache already set */
+  if (ftpfs_inode->i_cache.data)
+    return 0;
+
+  /* symbolic link load target link in inode data cache */
+  if (S_ISLNK(inode->i_mode)) {
+    link_len = strlen(fattr->link);
+    if (link_len > 0) {
+      /* allocate inode cache (to store target link) */
+      ftpfs_inode->i_cache.data = (char *) malloc(link_len);
+      if (!ftpfs_inode->i_cache.data)
+        return -ENOMEM;
+
+      /* copy target link to inode cache */
+      ftpfs_inode->i_cache.len = link_len;
+      ftpfs_inode->i_cache.capacity = link_len;
+      memcpy(ftpfs_inode->i_cache.data, fattr->link, link_len);
+    }
+    ftpfs_inode->i_cache.capacity = strlen(fattr->link);
+
+    return 0;
+  }
+
+  /* get list from server if needed */
+  if (S_ISDIR(inode->i_mode))
+    return ftp_list(sb->s_fd, &ftpfs_sb(sb)->s_addr, ftpfs_inode->i_path, &ftpfs_inode->i_cache);
+
+  return 0;
+}
+
+/*
  * Read an inode.
  */
 static int ftpfs_read_inode(struct inode_t *inode, struct ftpfs_fattr_t *fattr, char *path)
 {
-  size_t link_len;
+  int err;
 
   /* set inode */
   inode->i_mode = fattr->statbuf.st_mode;
@@ -178,20 +217,11 @@ static int ftpfs_read_inode(struct inode_t *inode, struct ftpfs_fattr_t *fattr, 
   ftpfs_i(inode)->i_cache.len = 0;
   ftpfs_i(inode)->i_cache.capacity = 0;
 
+  /* load target link in inode data cache */
   if (S_ISLNK(inode->i_mode)) {
-    link_len = strlen(fattr->link);
-    if (link_len > 0) {
-      /* allocate inode cache (to store target link) */
-      ftpfs_i(inode)->i_cache.data = (char *) malloc(link_len);
-      if (!ftpfs_i(inode)->i_cache.data)
-        return -ENOMEM;
-
-      /* copy target link to inode cache */
-      ftpfs_i(inode)->i_cache.len = link_len;
-      ftpfs_i(inode)->i_cache.capacity = link_len;
-      memcpy(ftpfs_i(inode)->i_cache.data, fattr->link, link_len);
-    }
-    ftpfs_i(inode)->i_cache.capacity = strlen(fattr->link);
+    err = ftpfs_load_inode_data(inode, fattr);
+    if (err)
+      return err;
   }
 
   /* set operations */

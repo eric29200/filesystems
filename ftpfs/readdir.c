@@ -14,7 +14,6 @@
 int ftpfs_getdents64(struct file_t *filp, void *dirp, size_t count)
 {
   struct ftpfs_inode_info_t *ftpfs_inode = ftpfs_i(filp->f_inode);
-  struct super_block_t *sb = filp->f_inode->i_sb;
   struct ftpfs_fattr_t fattr;
   struct dirent64_t *dirent;
   int err, entries_size = 0;
@@ -22,11 +21,9 @@ int ftpfs_getdents64(struct file_t *filp, void *dirp, size_t count)
   size_t filename_len;
 
   /* get list from server if needed */
-  if (!ftpfs_inode->i_cache.data) {
-    err = ftp_list(sb->s_fd, &ftpfs_sb(sb)->s_addr, ftpfs_inode->i_path, &ftpfs_inode->i_cache);
-    if (err)
-      return -EIO;
-  }
+  err = ftpfs_load_inode_data(filp->f_inode, NULL);
+  if (err)
+    return err;
 
   /* no data : exit */
   if (!ftpfs_inode->i_cache.data)

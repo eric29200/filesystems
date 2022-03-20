@@ -71,6 +71,7 @@ int ftpfs_statfs(struct super_block_t *sb, struct statfs *buf);
 
 /* FTPFS inode prototypes */
 struct inode_t *ftpfs_iget(struct super_block_t *sb, struct inode_t *dir, struct ftpfs_fattr_t *fattr);
+int ftpfs_load_inode_data(struct inode_t *inode, struct ftpfs_fattr_t *fattr);
 struct inode_t *ftpfs_alloc_inode(struct super_block_t *sb);
 void ftpfs_put_inode(struct inode_t *inode);
 

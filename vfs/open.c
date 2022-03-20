@@ -35,7 +35,7 @@ struct file_t *vfs_open(struct inode_t *root, const char *pathname, int flags, m
   struct inode_t *inode;
   struct file_t *filp;
   int err;
-  
+
   /* get an empty file */
   filp = vfs_get_empty_file();
   if (!filp)

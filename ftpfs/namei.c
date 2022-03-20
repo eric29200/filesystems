@@ -29,11 +29,9 @@ static int ftpfs_find_entry(struct inode_t *dir, const char *name, size_t name_l
     return -ENOENT;
 
   /* get directory list from server if needed */
-  if (!ftpfs_dir->i_cache.data) {
-    err = ftp_list(dir->i_sb->s_fd, &ftpfs_sb(dir->i_sb)->s_addr, ftpfs_dir->i_path, &ftpfs_dir->i_cache);
-    if (err)
-      return -EIO;
-  }
+  err = ftpfs_load_inode_data(dir, NULL);
+  if (err)
+    return err;
 
   /* no data : exit */
   if (!ftpfs_dir->i_cache.data)
