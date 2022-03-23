@@ -8,6 +8,7 @@
 #include <errno.h>
 
 #include "vfs/vfs.h"
+#include "ftpfs/ftpfs.h"
 
 #define DIR_BUF_SIZE            4096
 
@@ -18,7 +19,7 @@ struct vfs_data_t {
   char                  *dev;                   /* device path */
   char                  *mnt_point;             /* mount point */
   int                   fs_type;                /* file system type */
-  char                  *fs_options;            /* file system options */
+  void                  *fs_options;            /* file system options */
   struct super_block_t  *sb;                    /* mounted super block */
 };
 
@@ -551,10 +552,9 @@ static const struct fuse_operations vfs_ops = {
 };
 
 /* Mount parameters */
-static const char *sopt = "t:o:h";
+static const char *sopt = "t:h";
 static const struct option lopt[] = {
     { "type",     required_argument,    NULL,   't'},
-    { "options",  required_argument,    NULL,   'o'},
     { "help",     no_argument,          NULL,   'h'},
     { NULL,       0,                    NULL,    0 }
 };
@@ -569,7 +569,6 @@ static void usage(char *prog_name)
   printf("Options :\n");
   printf(" -h               print help\n");
   printf(" -t               file system type (minix,bfs,ext2,isofs,memfs,ftpfs)\n");
-  printf(" -o               options\n");
 }
 
 /*
@@ -577,7 +576,7 @@ static void usage(char *prog_name)
  */
 static int parse_options(int argc, char **argv, struct vfs_data_t *vfs_data)
 {
-  char *fs_type = NULL, *fs_options = NULL;
+  char *fs_type = NULL;
   int c;
 
   /* reset VFS data */
@@ -592,9 +591,6 @@ static int parse_options(int argc, char **argv, struct vfs_data_t *vfs_data)
         break;
       case 't':
         fs_type = optarg;
-        break;
-      case 'o':
-        fs_options = optarg;
         break;
       default:
         break;
@@ -642,16 +638,19 @@ static int parse_options(int argc, char **argv, struct vfs_data_t *vfs_data)
     fprintf(stderr, "VFS: Unknown file system type '%s'\n", fs_type);
     return -1;
   }
-  
-  /* set options */
-  vfs_data->fs_options = NULL;
-  if (fs_options) {
-    vfs_data->fs_options = strdup(fs_options);
-    if (!vfs_data->fs_options)
-      return -1;
-  }
 
   return 0;
+}
+
+/*
+ * Ask user parameters.
+ */
+static void ask_parameters(struct vfs_data_t *vfs_data)
+{
+  if (vfs_data->fs_type == VFS_FTPFS_TYPE)
+    vfs_data->fs_options = ftp_ask_parameters();
+  else
+    vfs_data->fs_options = NULL;
 }
 
 /*
@@ -683,6 +682,9 @@ int main(int argc, char **argv)
     fuse_opt_free_args(&fargs);
     goto err;
   }
+
+  /* ask user parameters */
+  ask_parameters(&vfs_data);
 
   return fuse_main(fargs.argc, fargs.argv, &vfs_ops, &vfs_data);
 err:

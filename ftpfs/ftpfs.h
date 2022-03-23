@@ -12,6 +12,17 @@
 #define FTPFS_INODE_HTABLE_BITS       12
 #define FTPFS_INODE_HTABLE_SIZE       (1 << FTPFS_INODE_HTABLE_BITS)
 
+#define FTPFS_USER_DEFAULT            "anonymous"
+#define FTPFS_PASWD_DEFAULT           "anonymous"
+
+/*
+ * FTP parameters.
+ */
+struct ftp_param_t {
+  char                            user[FTPFS_NAME_LEN];         /* FTP user */
+  char                            passwd[FTPFS_NAME_LEN];       /* FTP password */
+};
+
 /*
  * FTP buffer.
  */
@@ -59,6 +70,7 @@ extern struct file_operations_t ftpfs_file_fops;
 extern struct file_operations_t ftpfs_dir_fops;
 
 /* FTP lib prototypes */
+struct ftp_param_t *ftp_ask_parameters();
 int ftp_connect(const char *hostname, const char *user, const char *passwd, struct sockaddr *addr);
 int ftp_quit(int sockfd);
 int ftp_list(int sockfd, struct sockaddr *addr, const char *dir, struct ftp_buffer_t *ftp_buf);

@@ -58,7 +58,7 @@ test_memfs: fmounter
 test_ftpfs: fmounter
 	-umount ./mnt
 	-mkdir ./mnt
-	./fmounter -t ftpfs ftp.netbsd.org ./mnt
+	./fmounter -t ftpfs localhost ./mnt
 
 clean :
 	rm -f *.o */*.o fmounter mkfs.minix mkfs.bfs

@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <netdb.h>
+#include <termios.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 
@@ -16,6 +17,74 @@
 
 #define FTP_OK            0
 #define FTP_ERR           -1
+
+/*
+ * Get a line from stdin.
+ */
+static void get_line(char *line, size_t line_len)
+{
+  int c, i;
+
+  for (i = 0;;) {
+    /* get next character */
+    c = fgetc(stdin);
+    if (c == '\n')
+      break;
+
+    /* store character */
+    if (c != '\r' && i < line_len - 1)
+      line[i++] = c;
+  }
+
+  line[i] = 0;
+}
+
+/*
+ * Ask user/password.
+ */
+struct ftp_param_t *ftp_ask_parameters()
+{
+  struct ftp_param_t *params;
+  struct termios term;
+  char *line = NULL;
+
+  /* allocate parameters */
+  params = (struct ftp_param_t *) malloc(sizeof(struct ftp_param_t));
+  if (!params)
+    return NULL;
+
+  /* ask user */
+  printf("User : ");
+  get_line(params->user, FTPFS_NAME_LEN);
+
+  /* get current tty */
+  if (tcgetattr(fileno(stdin), &term))
+    goto err;
+
+  /* disable ECHO on tty */
+  term.c_lflag &= ~ECHO;
+  if (tcsetattr(fileno(stdin), TCSANOW, &term))
+    goto err;
+
+  /* ask password */
+  printf("Password : ");
+  get_line(params->passwd, FTPFS_NAME_LEN);
+
+  /* enable ECHO on tty */
+  term.c_lflag |= ECHO;
+  if (tcsetattr(fileno(stdin), TCSANOW, &term))
+    goto err;
+
+  /* free line */
+  free(line);
+
+  return params;
+err:
+  if (line)
+    free(line);
+  free(params);
+  return NULL;
+}
 
 /*
  * Build a FTP command.

@@ -42,7 +42,9 @@ static struct inode_t *ftpfs_create_root_inode(struct super_block_t *sb)
  */
 int ftpfs_read_super(struct super_block_t *sb, void *data)
 {
+  struct ftp_param_t *params = (struct ftp_param_t *) data;
   struct ftpfs_sb_info_t *sbi;
+  char *user, *passwd;
   int err = -ENOSPC;
 
   /* allocate FTPFS super block */
@@ -67,8 +69,20 @@ int ftpfs_read_super(struct super_block_t *sb, void *data)
   sb->s_op = &ftpfs_sops;
   sb->s_root_inode = NULL;
 
+  /* get user */
+  if (params)
+    user = params->user;
+  else
+    user = FTPFS_USER_DEFAULT;
+
+  /* get password */
+  if (params)
+    passwd = params->passwd;
+  else
+    passwd = FTPFS_PASWD_DEFAULT;
+
   /* connect to server */
-  sb->s_fd = ftp_connect(sb->s_dev, "anonymous", "anonymous", &sbi->s_addr);
+  sb->s_fd = ftp_connect(sb->s_dev, user, passwd, &sbi->s_addr);
   if (sb->s_fd < 0)
     goto err_connect;
 
