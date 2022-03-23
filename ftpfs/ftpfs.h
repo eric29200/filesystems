@@ -92,6 +92,7 @@ int ftpfs_load_inode_data(struct inode_t *inode, struct ftpfs_fattr_t *fattr);
 int ftpfs_reload_inode_data(struct inode_t *inode, struct ftpfs_fattr_t *fattr);
 struct inode_t *ftpfs_alloc_inode(struct super_block_t *sb);
 void ftpfs_put_inode(struct inode_t *inode);
+void ftpfs_delete_inode(struct inode_t *inode);
 
 /* FTPFS name resolution prototypes */
 int ftpfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);

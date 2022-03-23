@@ -11,7 +11,7 @@
 struct super_operations_t ftpfs_sops = {
   .alloc_inode          = ftpfs_alloc_inode,
   .put_inode            = ftpfs_put_inode,
-  .delete_inode         = NULL,
+  .delete_inode         = ftpfs_delete_inode,
   .read_inode           = NULL,
   .write_inode          = NULL,
   .put_super            = ftpfs_put_super,

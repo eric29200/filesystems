@@ -121,7 +121,19 @@ static void ftpfs_clear_inode_cache(struct super_block_t *sb)
  */
 void ftpfs_put_inode(struct inode_t *inode)
 {
-  return;
+  /* nothing to do */
+}
+
+/*
+ * Delete a FTPFS inode inode.
+ */
+void ftpfs_delete_inode(struct inode_t *inode)
+{
+  if (!inode || inode->i_nlinks)
+    return;
+
+  /* clear inode */
+  ftpfs_clear_inode(inode->i_sb, ftpfs_i(inode));
 }
 
 /*

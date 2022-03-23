@@ -116,6 +116,7 @@ int ftpfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct 
 int ftpfs_unlink(struct inode_t *dir, const char *name, size_t name_len)
 {
   struct ftpfs_fattr_t fattr;
+  struct inode_t *inode;
   char *full_path;
   int err;
 
@@ -132,12 +133,22 @@ int ftpfs_unlink(struct inode_t *dir, const char *name, size_t name_len)
     return -ENOMEM;
   }
 
+  /* get inode */
+  inode = ftpfs_iget(dir->i_sb, dir, &fattr);
+  if (!inode) {
+    err = -ENOENT;
+    goto out;
+  }
+
   /* remove file */
   err = ftp_rm(dir->i_sb->s_fd, full_path);
   if (err) {
     err = -EPERM;
     goto out;
   }
+
+  /* update inode */
+  inode->i_nlinks--;
 
   /* update inode data */
   err = ftpfs_reload_inode_data(dir, NULL);
@@ -147,6 +158,7 @@ out:
   free(full_path);
 
   /* release directory */
+  vfs_iput(inode);
   vfs_iput(dir);
 
   return err;
@@ -200,6 +212,7 @@ out:
 int ftpfs_rmdir(struct inode_t *dir, const char *name, size_t name_len)
 {
   struct ftpfs_fattr_t fattr;
+  struct inode_t *inode;
   char *full_path;
   int err;
 
@@ -216,12 +229,22 @@ int ftpfs_rmdir(struct inode_t *dir, const char *name, size_t name_len)
     return -ENOMEM;
   }
 
+  /* get inode */
+  inode = ftpfs_iget(dir->i_sb, dir, &fattr);
+  if (!inode) {
+    err = -ENOENT;
+    goto out;
+  }
+
   /* remove directory */
   err = ftp_rmdir(dir->i_sb->s_fd, full_path);
   if (err) {
     err = -EPERM;
     goto out;
   }
+
+  /* update inode */
+  inode->i_nlinks = 0;
 
   /* update inode data */
   err = ftpfs_reload_inode_data(dir, NULL);
@@ -231,6 +254,7 @@ out:
   free(full_path);
 
   /* release directory */
+  vfs_iput(inode);
   vfs_iput(dir);
 
   return err;
