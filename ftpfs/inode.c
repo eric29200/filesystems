@@ -42,8 +42,8 @@ struct inode_operations_t ftpfs_dir_iops = {
   .link               = NULL,
   .unlink             = NULL,
   .symlink            = NULL,
-  .mkdir              = NULL,
-  .rmdir              = NULL,
+  .mkdir              = ftpfs_mkdir,
+  .rmdir              = ftpfs_rmdir,
   .rename             = NULL,
   .truncate           = NULL,
 };
@@ -127,7 +127,7 @@ void ftpfs_put_inode(struct inode_t *inode)
 /*
  * Build full path (concat dir and name).
  */
-static char *ftpfs_build_path(struct inode_t *dir, struct ftpfs_fattr_t *fattr)
+char *ftpfs_build_path(struct inode_t *dir, struct ftpfs_fattr_t *fattr)
 {
   size_t dir_path_len, name_len;
   char *path;
@@ -194,6 +194,25 @@ int ftpfs_load_inode_data(struct inode_t *inode, struct ftpfs_fattr_t *fattr)
     return ftp_list(sb->s_fd, &ftpfs_sb(sb)->s_addr, ftpfs_inode->i_path, &ftpfs_inode->i_cache);
 
   return 0;
+}
+
+/*
+ * Reload inode data.
+ */
+int ftpfs_reload_inode_data(struct inode_t *inode, struct ftpfs_fattr_t *fattr)
+{
+  struct ftpfs_inode_info_t *ftpfs_inode = ftpfs_i(inode);
+
+  /* clear cache */
+  if (ftpfs_inode->i_cache.data) {
+    free(ftpfs_inode->i_cache.data);
+    ftpfs_inode->i_cache.data = NULL;
+    ftpfs_inode->i_cache.len = 0;
+    ftpfs_inode->i_cache.capacity = 0;
+  }
+
+  /* load inode data */
+  return ftpfs_load_inode_data(inode, fattr);
 }
 
 /*

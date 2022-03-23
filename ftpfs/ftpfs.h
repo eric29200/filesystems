@@ -76,6 +76,8 @@ int ftp_quit(int sockfd);
 int ftp_list(int sockfd, struct sockaddr *addr, const char *dir, struct ftp_buffer_t *ftp_buf);
 int ftp_retrieve(int sockfd, struct sockaddr *addr, const char *pathname, int fd_out);
 int ftp_parse_dir_line(const char *line, struct ftpfs_fattr_t *fattr);
+int ftp_mkdir(int sockfd, const char *pathname);
+int ftp_rmdir(int sockfd, const char *pathname);
 
 /* FTPFS super prototypes */
 int ftpfs_read_super(struct super_block_t *sb, void *data);
@@ -84,12 +86,16 @@ int ftpfs_statfs(struct super_block_t *sb, struct statfs *buf);
 
 /* FTPFS inode prototypes */
 struct inode_t *ftpfs_iget(struct super_block_t *sb, struct inode_t *dir, struct ftpfs_fattr_t *fattr);
+char *ftpfs_build_path(struct inode_t *dir, struct ftpfs_fattr_t *fattr);
 int ftpfs_load_inode_data(struct inode_t *inode, struct ftpfs_fattr_t *fattr);
+int ftpfs_reload_inode_data(struct inode_t *inode, struct ftpfs_fattr_t *fattr);
 struct inode_t *ftpfs_alloc_inode(struct super_block_t *sb);
 void ftpfs_put_inode(struct inode_t *inode);
 
 /* FTPFS name resolution prototypes */
 int ftpfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
+int ftpfs_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mode);
+int ftpfs_rmdir(struct inode_t *dir, const char *name, size_t name_len);
 
 /* FTPFS symlink prototypes */
 int ftpfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t **res_inode);

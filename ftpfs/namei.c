@@ -109,3 +109,87 @@ int ftpfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct 
   vfs_iput(dir);
   return 0;
 }
+
+/*
+ * Make a directory.
+ */
+int ftpfs_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mode)
+{
+  struct ftpfs_fattr_t fattr;
+  char *full_path;
+  int err;
+
+  /* adjust name length */
+  if (name_len > FTPFS_NAME_LEN - 1)
+    name_len = FTPFS_NAME_LEN - 1;
+
+  /* build full path */
+  memcpy(fattr.name, name, name_len);
+  fattr.name[name_len] = 0;
+  full_path = ftpfs_build_path(dir, &fattr);
+  if (!full_path) {
+    vfs_iput(dir);
+    return -ENOMEM;
+  }
+
+  /* create directory */
+  err = ftp_mkdir(dir->i_sb->s_fd, full_path);
+  if (err) {
+    err = -EPERM;
+    goto out;
+  }
+
+  /* update inode data */
+  err = ftpfs_reload_inode_data(dir, NULL);
+
+out:
+  /* free path */
+  free(full_path);
+
+  /* release directory */
+  vfs_iput(dir);
+
+  return err;
+}
+
+/*
+ * Remove a directory.
+ */
+int ftpfs_rmdir(struct inode_t *dir, const char *name, size_t name_len)
+{
+  struct ftpfs_fattr_t fattr;
+  char *full_path;
+  int err;
+
+  /* adjust name length */
+  if (name_len > FTPFS_NAME_LEN - 1)
+    name_len = FTPFS_NAME_LEN - 1;
+
+  /* build full path */
+  memcpy(fattr.name, name, name_len);
+  fattr.name[name_len] = 0;
+  full_path = ftpfs_build_path(dir, &fattr);
+  if (!full_path) {
+    vfs_iput(dir);
+    return -ENOMEM;
+  }
+
+  /* create directory */
+  err = ftp_rmdir(dir->i_sb->s_fd, full_path);
+  if (err) {
+    err = -EPERM;
+    goto out;
+  }
+
+  /* update inode data */
+  err = ftpfs_reload_inode_data(dir, NULL);
+
+out:
+  /* free path */
+  free(full_path);
+
+  /* release directory */
+  vfs_iput(dir);
+
+  return err;
+}
