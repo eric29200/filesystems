@@ -576,6 +576,20 @@ int ftp_parse_dir_line(const char *line, struct ftpfs_fattr_t *fattr)
 }
 
 /*
+ * Remove a file.
+ */
+int ftp_rm(int sockfd, const char *pathname)
+{
+  int err;
+
+  err = ftp_cmd(sockfd, "DELE", pathname);
+  if (err != 2)
+    return FTP_ERR;
+
+  return FTP_OK;
+}
+
+/*
  * Make a new directory.
  */
 int ftp_mkdir(int sockfd, const char *pathname)

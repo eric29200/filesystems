@@ -76,6 +76,7 @@ int ftp_quit(int sockfd);
 int ftp_list(int sockfd, struct sockaddr *addr, const char *dir, struct ftp_buffer_t *ftp_buf);
 int ftp_retrieve(int sockfd, struct sockaddr *addr, const char *pathname, int fd_out);
 int ftp_parse_dir_line(const char *line, struct ftpfs_fattr_t *fattr);
+int ftp_rm(int sockfd, const char *pathname);
 int ftp_mkdir(int sockfd, const char *pathname);
 int ftp_rmdir(int sockfd, const char *pathname);
 
@@ -94,6 +95,7 @@ void ftpfs_put_inode(struct inode_t *inode);
 
 /* FTPFS name resolution prototypes */
 int ftpfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
+int ftpfs_unlink(struct inode_t *dir, const char *name, size_t name_len);
 int ftpfs_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mode);
 int ftpfs_rmdir(struct inode_t *dir, const char *name, size_t name_len);
 
