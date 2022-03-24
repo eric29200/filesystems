@@ -259,3 +259,79 @@ out:
 
   return err;
 }
+
+/*
+ * Rename a file.
+ */
+int ftpfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_name_len,
+                 struct inode_t *new_dir, const char *new_name, size_t new_name_len)
+{
+  struct inode_t *old_inode = NULL, *new_inode = NULL;
+  char *old_full_path = NULL, *new_full_path = NULL;
+  struct ftpfs_fattr_t old_fattr, new_fattr;
+  int err = 0;
+
+  /* adjust names lengths */
+  if (old_name_len > FTPFS_NAME_LEN - 1)
+    old_name_len = FTPFS_NAME_LEN - 1;
+  if (new_name_len > FTPFS_NAME_LEN - 1)
+    new_name_len = FTPFS_NAME_LEN - 1;
+
+  /* build old full path */
+  memcpy(old_fattr.name, old_name, old_name_len);
+  old_fattr.name[old_name_len] = 0;
+  old_full_path = ftpfs_build_path(old_dir, &old_fattr);
+  if (!old_full_path) {
+    err = -ENOMEM;
+    goto out;
+  }
+
+  /* build new full path */
+  memcpy(new_fattr.name, new_name, new_name_len);
+  new_fattr.name[new_name_len] = 0;
+  new_full_path = ftpfs_build_path(new_dir, &new_fattr);
+  if (!new_full_path) {
+    err = -ENOMEM;
+    goto out;
+  }
+
+  /* same path : exit */
+  if (strcmp(old_full_path, new_full_path) == 0)
+    goto out;
+
+  /* get old inode */
+  old_inode = ftpfs_iget(old_dir->i_sb, old_dir, &old_fattr);
+  if (!old_inode) {
+    err = -ENOENT;
+    goto out;
+  }
+
+  /* FTP rename */
+  err = ftp_rename(old_dir->i_sb->s_fd, old_full_path, new_full_path);
+  if (err) {
+    err = -ENOSPC;
+    goto out;
+  }
+
+  /* reload old dir and new dir */
+  err = ftpfs_reload_inode_data(old_dir, NULL);
+  if (old_dir != new_dir)
+    err = ftpfs_reload_inode_data(new_dir, NULL);
+
+out:
+  /* release inodes */
+  vfs_iput(old_inode);
+  vfs_iput(new_inode);
+
+  /* free full paths */
+  if (old_full_path)
+    free(old_full_path);
+  if (new_full_path)
+    free(new_full_path);
+
+  /* release directories */
+  vfs_iput(old_dir);
+  vfs_iput(new_dir);
+
+  return err;
+}

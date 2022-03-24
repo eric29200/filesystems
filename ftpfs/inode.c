@@ -20,8 +20,6 @@ struct file_operations_t ftpfs_file_fops = {
  */
 struct inode_operations_t ftpfs_file_iops = {
   .fops               = &ftpfs_file_fops,
-  .follow_link        = NULL,
-  .readlink           = NULL,
   .truncate           = NULL,
 };
 
@@ -39,12 +37,10 @@ struct inode_operations_t ftpfs_dir_iops = {
   .fops               = &ftpfs_dir_fops,
   .lookup             = ftpfs_lookup,
   .create             = NULL,
-  .link               = NULL,
   .unlink             = ftpfs_unlink,
-  .symlink            = NULL,
   .mkdir              = ftpfs_mkdir,
   .rmdir              = ftpfs_rmdir,
-  .rename             = NULL,
+  .rename             = ftpfs_rename,
   .truncate           = NULL,
 };
 

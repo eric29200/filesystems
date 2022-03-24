@@ -616,3 +616,21 @@ int ftp_rmdir(int sockfd, const char *pathname)
 
   return FTP_OK;
 }
+
+/*
+ * Rename a file.
+ */
+int ftp_rename(int sockfd, const char *old_pathname, const char *new_pathname)
+{
+  int err;
+
+  err = ftp_cmd(sockfd, "RNFR", old_pathname);
+  if (err != 3)
+    return FTP_ERR;
+
+  err = ftp_cmd(sockfd, "RNTO", new_pathname);
+  if (err != 2)
+    return FTP_ERR;
+
+  return FTP_OK;
+}

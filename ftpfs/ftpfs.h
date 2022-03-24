@@ -79,6 +79,7 @@ int ftp_parse_dir_line(const char *line, struct ftpfs_fattr_t *fattr);
 int ftp_rm(int sockfd, const char *pathname);
 int ftp_mkdir(int sockfd, const char *pathname);
 int ftp_rmdir(int sockfd, const char *pathname);
+int ftp_rename(int sockfd, const char *old_pathname, const char *new_pathname);
 
 /* FTPFS super prototypes */
 int ftpfs_read_super(struct super_block_t *sb, void *data);
@@ -99,6 +100,8 @@ int ftpfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct 
 int ftpfs_unlink(struct inode_t *dir, const char *name, size_t name_len);
 int ftpfs_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mode);
 int ftpfs_rmdir(struct inode_t *dir, const char *name, size_t name_len);
+int ftpfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_name_len,
+                 struct inode_t *new_dir, const char *new_name, size_t new_name_len);
 
 /* FTPFS symlink prototypes */
 int ftpfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t **res_inode);
