@@ -12,7 +12,7 @@ struct file_operations_t ftpfs_file_fops = {
   .open               = ftpfs_open,
   .close              = ftpfs_close,
   .read               = ftpfs_file_read,
-  .write              = NULL,
+  .write              = ftpfs_file_write,
 };
 
 /*

@@ -75,12 +75,12 @@ int ftp_connect(const char *hostname, const char *user, const char *passwd, stru
 int ftp_quit(int sockfd);
 int ftp_list(int sockfd, struct sockaddr *addr, const char *dir, struct ftp_buffer_t *ftp_buf);
 int ftp_retrieve(int sockfd, struct sockaddr *addr, const char *pathname, int fd_out);
+int ftp_store(int sockfd, struct sockaddr *addr, const char *pathname, int fd_in);
 int ftp_parse_dir_line(const char *line, struct ftpfs_fattr_t *fattr);
 int ftp_rm(int sockfd, const char *pathname);
 int ftp_mkdir(int sockfd, const char *pathname);
 int ftp_rmdir(int sockfd, const char *pathname);
 int ftp_rename(int sockfd, const char *old_pathname, const char *new_pathname);
-int ftp_create(int sockfd, struct sockaddr *addr, const char *pathname);
 
 /* FTPFS super prototypes */
 int ftpfs_read_super(struct super_block_t *sb, void *data);
@@ -113,6 +113,7 @@ ssize_t ftpfs_readlink(struct inode_t *inode, char *buf, size_t bufsize);
 int ftpfs_open(struct file_t *filp);
 int ftpfs_close(struct file_t *filp);
 int ftpfs_file_read(struct file_t *filp, char *buf, int count);
+int ftpfs_file_write(struct file_t *filp, const char *buf, int count);
 int ftpfs_getdents64(struct file_t *filp, void *dirp, size_t count);
 
 /*

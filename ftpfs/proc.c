@@ -303,7 +303,8 @@ static int ftp_read_to_buf(const char *buf, int len, void *arg)
  */
 static int ftp_read_to_fd(const char *buf, int len, void *arg)
 {
-  int fd = *((int *) arg), err;
+  int fd = *((int *) arg);
+  int err;
 
   err = write(fd, buf, len);
   if (err != len)
@@ -355,8 +356,10 @@ static int ftp_receive_data(int sockfd_data, int (*ftp_read)(const char *, int, 
 /*
  * Transmit FTP data.
  */
-static int ftp_transmit_data(int sockfd_data)
+static int ftp_transmit_data(int sockfd_data, int fd_in)
 {
+  char buf[BUFSIZ];
+  ssize_t len;
   int sockfd;
 
   /* accept connection */
@@ -364,6 +367,34 @@ static int ftp_transmit_data(int sockfd_data)
   if (sockfd < 0) {
     perror("accept");
     return FTP_ERR;
+  }
+
+  /* write data */
+  if (fd_in != -1) {
+    /* seek to start of file */
+    if (lseek(fd_in, 0, SEEK_SET) == -1) {
+      close(sockfd);
+      return FTP_ERR;
+    }
+
+    for (;;) {
+      /* read next buffer */
+      len = read(fd_in, buf, BUFSIZ);
+      if (len < 0) {
+        close(sockfd);
+        return FTP_ERR;
+      }
+
+      /* end of file */
+      if (len == 0)
+        break;
+
+      /* write to socket */
+      if (write(sockfd, buf, len) != len) {
+        close(sockfd);
+        return FTP_ERR;
+      }
+    }
   }
 
   /* close socket */
@@ -539,9 +570,9 @@ int ftp_retrieve(int sockfd, struct sockaddr *addr, const char *pathname, int fd
 }
 
 /*
- * Create a file.
+ * Store a file.
  */
-int ftp_create(int sockfd, struct sockaddr *addr, const char *pathname)
+int ftp_store(int sockfd, struct sockaddr *addr, const char *pathname, int fd_in)
 {
   int sockfd_data, err;
 
@@ -558,7 +589,7 @@ int ftp_create(int sockfd, struct sockaddr *addr, const char *pathname)
   }
 
   /* transmit data */
-  err = ftp_transmit_data(sockfd_data);
+  err = ftp_transmit_data(sockfd_data, fd_in);
   if (err != FTP_OK) {
     close(sockfd_data);
     return err;

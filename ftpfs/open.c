@@ -47,6 +47,9 @@ int ftpfs_open(struct file_t *filp)
   /* set file descriptor */
   *((int *) filp->f_private) = fd;
 
+  /* rewind file descriptor */
+  lseek(fd, 0, SEEK_SET);
+
   return 0;
 }
 
@@ -57,9 +60,17 @@ int ftpfs_close(struct file_t *filp)
 {
   int fd;
 
-  /* close tmporary file */
   if (filp->f_private) {
+    /* get temporary file descriptor */
     fd = *((int *) filp->f_private);
+
+    /* if inode is dirty, write it on FTP */
+    if (filp->f_inode->i_dirt) {
+      ftp_store(filp->f_inode->i_sb->s_fd, &ftpfs_sb(filp->f_inode->i_sb)->s_addr, ftpfs_i(filp->f_inode)->i_path, fd);
+      filp->f_inode->i_dirt = 0;
+    }
+
+    /* close tmporary file */
     close(fd);
     free(filp->f_private);
   }

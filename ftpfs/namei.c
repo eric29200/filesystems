@@ -143,7 +143,7 @@ int ftpfs_create(struct inode_t *dir, const char *name, size_t name_len, mode_t 
   }
 
   /* create file */
-  err = ftp_create(dir->i_sb->s_fd, &ftpfs_sb(dir->i_sb)->s_addr, full_path);
+  err = ftp_store(dir->i_sb->s_fd, &ftpfs_sb(dir->i_sb)->s_addr, full_path, -1);
   if (err) {
     free(full_path);
     vfs_iput(dir);
