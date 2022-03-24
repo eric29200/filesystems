@@ -80,6 +80,7 @@ int ftp_rm(int sockfd, const char *pathname);
 int ftp_mkdir(int sockfd, const char *pathname);
 int ftp_rmdir(int sockfd, const char *pathname);
 int ftp_rename(int sockfd, const char *old_pathname, const char *new_pathname);
+int ftp_create(int sockfd, struct sockaddr *addr, const char *pathname);
 
 /* FTPFS super prototypes */
 int ftpfs_read_super(struct super_block_t *sb, void *data);
@@ -97,6 +98,7 @@ void ftpfs_delete_inode(struct inode_t *inode);
 
 /* FTPFS name resolution prototypes */
 int ftpfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
+int ftpfs_create(struct inode_t *dir, const char *name, size_t name_len, mode_t mode, struct inode_t **res_inode);
 int ftpfs_unlink(struct inode_t *dir, const char *name, size_t name_len);
 int ftpfs_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mode);
 int ftpfs_rmdir(struct inode_t *dir, const char *name, size_t name_len);

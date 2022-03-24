@@ -111,6 +111,69 @@ int ftpfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct 
 }
 
 /*
+ * Create a file in a directory.
+ */
+int ftpfs_create(struct inode_t *dir, const char *name, size_t name_len, mode_t mode, struct inode_t **res_inode)
+{
+  struct ftpfs_fattr_t fattr;
+  char *full_path = NULL;
+  struct inode_t *tmp;
+  int err;
+
+  /* check directory */
+  *res_inode = NULL;
+  if (!dir)
+    return -ENOENT;
+
+  /* check if file already exists */
+  dir->i_ref++;
+  if (ftpfs_lookup(dir, name, name_len, &tmp) == 0) {
+    vfs_iput(tmp);
+    vfs_iput(dir);
+    return -EEXIST;
+  }
+
+  /* build full path */
+  memcpy(fattr.name, name, name_len);
+  fattr.name[name_len] = 0;
+  full_path = ftpfs_build_path(dir, &fattr);
+  if (!full_path) {
+    vfs_iput(dir);
+    return -ENOMEM;
+  }
+
+  /* create file */
+  err = ftp_create(dir->i_sb->s_fd, &ftpfs_sb(dir->i_sb)->s_addr, full_path);
+  if (err) {
+    free(full_path);
+    vfs_iput(dir);
+    return -ENOSPC;
+  }
+
+  /* reload directory */
+  err = ftpfs_reload_inode_data(dir, NULL);
+  if (err) {
+    free(full_path);
+    vfs_iput(dir);
+    return -ENOSPC;
+  }
+
+  /* get inode */
+  *res_inode = ftpfs_iget(dir->i_sb, dir, &fattr);
+  if (!*res_inode) {
+    free(full_path);
+    vfs_iput(dir);
+    return -ENOSPC;
+  }
+
+  /* release directory */
+  free(full_path);
+  vfs_iput(dir);
+
+  return 0;
+}
+
+/*
  * Unlink (remove) a file.
  */
 int ftpfs_unlink(struct inode_t *dir, const char *name, size_t name_len)
