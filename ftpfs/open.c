@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <errno.h>
 
 #include "ftpfs.h"
@@ -46,6 +47,13 @@ int ftpfs_open(struct file_t *filp)
 
   /* set file descriptor */
   *((int *) filp->f_private) = fd;
+
+  /* truncate file */
+  if (filp->f_flags & O_TRUNC) {
+    err = ftruncate(fd, 0);
+    if (err)
+      return -ENOSPC;
+  }
 
   /* rewind file descriptor */
   lseek(fd, 0, SEEK_SET);
