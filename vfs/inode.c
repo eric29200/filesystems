@@ -8,6 +8,14 @@
 static struct htable_link_t **inode_htable = NULL;
 
 /*
+ * Insert an inode in gobal inode htable.
+ */
+void vfs_ihash(struct inode_t *inode)
+{
+  htable_insert64(inode_htable, &inode->i_htable, inode->i_ino, VFS_INODE_HTABLE_BITS);
+}
+
+/*
  * Get an empty inode.
  */
 struct inode_t *vfs_get_empty_inode(struct super_block_t *sb)

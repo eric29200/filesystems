@@ -138,6 +138,9 @@ struct inode_t *memfs_new_inode(struct super_block_t *sb, mode_t mode)
     inode->i_op = &memfs_file_iops;
   }
 
+  /* hash inode */
+  vfs_ihash(inode);
+
   /* mark inode dirty */
   inode->i_dirt = 1;
 

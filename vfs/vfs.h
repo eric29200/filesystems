@@ -29,7 +29,6 @@
 #define BITMAP_SET(map, i)                    ((map)[(i) / 8] |= (0x1 << ((i) % 8)))
 #define BITMAP_CLR(map, i)                    ((map)[(i) / 8] &= ~(0x1 << ((i) % 8)))
 
-
 /*
  * Block buffer.
  */
@@ -155,6 +154,7 @@ void brelse(struct buffer_head_t *bh);
 struct inode_t *vfs_get_empty_inode(struct super_block_t *sb);
 struct inode_t *vfs_iget(struct super_block_t *sb, ino_t ino);
 void vfs_iput(struct inode_t *inode);
+void vfs_ihash(struct inode_t *inode);
 
 /* VFS name resolution prototypes */
 struct inode_t *vfs_namei(struct inode_t *root, struct inode_t *base, const char *pathname, int follow_links);
