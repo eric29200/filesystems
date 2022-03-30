@@ -16,6 +16,7 @@
 #define VFS_ISOFS_TYPE                        4
 #define VFS_MEMFS_TYPE                        5
 #define VFS_FTPFS_TYPE                        6
+#define VFS_TARFS_TYPE                        7
 
 #define VFS_BUFFER_HTABLE_BITS                12
 #define VFS_NR_BUFFER                         (1 << VFS_BUFFER_HTABLE_BITS)

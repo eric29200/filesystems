@@ -568,7 +568,7 @@ static void usage(char *prog_name)
   printf("\n");
   printf("Options :\n");
   printf(" -h               print help\n");
-  printf(" -t               file system type (minix,bfs,ext2,isofs,memfs,ftpfs)\n");
+  printf(" -t               file system type (minix,bfs,ext2,isofs,memfs,ftpfs,tarfs)\n");
 }
 
 /*
@@ -634,6 +634,8 @@ static int parse_options(int argc, char **argv, struct vfs_data_t *vfs_data)
     vfs_data->fs_type = VFS_MEMFS_TYPE;
   } else if (strcmp(fs_type, "ftpfs") == 0) {
     vfs_data->fs_type = VFS_FTPFS_TYPE;
+  } else if (strcmp(fs_type, "tarfs") == 0) {
+    vfs_data->fs_type = VFS_TARFS_TYPE;
   } else {
     fprintf(stderr, "VFS: Unknown file system type '%s'\n", fs_type);
     return -1;

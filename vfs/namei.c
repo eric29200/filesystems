@@ -29,7 +29,7 @@ static struct inode_t *vfs_dir_namei(struct inode_t *root, struct inode_t *dir, 
   const char *name;
   size_t name_len;
   int err;
-  
+
   /* absolute path */
   if (*pathname == '/') {
     pathname++;
@@ -37,7 +37,7 @@ static struct inode_t *vfs_dir_namei(struct inode_t *root, struct inode_t *dir, 
   } else {
     inode = dir;
   }
-  
+
   if (!inode)
     return NULL;
   
@@ -63,7 +63,7 @@ static struct inode_t *vfs_dir_namei(struct inode_t *root, struct inode_t *dir, 
     /* skip empty folder */
     if (!name_len)
       continue;
-    
+
     /* lookup not implemented */
     inode->i_ref++;
     if (!inode->i_op || !inode->i_op->lookup) {
@@ -100,12 +100,12 @@ struct inode_t *vfs_namei(struct inode_t *root, struct inode_t *base, const char
   const char *basename;
   size_t basename_len;
   int err;
-  
+
   /* resolve directory */
   dir = vfs_dir_namei(root, base, pathname, &basename, &basename_len);
   if (!dir)
     return NULL;
-  
+
   /* special case : '/' */
   if (!basename_len)
     return dir;
@@ -143,7 +143,7 @@ int vfs_open_namei(struct inode_t *root, const char *pathname, int flags, mode_t
   const char *basename;
   size_t basename_len;
   int err;
-  
+
   /* get directory */
   dir = vfs_dir_namei(root, NULL, pathname, &basename, &basename_len);
   if (!dir)

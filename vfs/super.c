@@ -12,6 +12,7 @@
 #include "../isofs/isofs.h"
 #include "../memfs/memfs.h"
 #include "../ftpfs/ftpfs.h"
+#include "../tarfs/tarfs.h"
 
 /*
  * Mount a file system.
@@ -43,6 +44,7 @@ struct super_block_t *vfs_mount(const char *dev, int fs_type, void *data)
     case VFS_BFS_TYPE:
     case VFS_EXT2_TYPE:
     case VFS_ISOFS_TYPE:
+    case VFS_TARFS_TYPE:
       sb->s_fd = open(dev, O_RDWR);
       if (sb->s_fd < 0) {
         free(sb);
@@ -73,6 +75,9 @@ struct super_block_t *vfs_mount(const char *dev, int fs_type, void *data)
       break;
     case VFS_FTPFS_TYPE:
       err = ftpfs_read_super(sb, data);
+      break;
+    case VFS_TARFS_TYPE:
+      err = tarfs_read_super(sb, data);
       break;
     default:
       fprintf(stderr, "VFS: file system type (fs_type = %d) not implemented\n", fs_type);

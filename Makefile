@@ -17,6 +17,7 @@ fmounter: vfs/buffer_head.o vfs/super.o vfs/inode.o vfs/namei.o vfs/open.o vfs/r
 	isofs/utils.o isofs/super.o isofs/inode.o isofs/namei.o isofs/readdir.o isofs/read_write.o \
 	memfs/super.o memfs/inode.o memfs/namei.o memfs/readdir.o memfs/read_write.o memfs/truncate.o memfs/symlink.o \
 	ftpfs/proc.o ftpfs/super.o ftpfs/inode.o ftpfs/namei.o ftpfs/readdir.o ftpfs/symlink.o ftpfs/open.o ftpfs/read_write.o \
+	tarfs/super.o tarfs/inode.o tarfs/namei.o tarfs/readdir.o tarfs/read_write.o \
 	fmounter.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
@@ -59,6 +60,12 @@ test_ftpfs: fmounter
 	-umount ./mnt
 	-mkdir ./mnt
 	./fmounter -t ftpfs localhost ./mnt
+
+test_tarfs: fmounter
+	-umount ./mnt
+	-mkdir ./mnt
+	tar -cvf test.img ~/tmp/tmp/tar/
+	./fmounter -t tarfs `pwd`/test.img ./mnt
 
 clean :
 	rm -f *.o */*.o fmounter mkfs.minix mkfs.bfs
