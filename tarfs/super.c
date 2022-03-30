@@ -5,7 +5,6 @@
 
 #include "tarfs.h"
 
-#define TARFS_ALIGN_SECTOR(x)     (((x) % TARFS_BLOCK_SIZE > 0) ? TARFS_BLOCK_SIZE - ((x) % TARFS_BLOCK_SIZE) : 0)
 #define TARFS_ALLOC_SIZE          1024
 
 /*
@@ -76,7 +75,7 @@ static struct tar_entry_t *tar_get_or_create_entry(struct super_block_t *sb, str
 
   /* parse TAR header */
   if (tar_header) {
-    entry->data_off = offset + sizeof(struct tar_header_t) + TARFS_ALIGN_SECTOR(sizeof(struct tar_header_t));
+    entry->data_off = offset + TARFS_BLOCK_SIZE;
     entry->data_len = strtol(tar_header->size, NULL, 8);
     entry->mode = strtol(tar_header->mode, NULL, 8) | tar_type_to_posix(tar_header->typeflag);
     entry->uid = strtol(tar_header->uid, NULL, 8);
@@ -196,8 +195,7 @@ static int tar_open(struct super_block_t *sb)
     brelse(bh);
 
     /* update offset */
-    offset = entry->data_off + entry->data_len;
-    offset += TARFS_ALIGN_SECTOR(offset);
+    offset = ALIGN_UP(entry->data_off + entry->data_len, TARFS_BLOCK_SIZE);
   }
 
   return 0;

@@ -30,6 +30,8 @@
 #define BITMAP_SET(map, i)                    ((map)[(i) / 8] |= (0x1 << ((i) % 8)))
 #define BITMAP_CLR(map, i)                    ((map)[(i) / 8] &= ~(0x1 << ((i) % 8)))
 
+#define ALIGN_UP(x, size)                     (((x) + (size) - 1) & (~((size) - 1)))
+
 /*
  * Block buffer.
  */
