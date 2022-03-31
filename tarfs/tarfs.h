@@ -88,6 +88,11 @@ extern struct inode_operations_t tarfs_dir_iops;
 extern struct file_operations_t tarfs_file_fops;
 extern struct file_operations_t tarfs_dir_fops;
 
+/* Tar lib prototypes */
+int tar_create(struct super_block_t *sb);
+void tar_free(struct tar_entry_t *entry);
+void tar_index(struct super_block_t *sb, struct tar_entry_t *entry);
+
 /* TarFS super operations */
 int tarfs_read_super(struct super_block_t *sb, void *data);
 void tarfs_put_super(struct super_block_t *sb);
