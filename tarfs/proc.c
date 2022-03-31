@@ -33,7 +33,8 @@ static mode_t tar_type_to_posix(int typeflag)
  * Get or create a TAR entry.
  */
 static struct tar_entry_t *tar_get_or_create_entry(struct super_block_t *sb, struct tar_entry_t *parent,
-                                                   const char *name, struct tar_header_t *tar_header, off_t offset)
+                                                   const char *name, char *linkname, struct tar_header_t *tar_header,
+                                                   off_t offset)
 {
   struct tarfs_sb_info_t *sbi = tarfs_sb(sb);
   struct tar_entry_t *entry;
@@ -59,6 +60,9 @@ static struct tar_entry_t *tar_get_or_create_entry(struct super_block_t *sb, str
     free(entry);
     return NULL;
   }
+
+  /* set link name */
+  entry->linkname = linkname;
 
   /* parse TAR header */
   if (tar_header) {
@@ -168,7 +172,7 @@ static char *tar_build_full_name(struct super_block_t *sb, struct tar_header_t *
   char *full_name;
 
   /* build long name */
-  if (tar_header->typeflag == 'L')
+  if (tar_header->typeflag == TAR_LONGNAME)
     return tar_build_long_name(sb, tar_header, offset);
 
   /* compute name length */
@@ -194,13 +198,46 @@ static char *tar_build_full_name(struct super_block_t *sb, struct tar_header_t *
 }
 
 /*
+ * Build link name.
+ */
+static char *tar_build_link_name(struct super_block_t *sb, struct tar_header_t *tar_header, off_t *offset)
+{
+  size_t link_name_len;
+  char *link_name;
+
+  /* long link name */
+  if (tar_header->typeflag == TAR_LONGLINK)
+    return tar_build_long_name(sb, tar_header, offset);
+
+  /* not a link : exit */
+  if (tar_header->typeflag != TAR_SYMTYPE)
+    return NULL;
+
+  /* get link name length */
+  link_name_len = strnlen(tar_header->linkname, sizeof(tar_header->linkname));
+  if (!link_name_len)
+    return NULL;
+
+  /* allocate link name */
+  link_name = (char *) malloc(link_name_len + 1);
+  if (!link_name)
+    return NULL;
+
+  /* set link name */
+  memcpy(link_name, tar_header->linkname, link_name_len);
+  link_name[link_name_len] = 0;
+
+  return link_name;
+}
+
+/*
  * Parse a TAR entry.
  */
 static struct tar_entry_t *tar_parse_entry(struct super_block_t *sb, off_t offset)
 {
   struct tar_entry_t *entry = NULL, *parent;
+  char *full_name, *link_name, *start, *end;
   struct tar_header_t tar_header;
-  char *full_name, *start, *end;
   struct buffer_head_t *bh;
 
   /* read block buffer */
@@ -215,6 +252,9 @@ static struct tar_entry_t *tar_parse_entry(struct super_block_t *sb, off_t offse
   /* check magic string */
   if (memcmp(tar_header.magic, TARFS_MAGIC_STR, sizeof(tar_header.magic)))
     return NULL;
+
+  /* build link name */
+  link_name = tar_build_link_name(sb, &tar_header, &offset);
 
   /* build full name */
   full_name = tar_build_full_name(sb, &tar_header, &offset);
@@ -232,7 +272,7 @@ static struct tar_entry_t *tar_parse_entry(struct super_block_t *sb, off_t offse
       *end = 0;
 
     /* create a new entry */
-    entry = tar_get_or_create_entry(sb, parent, start, end ? NULL : &tar_header, offset);
+    entry = tar_get_or_create_entry(sb, parent, start, end ? NULL : link_name, end ? NULL : &tar_header, offset);
     if (!end || !entry)
       break;
 
@@ -257,7 +297,7 @@ int tar_create(struct super_block_t *sb)
   off_t offset;
 
   /* create root entry */
-  sbi->s_root_entry = tar_get_or_create_entry(sb, NULL, "/", NULL, 0);
+  sbi->s_root_entry = tar_get_or_create_entry(sb, NULL, "/", NULL, NULL, 0);
   if (!sbi->s_root_entry)
     return -ENOSPC;
 

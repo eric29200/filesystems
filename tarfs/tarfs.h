@@ -20,6 +20,8 @@
 #define TAR_DIRTYPE                         '5'
 #define TAR_FIFOTYPE                        '6'
 #define TAR_CONTTYPE                        '7'
+#define TAR_LONGNAME                        'L'
+#define TAR_LONGLINK                        'K'
 
 /*
  * TAR header.
@@ -50,6 +52,7 @@ struct tar_header_t {
  */
 struct tar_entry_t {
   char                  *name;
+  char                  *linkname;
   off_t                 data_off;
   size_t                data_len;
   mode_t                mode;
@@ -84,6 +87,7 @@ struct tarfs_inode_info_t {
 /* TarFS file system operations */
 extern struct super_operations_t tarfs_sops;
 extern struct inode_operations_t tarfs_file_iops;
+extern struct inode_operations_t tarfs_symlink_iops;
 extern struct inode_operations_t tarfs_dir_iops;
 extern struct file_operations_t tarfs_file_fops;
 extern struct file_operations_t tarfs_dir_fops;
@@ -102,6 +106,10 @@ int tarfs_statfs(struct super_block_t *sb, struct statfs *buf);
 struct inode_t *tarfs_alloc_inode(struct super_block_t *sb);
 int tarfs_read_inode(struct inode_t *inode);
 void tarfs_put_inode(struct inode_t *inode);
+
+/* TarFS symlink prototypes */
+int tarfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t **res_inode);
+ssize_t tarfs_readlink(struct inode_t *inode, char *buf, size_t bufsize);
 
 /* TarFS names resolution prototypes */
 int tarfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);

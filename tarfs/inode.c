@@ -33,6 +33,14 @@ struct inode_operations_t tarfs_dir_iops = {
 };
 
 /*
+ * TarFS symbolic link operations.
+ */
+struct inode_operations_t tarfs_symlink_iops = {
+  .follow_link        = tarfs_follow_link,
+  .readlink           = tarfs_readlink,
+};
+
+/*
  * Allocate a TarFS inode.
  */
 struct inode_t *tarfs_alloc_inode(struct super_block_t *sb)
@@ -86,15 +94,17 @@ int tarfs_read_inode(struct inode_t *inode)
   inode->i_atime = entry->atime;
   inode->i_mtime = entry->mtime;
   inode->i_ctime = entry->ctime;
+  inode->i_nlinks = 1;
   tarfs_i(inode)->entry = entry;
 
   /* set operations */
   if (S_ISDIR(inode->i_mode)) {
     inode->i_op = &tarfs_dir_iops;
     inode->i_nlinks = 2;
+  } else if (S_ISLNK(inode->i_mode)) {
+    inode->i_op = &tarfs_symlink_iops;
   } else {
     inode->i_op = &tarfs_file_iops;
-    inode->i_nlinks = 1;
   }
 
   return 0;
