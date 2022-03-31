@@ -209,10 +209,6 @@ static char *tar_build_link_name(struct super_block_t *sb, struct tar_header_t *
   if (tar_header->typeflag == TAR_LONGLINK)
     return tar_build_long_name(sb, tar_header, offset);
 
-  /* not a link : exit */
-  if (tar_header->typeflag != TAR_SYMTYPE)
-    return NULL;
-
   /* get link name length */
   link_name_len = strnlen(tar_header->linkname, sizeof(tar_header->linkname));
   if (!link_name_len)
@@ -254,12 +250,21 @@ static struct tar_entry_t *tar_parse_entry(struct super_block_t *sb, off_t offse
     return NULL;
 
   /* build link name */
-  link_name = tar_build_link_name(sb, &tar_header, &offset);
+  link_name = NULL;
+  if (tar_header.typeflag == TAR_SYMTYPE || tar_header.typeflag == TAR_LONGLINK) {
+    link_name = tar_build_link_name(sb, &tar_header, &offset);
+    if (!link_name)
+      return NULL;
+  }
 
   /* build full name */
   full_name = tar_build_full_name(sb, &tar_header, &offset);
-  if (!full_name)
+  if (!full_name) {
+    if (link_name)
+      free(link_name);
+
     return NULL;
+  }
 
   /* parse full name */
   for (start = full_name, parent = tarfs_sb(sb)->s_root_entry;;) {
