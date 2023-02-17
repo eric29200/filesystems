@@ -9,47 +9,47 @@
  * FTPFS file operations.
  */
 struct file_operations_t ftpfs_file_fops = {
-  .open               = ftpfs_open,
-  .close              = ftpfs_close,
-  .read               = ftpfs_file_read,
-  .write              = ftpfs_file_write,
+	.open							 = ftpfs_open,
+	.close							= ftpfs_close,
+	.read							 = ftpfs_file_read,
+	.write							= ftpfs_file_write,
 };
 
 /*
  * FTPFS file inode operations.
  */
 struct inode_operations_t ftpfs_file_iops = {
-  .fops               = &ftpfs_file_fops,
-  .truncate           = NULL,
+	.fops							 = &ftpfs_file_fops,
+	.truncate					 = NULL,
 };
 
 /*
  * FTPFS directory operations.
  */
 struct file_operations_t ftpfs_dir_fops = {
-  .getdents64         = ftpfs_getdents64,
+	.getdents64				 = ftpfs_getdents64,
 };
 
 /*
  * FTPFS directory inode operations.
  */
 struct inode_operations_t ftpfs_dir_iops = {
-  .fops               = &ftpfs_dir_fops,
-  .lookup             = ftpfs_lookup,
-  .create             = ftpfs_create,
-  .unlink             = ftpfs_unlink,
-  .mkdir              = ftpfs_mkdir,
-  .rmdir              = ftpfs_rmdir,
-  .rename             = ftpfs_rename,
-  .truncate           = NULL,
+	.fops							 = &ftpfs_dir_fops,
+	.lookup						 = ftpfs_lookup,
+	.create						 = ftpfs_create,
+	.unlink						 = ftpfs_unlink,
+	.mkdir							= ftpfs_mkdir,
+	.rmdir							= ftpfs_rmdir,
+	.rename						 = ftpfs_rename,
+	.truncate					 = NULL,
 };
 
 /*
  * FTPFS symbolic link inode operations.
  */
 struct inode_operations_t ftpfs_symlink_iops = {
-  .follow_link        = ftpfs_follow_link,
-  .readlink           = ftpfs_readlink,
+	.follow_link				= ftpfs_follow_link,
+	.readlink					 = ftpfs_readlink,
 };
 
 /*
@@ -57,14 +57,14 @@ struct inode_operations_t ftpfs_symlink_iops = {
  */
 struct inode_t *ftpfs_alloc_inode(struct super_block_t *sb)
 {
-  struct ftpfs_inode_info_t *ftpfs_inode;
+	struct ftpfs_inode_info_t *ftpfs_inode;
 
-  /* allocate FTPFS inode */
-  ftpfs_inode = (struct ftpfs_inode_info_t *) malloc(sizeof(struct ftpfs_inode_info_t));
-  if (!ftpfs_inode)
-    return NULL;
+	/* allocate FTPFS inode */
+	ftpfs_inode = (struct ftpfs_inode_info_t *) malloc(sizeof(struct ftpfs_inode_info_t));
+	if (!ftpfs_inode)
+		return NULL;
 
-  return &ftpfs_inode->vfs_inode;
+	return &ftpfs_inode->vfs_inode;
 }
 
 /*
@@ -72,23 +72,23 @@ struct inode_t *ftpfs_alloc_inode(struct super_block_t *sb)
  */
 static void ftpfs_clear_inode(struct super_block_t *sb, struct ftpfs_inode_info_t *inode)
 {
-  /* unhash inode */
-  list_del(&inode->i_list);
-  htable_delete(&inode->vfs_inode.i_htable);
+	/* unhash inode */
+	list_del(&inode->i_list);
+	htable_delete(&inode->vfs_inode.i_htable);
 
-  /* free cached data */
-  if (inode->i_cache.data)
-    free(inode->i_cache.data);
+	/* free cached data */
+	if (inode->i_cache.data)
+		free(inode->i_cache.data);
 
-  /* free path */
-  if (inode->i_path)
-    free(inode->i_path);
+	/* free path */
+	if (inode->i_path)
+		free(inode->i_path);
 
-  /* free inode */
-  free(inode);
+	/* free inode */
+	free(inode);
 
-  /* update inodes cache size */
-  ftpfs_sb(sb)->s_inodes_cache_size--;
+	/* update inodes cache size */
+	ftpfs_sb(sb)->s_inodes_cache_size--;
 }
 
 /*
@@ -96,20 +96,20 @@ static void ftpfs_clear_inode(struct super_block_t *sb, struct ftpfs_inode_info_
  */
 static void ftpfs_clear_inode_cache(struct super_block_t *sb)
 {
-  struct ftpfs_inode_info_t *inode;
-  struct list_head_t *pos, *n;
+	struct ftpfs_inode_info_t *inode;
+	struct list_head_t *pos, *n;
 
-  /* free all unused inodes */
-  list_for_each_safe(pos, n, &ftpfs_sb(sb)->s_inodes_cache_list) {
-    inode = list_entry(pos, struct ftpfs_inode_info_t, i_list);
+	/* free all unused inodes */
+	list_for_each_safe(pos, n, &ftpfs_sb(sb)->s_inodes_cache_list) {
+		inode = list_entry(pos, struct ftpfs_inode_info_t, i_list);
 
-    /* if inode is unused delete it */
-    if (inode->vfs_inode.i_ref <= 0)
-      ftpfs_clear_inode(sb, inode);
+		/* if inode is unused delete it */
+		if (inode->vfs_inode.i_ref <= 0)
+			ftpfs_clear_inode(sb, inode);
 
-    if (ftpfs_sb(sb)->s_inodes_cache_size <= FTPFS_INODE_HTABLE_SIZE / 3)
-      break;
-  }
+		if (ftpfs_sb(sb)->s_inodes_cache_size <= FTPFS_INODE_HTABLE_SIZE / 3)
+			break;
+	}
 }
 
 /*
@@ -117,7 +117,7 @@ static void ftpfs_clear_inode_cache(struct super_block_t *sb)
  */
 void ftpfs_put_inode(struct inode_t *inode)
 {
-  /* nothing to do */
+	/* nothing to do */
 }
 
 /*
@@ -125,11 +125,11 @@ void ftpfs_put_inode(struct inode_t *inode)
  */
 void ftpfs_delete_inode(struct inode_t *inode)
 {
-  if (!inode || inode->i_nlinks)
-    return;
+	if (!inode || inode->i_nlinks)
+		return;
 
-  /* clear inode */
-  ftpfs_clear_inode(inode->i_sb, ftpfs_i(inode));
+	/* clear inode */
+	ftpfs_clear_inode(inode->i_sb, ftpfs_i(inode));
 }
 
 /*
@@ -137,32 +137,32 @@ void ftpfs_delete_inode(struct inode_t *inode)
  */
 char *ftpfs_build_path(struct inode_t *dir, struct ftpfs_fattr_t *fattr)
 {
-  size_t dir_path_len, name_len;
-  char *path;
+	size_t dir_path_len, name_len;
+	char *path;
 
-  /* compute name length */
-  name_len = strlen(fattr->name);
+	/* compute name length */
+	name_len = strlen(fattr->name);
 
-  /* allocate path */
-  dir_path_len = dir ? strlen(ftpfs_i(dir)->i_path) : 0;
-  path = (char *) malloc(dir_path_len + name_len + 2);
-  if (!path)
-    return NULL;
+	/* allocate path */
+	dir_path_len = dir ? strlen(ftpfs_i(dir)->i_path) : 0;
+	path = (char *) malloc(dir_path_len + name_len + 2);
+	if (!path)
+		return NULL;
 
-  /* add dir path */
-  if (dir)
-    memcpy(path, ftpfs_i(dir)->i_path, dir_path_len);
+	/* add dir path */
+	if (dir)
+		memcpy(path, ftpfs_i(dir)->i_path, dir_path_len);
 
-  /* add '/' */
-  path[dir_path_len] = '/';
+	/* add '/' */
+	path[dir_path_len] = '/';
 
-  /* add filename */
-  memcpy(path + dir_path_len + 1, fattr->name, name_len);
+	/* add filename */
+	memcpy(path + dir_path_len + 1, fattr->name, name_len);
 
-  /* end last 0 */
-  path[dir_path_len + 1 + name_len] = 0;
+	/* end last 0 */
+	path[dir_path_len + 1 + name_len] = 0;
 
-  return path;
+	return path;
 }
 
 /*
@@ -170,38 +170,38 @@ char *ftpfs_build_path(struct inode_t *dir, struct ftpfs_fattr_t *fattr)
  */
 int ftpfs_load_inode_data(struct inode_t *inode, struct ftpfs_fattr_t *fattr)
 {
-  struct ftpfs_inode_info_t *ftpfs_inode = ftpfs_i(inode);
-  struct super_block_t *sb = inode->i_sb;
-  size_t link_len;
+	struct ftpfs_inode_info_t *ftpfs_inode = ftpfs_i(inode);
+	struct super_block_t *sb = inode->i_sb;
+	size_t link_len;
 
-  /* data cache already set */
-  if (ftpfs_inode->i_cache.data)
-    return 0;
+	/* data cache already set */
+	if (ftpfs_inode->i_cache.data)
+		return 0;
 
-  /* symbolic link load target link in inode data cache */
-  if (S_ISLNK(inode->i_mode)) {
-    link_len = strlen(fattr->link);
-    if (link_len > 0) {
-      /* allocate inode cache (to store target link) */
-      ftpfs_inode->i_cache.data = (char *) malloc(link_len);
-      if (!ftpfs_inode->i_cache.data)
-        return -ENOMEM;
+	/* symbolic link load target link in inode data cache */
+	if (S_ISLNK(inode->i_mode)) {
+		link_len = strlen(fattr->link);
+		if (link_len > 0) {
+			/* allocate inode cache (to store target link) */
+			ftpfs_inode->i_cache.data = (char *) malloc(link_len);
+			if (!ftpfs_inode->i_cache.data)
+				return -ENOMEM;
 
-      /* copy target link to inode cache */
-      ftpfs_inode->i_cache.len = link_len;
-      ftpfs_inode->i_cache.capacity = link_len;
-      memcpy(ftpfs_inode->i_cache.data, fattr->link, link_len);
-    }
-    ftpfs_inode->i_cache.capacity = strlen(fattr->link);
+			/* copy target link to inode cache */
+			ftpfs_inode->i_cache.len = link_len;
+			ftpfs_inode->i_cache.capacity = link_len;
+			memcpy(ftpfs_inode->i_cache.data, fattr->link, link_len);
+		}
+		ftpfs_inode->i_cache.capacity = strlen(fattr->link);
 
-    return 0;
-  }
+		return 0;
+	}
 
-  /* get list from server if needed */
-  if (S_ISDIR(inode->i_mode))
-    return ftp_list(sb->s_fd, &ftpfs_sb(sb)->s_addr, ftpfs_inode->i_path, &ftpfs_inode->i_cache);
+	/* get list from server if needed */
+	if (S_ISDIR(inode->i_mode))
+		return ftp_list(sb->s_fd, &ftpfs_sb(sb)->s_addr, ftpfs_inode->i_path, &ftpfs_inode->i_cache);
 
-  return 0;
+	return 0;
 }
 
 /*
@@ -209,18 +209,18 @@ int ftpfs_load_inode_data(struct inode_t *inode, struct ftpfs_fattr_t *fattr)
  */
 int ftpfs_reload_inode_data(struct inode_t *inode, struct ftpfs_fattr_t *fattr)
 {
-  struct ftpfs_inode_info_t *ftpfs_inode = ftpfs_i(inode);
+	struct ftpfs_inode_info_t *ftpfs_inode = ftpfs_i(inode);
 
-  /* clear cache */
-  if (ftpfs_inode->i_cache.data) {
-    free(ftpfs_inode->i_cache.data);
-    ftpfs_inode->i_cache.data = NULL;
-    ftpfs_inode->i_cache.len = 0;
-    ftpfs_inode->i_cache.capacity = 0;
-  }
+	/* clear cache */
+	if (ftpfs_inode->i_cache.data) {
+		free(ftpfs_inode->i_cache.data);
+		ftpfs_inode->i_cache.data = NULL;
+		ftpfs_inode->i_cache.len = 0;
+		ftpfs_inode->i_cache.capacity = 0;
+	}
 
-  /* load inode data */
-  return ftpfs_load_inode_data(inode, fattr);
+	/* load inode data */
+	return ftpfs_load_inode_data(inode, fattr);
 }
 
 /*
@@ -228,40 +228,40 @@ int ftpfs_reload_inode_data(struct inode_t *inode, struct ftpfs_fattr_t *fattr)
  */
 static int ftpfs_read_inode(struct inode_t *inode, struct ftpfs_fattr_t *fattr, char *path)
 {
-  int err;
+	int err;
 
-  /* set inode */
-  inode->i_mode = fattr->statbuf.st_mode;
-  inode->i_nlinks = fattr->statbuf.st_nlink;
-  inode->i_uid = getuid();
-  inode->i_gid = getgid();
-  inode->i_size = fattr->statbuf.st_size;
-  inode->i_blocks = 0;
-  inode->i_atime = inode->i_mtime = inode->i_ctime = current_time();
-  inode->i_ino = 0;
-  inode->i_ref = 1;
-  inode->i_op = &ftpfs_dir_iops;
-  ftpfs_i(inode)->i_path = path;
-  ftpfs_i(inode)->i_cache.data = NULL;
-  ftpfs_i(inode)->i_cache.len = 0;
-  ftpfs_i(inode)->i_cache.capacity = 0;
+	/* set inode */
+	inode->i_mode = fattr->statbuf.st_mode;
+	inode->i_nlinks = fattr->statbuf.st_nlink;
+	inode->i_uid = getuid();
+	inode->i_gid = getgid();
+	inode->i_size = fattr->statbuf.st_size;
+	inode->i_blocks = 0;
+	inode->i_atime = inode->i_mtime = inode->i_ctime = current_time();
+	inode->i_ino = 0;
+	inode->i_ref = 1;
+	inode->i_op = &ftpfs_dir_iops;
+	ftpfs_i(inode)->i_path = path;
+	ftpfs_i(inode)->i_cache.data = NULL;
+	ftpfs_i(inode)->i_cache.len = 0;
+	ftpfs_i(inode)->i_cache.capacity = 0;
 
-  /* load target link in inode data cache */
-  if (S_ISLNK(inode->i_mode)) {
-    err = ftpfs_load_inode_data(inode, fattr);
-    if (err)
-      return err;
-  }
+	/* load target link in inode data cache */
+	if (S_ISLNK(inode->i_mode)) {
+		err = ftpfs_load_inode_data(inode, fattr);
+		if (err)
+			return err;
+	}
 
-  /* set operations */
-  if (S_ISDIR(inode->i_mode))
-    inode->i_op = &ftpfs_dir_iops;
-  else if (S_ISLNK(inode->i_mode))
-    inode->i_op = &ftpfs_symlink_iops;
-  else
-    inode->i_op = &ftpfs_file_iops;
+	/* set operations */
+	if (S_ISDIR(inode->i_mode))
+		inode->i_op = &ftpfs_dir_iops;
+	else if (S_ISLNK(inode->i_mode))
+		inode->i_op = &ftpfs_symlink_iops;
+	else
+		inode->i_op = &ftpfs_file_iops;
 
-  return 0;
+	return 0;
 }
 
 /*
@@ -269,49 +269,49 @@ static int ftpfs_read_inode(struct inode_t *inode, struct ftpfs_fattr_t *fattr, 
  */
 struct inode_t *ftpfs_iget(struct super_block_t *sb, struct inode_t *dir, struct ftpfs_fattr_t *fattr)
 {
-  struct htable_link_t *node;
-  struct inode_t *inode;
-  char *path;
-  int err;
+	struct htable_link_t *node;
+	struct inode_t *inode;
+	char *path;
+	int err;
 
-  /* build full path */
-  path = ftpfs_build_path(dir, fattr);
-  if (!path)
-    return NULL;
+	/* build full path */
+	path = ftpfs_build_path(dir, fattr);
+	if (!path)
+		return NULL;
 
-  /* try to find inode in cache */
-  node = htable_lookupstr(ftpfs_sb(sb)->s_inodes_cache_htable, path, FTPFS_INODE_HTABLE_BITS);
-  while (node) {
-    inode = htable_entry(node, struct inode_t, i_htable);
-    if (strcmp(ftpfs_i(inode)->i_path, path) == 0) {
-      free(path);
-      inode->i_ref++;
-      return inode;
-    }
+	/* try to find inode in cache */
+	node = htable_lookupstr(ftpfs_sb(sb)->s_inodes_cache_htable, path, FTPFS_INODE_HTABLE_BITS);
+	while (node) {
+		inode = htable_entry(node, struct inode_t, i_htable);
+		if (strcmp(ftpfs_i(inode)->i_path, path) == 0) {
+			free(path);
+			inode->i_ref++;
+			return inode;
+		}
 
-    node = node->next;
-  }
+		node = node->next;
+	}
 
-  /* get new empty inode */
-  inode = vfs_get_empty_inode(sb);
-  if (!inode) {
-    free(path);
-    return NULL;
-  }
+	/* get new empty inode */
+	inode = vfs_get_empty_inode(sb);
+	if (!inode) {
+		free(path);
+		return NULL;
+	}
 
-  /* read/set inode */
-  err = ftpfs_read_inode(inode, fattr, path);
-  if (err)
-    return NULL;
+	/* read/set inode */
+	err = ftpfs_read_inode(inode, fattr, path);
+	if (err)
+		return NULL;
 
-  /* if inode cache is full, clear cache */
-  if (ftpfs_sb(inode->i_sb)->s_inodes_cache_size >= FTPFS_INODE_HTABLE_SIZE)
-    ftpfs_clear_inode_cache(inode->i_sb);
+	/* if inode cache is full, clear cache */
+	if (ftpfs_sb(inode->i_sb)->s_inodes_cache_size >= FTPFS_INODE_HTABLE_SIZE)
+		ftpfs_clear_inode_cache(inode->i_sb);
 
-  /* hash inode */
-  list_add(&ftpfs_i(inode)->i_list, &ftpfs_sb(sb)->s_inodes_cache_list);
-  htable_insertstr(ftpfs_sb(sb)->s_inodes_cache_htable, &inode->i_htable, path, FTPFS_INODE_HTABLE_BITS);
-  ftpfs_sb(sb)->s_inodes_cache_size++;
+	/* hash inode */
+	list_add(&ftpfs_i(inode)->i_list, &ftpfs_sb(sb)->s_inodes_cache_list);
+	htable_insertstr(ftpfs_sb(sb)->s_inodes_cache_htable, &inode->i_htable, path, FTPFS_INODE_HTABLE_BITS);
+	ftpfs_sb(sb)->s_inodes_cache_size++;
 
-  return inode;
+	return inode;
 }

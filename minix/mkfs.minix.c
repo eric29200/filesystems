@@ -9,13 +9,13 @@
 
 #include "minix.h"
 
-#define DEFAULTS_FS_VERSION         1
-#define MINIX_MAX_INODES            65535
-#define BITS_PER_BLOCK              (MINIX_BLOCK_SIZE << 3)
+#define DEFAULTS_FS_VERSION				1
+#define MINIX_MAX_INODES				65535
+#define BITS_PER_BLOCK					(MINIX_BLOCK_SIZE << 3)
 
-#define UPPER(size, n)              ((size + ((n) - 1)) / (n))
-#define MINIX_INODES_PER_BLOCK      ((MINIX_BLOCK_SIZE) / sizeof(struct minix1_inode_t))
-#define MINIX2_INODES_PER_BLOCK     ((MINIX_BLOCK_SIZE) / sizeof(struct minix2_inode_t))
+#define UPPER(size, n)					((size + ((n) - 1)) / (n))
+#define MINIX_INODES_PER_BLOCK				((MINIX_BLOCK_SIZE) / sizeof(struct minix1_inode_t))
+#define MINIX2_INODES_PER_BLOCK		 		((MINIX_BLOCK_SIZE) / sizeof(struct minix2_inode_t))
 
 /* global variables */
 static int fs_version = DEFAULTS_FS_VERSION;
@@ -40,15 +40,15 @@ static char *itable = NULL;
  */
 static void usage(char *prog_name)
 {
-  printf("%s [options] <device> [blocks]\n", prog_name);
-  printf("\n");
-  printf("Options :\n");
-  printf(" -1                            use minix version 1\n");
-  printf(" -2                            use minix version 2\n");
-  printf(" -3                            use minix version 3\n");
-  printf(" -n, --namelength <num>        maximum length of filenames\n");
-  printf(" -i, --inodes <num>            number of inodes\n");
-  exit(0);
+	printf("%s [options] <device> [blocks]\n", prog_name);
+	printf("\n");
+	printf("Options :\n");
+	printf(" -1				use minix version 1\n");
+	printf(" -2				use minix version 2\n");
+	printf(" -3				use minix version 3\n");
+	printf(" -n, --namelength <num>		maximum length of filenames\n");
+	printf(" -i, --inodes <num>		number of inodes\n");
+	exit(0);
 }
 
 /*
@@ -56,87 +56,87 @@ static void usage(char *prog_name)
  */
 static int parse_options(int argc, char **argv)
 {
-  static const struct option opts[] = {
-      { "namelength",     required_argument,  NULL,     'n'},
-      { "inodes",         required_argument,  NULL,     'i'},
-      { "help",           no_argument,        NULL,     'h'},
-      { NULL,             0,                  NULL,     0}
-  };
-  int c;
+	static const struct option opts[] = {
+			{ "namelength",		required_argument,	NULL,	'n' },
+			{ "inodes",		required_argument,	NULL,	'i' },
+			{ "help",		no_argument,		NULL,	'h' },
+			{ NULL,			0,			NULL,	0 }
+	};
+	int c;
 
-  /* parse options */
-  while ((c = getopt_long(argc, argv, "1v23n:i:h", opts, NULL)) != -1) {
-    switch (c) {
-      case '1':
-        fs_version = 1;
-        break;
-      case '2':
-        fs_version = 2;
-        break;
-      case '3':
-        fs_namelen = 60;
-        fs_version = 3;
-        break;
-      case 'n':
-        fs_namelen = atoi(optarg);
-        break;
-      case 'i':
-        fs_inodes = atoi(optarg);
-        break;
-      case 'h':
-        usage(argv[0]);
-        break;
-      default:
-        usage(argv[0]);
-        break;
-    }
-  }
+	/* parse options */
+	while ((c = getopt_long(argc, argv, "1v23n:i:h", opts, NULL)) != -1) {
+		switch (c) {
+			case '1':
+				fs_version = 1;
+				break;
+			case '2':
+				fs_version = 2;
+				break;
+			case '3':
+				fs_namelen = 60;
+				fs_version = 3;
+				break;
+			case 'n':
+				fs_namelen = atoi(optarg);
+				break;
+			case 'i':
+				fs_inodes = atoi(optarg);
+				break;
+			case 'h':
+				usage(argv[0]);
+				break;
+			default:
+				usage(argv[0]);
+				break;
+		}
+	}
 
-  /* get device name */
-  argc -= optind;
-  argv += optind;
-  if (argc > 0) {
-    fs_dev_name = argv[0];
-    argc--;
-    argv++;
-  }
+	/* get device name */
+	argc -= optind;
+	argv += optind;
+	if (argc > 0) {
+		fs_dev_name = argv[0];
+		argc--;
+		argv++;
+	}
 
-  /* get number of blocks */
-  if (argc > 0)
-    fs_blocks = atoll(argv[0]);
+	/* get number of blocks */
+	if (argc > 0)
+		fs_blocks = atoll(argv[0]);
 
-  /* no specified device */
-  if (!fs_dev_name) {
-    fprintf(stderr, "no device specified\n");
-    return -EINVAL;
-  }
+	/* no specified device */
+	if (!fs_dev_name) {
+		fprintf(stderr, "no device specified\n");
+		return -EINVAL;
+	}
 
-  /* check user options */
-  switch (fs_version) {
-    case 1:
-    case 2:
-      if (fs_namelen == 14 || fs_namelen == 30) {
-        fs_dirsize = fs_namelen + 2;
-      } else {
-        fprintf(stderr, "unsupported name length : %d\n", fs_namelen);
-        return -EINVAL;
-      }
+	/* check user options */
+	switch (fs_version) {
+		case 1:
+		case 2:
+			if (fs_namelen == 14 || fs_namelen == 30) {
+				fs_dirsize = fs_namelen + 2;
+			} else {
+				fprintf(stderr, "unsupported name length : %d\n", fs_namelen);
+				return -EINVAL;
+			}
 
-      break;
-    case 3:
-      if (fs_namelen == 60) {
-        fs_dirsize = fs_namelen + 4;
-      } else {
-        fprintf(stderr, "unsupported name length : %d\n", fs_namelen);
-        return -EINVAL;
-      }
-      break;
-    default:
-      fprintf(stderr, "unsupported minix version : %d\n", fs_version);
-      return -EINVAL;
-  }
+			break;
+		case 3:
+			if (fs_namelen == 60) {
+				fs_dirsize = fs_namelen + 4;
+			} else {
+				fprintf(stderr, "unsupported name length : %d\n", fs_namelen);
+				return -EINVAL;
+			}
+			break;
+		default:
+			fprintf(stderr, "unsupported minix version : %d\n", fs_version);
+			return -EINVAL;
+	}
 
-  return 0;
+	return 0;
 }
 
 /*
@@ -144,19 +144,19 @@ static int parse_options(int argc, char **argv)
  */
 static int write_block(int block, char *buffer)
 {
-  /* seek to block */
-  if (lseek(fs_dev_fd, block * MINIX_BLOCK_SIZE, SEEK_SET) != block * MINIX_BLOCK_SIZE) {
-    fprintf(stderr, "can't seek to block %d\n", block);
-    return -ENOSPC;
-  }
+	/* seek to block */
+	if (lseek(fs_dev_fd, block * MINIX_BLOCK_SIZE, SEEK_SET) != block * MINIX_BLOCK_SIZE) {
+		fprintf(stderr, "can't seek to block %d\n", block);
+		return -ENOSPC;
+	}
 
-  /* write block on disk */
-  if (write(fs_dev_fd, buffer, MINIX_BLOCK_SIZE) != MINIX_BLOCK_SIZE) {
-    fprintf(stderr, "can't write block %d\n", block);
-    return -ENOSPC;
-  }
+	/* write block on disk */
+	if (write(fs_dev_fd, buffer, MINIX_BLOCK_SIZE) != MINIX_BLOCK_SIZE) {
+		fprintf(stderr, "can't write block %d\n", block);
+		return -ENOSPC;
+	}
 
-  return 0;
+	return 0;
 }
 
 
@@ -165,78 +165,78 @@ static int write_block(int block, char *buffer)
  */
 int open_device()
 {
-  struct stat statbuf;
-  off_t fs_dev_size;
-  int err;
+	struct stat statbuf;
+	off_t fs_dev_size;
+	int err;
 
-  /* get stats on device */
-  err = stat(fs_dev_name, &statbuf);
-  if (err) {
-    err = errno;
-    fprintf(stderr, "can't stat() device %s\n", fs_dev_name);
-    return err;
-  }
+	/* get stats on device */
+	err = stat(fs_dev_name, &statbuf);
+	if (err) {
+		err = errno;
+		fprintf(stderr, "can't stat() device %s\n", fs_dev_name);
+		return err;
+	}
 
-  /* get device size */
-  fs_dev_size = statbuf.st_size;
+	/* get device size */
+	fs_dev_size = statbuf.st_size;
 
-  /* set and check number of blocks */
-  if (!fs_blocks)
-    fs_blocks = fs_dev_size / MINIX_BLOCK_SIZE;
+	/* set and check number of blocks */
+	if (!fs_blocks)
+		fs_blocks = fs_dev_size / MINIX_BLOCK_SIZE;
 
-  /* check number of blocks */
-  if (fs_blocks > fs_dev_size / MINIX_BLOCK_SIZE) {
-    fprintf(stderr, "%s : requested blocks > number of available blocks\n", fs_dev_name);
-    return -EINVAL;
-  } else if (fs_blocks < 10) {
-    fprintf(stderr, "%s : number of blocks too small\n", fs_dev_name);
-    return -EINVAL;
-  }
+	/* check number of blocks */
+	if (fs_blocks > fs_dev_size / MINIX_BLOCK_SIZE) {
+		fprintf(stderr, "%s : requested blocks > number of available blocks\n", fs_dev_name);
+		return -EINVAL;
+	} else if (fs_blocks < 10) {
+		fprintf(stderr, "%s : number of blocks too small\n", fs_dev_name);
+		return -EINVAL;
+	}
 
-  /* limit number of blocks */
-  if (fs_version == 1 && fs_blocks > MINIX_MAX_INODES)
-    fs_blocks = MINIX_MAX_INODES;
-  if (fs_blocks > (4 + (MINIX_MAX_INODES - 4) * BITS_PER_BLOCK))
-    fs_blocks = 4 + (MINIX_MAX_INODES - 4) * BITS_PER_BLOCK;
+	/* limit number of blocks */
+	if (fs_version == 1 && fs_blocks > MINIX_MAX_INODES)
+		fs_blocks = MINIX_MAX_INODES;
+	if (fs_blocks > (4 + (MINIX_MAX_INODES - 4) * BITS_PER_BLOCK))
+		fs_blocks = 4 + (MINIX_MAX_INODES - 4) * BITS_PER_BLOCK;
 
-  /*
-   * Compute number of inodes :
-   * - 1 inode / 3 blocks for small device (> 2 GB)
-   * - 1 inode / 8 blocks for middle device (> 0.5 GB)
-   * - 1 inode / 16 blocks for large ones
-   */
-  if (!fs_inodes) {
-    if (fs_blocks > 2048 * 1024)
-      fs_inodes = fs_blocks / 16;
-    else if (fs_blocks > 512 * 1024)
-      fs_inodes = fs_blocks / 8;
-    else
-      fs_inodes = fs_blocks / 3;
-  }
+	/*
+	 * Compute number of inodes :
+	 * - 1 inode / 3 blocks for small device (> 2 GB)
+	 * - 1 inode / 8 blocks for middle device (> 0.5 GB)
+	 * - 1 inode / 16 blocks for large ones
+	 */
+	if (!fs_inodes) {
+		if (fs_blocks > 2048 * 1024)
+			fs_inodes = fs_blocks / 16;
+		else if (fs_blocks > 512 * 1024)
+			fs_inodes = fs_blocks / 8;
+		else
+			fs_inodes = fs_blocks / 3;
+	}
 
-  /* round up inodes number */
-  if (fs_version == 1) {
-    fs_inodes = (fs_inodes + MINIX_INODES_PER_BLOCK - 1) & ~(MINIX_INODES_PER_BLOCK - 1);
-    fs_itable_blocks = UPPER(fs_inodes, MINIX_INODES_PER_BLOCK);
-  } else {
-    fs_inodes = (fs_inodes + MINIX2_INODES_PER_BLOCK - 1) & ~(MINIX2_INODES_PER_BLOCK - 1);
-    fs_itable_blocks = UPPER(fs_inodes, MINIX2_INODES_PER_BLOCK);
-  }
+	/* round up inodes number */
+	if (fs_version == 1) {
+		fs_inodes = (fs_inodes + MINIX_INODES_PER_BLOCK - 1) & ~(MINIX_INODES_PER_BLOCK - 1);
+		fs_itable_blocks = UPPER(fs_inodes, MINIX_INODES_PER_BLOCK);
+	} else {
+		fs_inodes = (fs_inodes + MINIX2_INODES_PER_BLOCK - 1) & ~(MINIX2_INODES_PER_BLOCK - 1);
+		fs_itable_blocks = UPPER(fs_inodes, MINIX2_INODES_PER_BLOCK);
+	}
 
-  /* compute imap and zmap blocks */
-  fs_imap_blocks = UPPER(fs_inodes + 1, BITS_PER_BLOCK);
-  fs_zmap_blocks = UPPER(fs_blocks - (1 + fs_imap_blocks + fs_itable_blocks), BITS_PER_BLOCK + 1);
-  fs_firstdatazone = 2 + fs_imap_blocks + fs_zmap_blocks + fs_itable_blocks;
+	/* compute imap and zmap blocks */
+	fs_imap_blocks = UPPER(fs_inodes + 1, BITS_PER_BLOCK);
+	fs_zmap_blocks = UPPER(fs_blocks - (1 + fs_imap_blocks + fs_itable_blocks), BITS_PER_BLOCK + 1);
+	fs_firstdatazone = 2 + fs_imap_blocks + fs_zmap_blocks + fs_itable_blocks;
 
-  /* open device */
-  fs_dev_fd = open(fs_dev_name, O_RDWR);
-  if (fs_dev_fd < 0) {
-    err = errno;
-    fprintf(stderr, "can't open() device %s\n", fs_dev_name);
-    return err;
-  }
+	/* open device */
+	fs_dev_fd = open(fs_dev_name, O_RDWR);
+	if (fs_dev_fd < 0) {
+		err = errno;
+		fprintf(stderr, "can't open() device %s\n", fs_dev_name);
+		return err;
+	}
 
-  return 0;
+	return 0;
 }
 
 /*
@@ -244,104 +244,104 @@ int open_device()
  */
 static int set_super_block()
 {
-  struct minix1_super_block_t *sb1;
-  struct minix3_super_block_t *sb3;
-  int i;
+	struct minix1_super_block_t *sb1;
+	struct minix3_super_block_t *sb3;
+	int i;
 
-  /* reset super block */
-  memset(sb_block, 0, MINIX_BLOCK_SIZE);
+	/* reset super block */
+	memset(sb_block, 0, MINIX_BLOCK_SIZE);
 
-  /* get super block */
-  sb1 = (struct minix1_super_block_t *) sb_block;
-  sb3 = (struct minix3_super_block_t *) sb_block;
+	/* get super block */
+	sb1 = (struct minix1_super_block_t *) sb_block;
+	sb3 = (struct minix3_super_block_t *) sb_block;
 
-  /* set super block */
-  switch (fs_version) {
-    case 1:
-      if (fs_namelen == 14)
-        sb1->s_magic = MINIX1_MAGIC1;
-      else
-        sb1->s_magic = MINIX1_MAGIC2;
-      sb1->s_log_zone_size = 0;
-      sb1->s_max_size = (7 + 512 + 512 * 512) * MINIX_BLOCK_SIZE;
-      sb1->s_nzones = fs_blocks;
-      sb1->s_ninodes = fs_inodes;
-      sb1->s_imap_blocks = fs_imap_blocks;
-      sb1->s_zmap_blocks = fs_zmap_blocks;
-      sb1->s_firstdatazone = fs_firstdatazone;
-      sb1->s_state = MINIX_VALID_FS;
-      break;
-    case 2:
-      if (fs_namelen == 14)
-        sb1->s_magic = MINIX2_MAGIC1;
-      else
-        sb1->s_magic = MINIX2_MAGIC2;
-      sb1->s_log_zone_size = 0;
-      sb1->s_max_size = 0x7FFFFFFF;
-      sb1->s_nzones = fs_blocks;
-      sb1->s_ninodes = fs_inodes;
-      sb1->s_imap_blocks = fs_imap_blocks;
-      sb1->s_zmap_blocks = fs_zmap_blocks;
-      sb1->s_firstdatazone = fs_firstdatazone;
-      sb1->s_state = MINIX_VALID_FS;
-      break;
-    default:
-      sb3->s_magic = MINIX3_MAGIC;
-      sb3->s_log_zone_size = 0;
-      sb3->s_blocksize = MINIX_BLOCK_SIZE;
-      sb3->s_max_size = 2147483647L;
-      sb3->s_zones = fs_blocks;
-      sb3->s_ninodes = fs_inodes;
-      sb3->s_imap_blocks = fs_imap_blocks;
-      sb3->s_zmap_blocks = fs_zmap_blocks;
-      sb3->s_firstdatazone = fs_firstdatazone;
-      break;
-  }
+	/* set super block */
+	switch (fs_version) {
+		case 1:
+			if (fs_namelen == 14)
+				sb1->s_magic = MINIX1_MAGIC1;
+			else
+				sb1->s_magic = MINIX1_MAGIC2;
+			sb1->s_log_zone_size = 0;
+			sb1->s_max_size = (7 + 512 + 512 * 512) * MINIX_BLOCK_SIZE;
+			sb1->s_nzones = fs_blocks;
+			sb1->s_ninodes = fs_inodes;
+			sb1->s_imap_blocks = fs_imap_blocks;
+			sb1->s_zmap_blocks = fs_zmap_blocks;
+			sb1->s_firstdatazone = fs_firstdatazone;
+			sb1->s_state = MINIX_VALID_FS;
+			break;
+		case 2:
+			if (fs_namelen == 14)
+				sb1->s_magic = MINIX2_MAGIC1;
+			else
+				sb1->s_magic = MINIX2_MAGIC2;
+			sb1->s_log_zone_size = 0;
+			sb1->s_max_size = 0x7FFFFFFF;
+			sb1->s_nzones = fs_blocks;
+			sb1->s_ninodes = fs_inodes;
+			sb1->s_imap_blocks = fs_imap_blocks;
+			sb1->s_zmap_blocks = fs_zmap_blocks;
+			sb1->s_firstdatazone = fs_firstdatazone;
+			sb1->s_state = MINIX_VALID_FS;
+			break;
+		default:
+			sb3->s_magic = MINIX3_MAGIC;
+			sb3->s_log_zone_size = 0;
+			sb3->s_blocksize = MINIX_BLOCK_SIZE;
+			sb3->s_max_size = 2147483647L;
+			sb3->s_zones = fs_blocks;
+			sb3->s_ninodes = fs_inodes;
+			sb3->s_imap_blocks = fs_imap_blocks;
+			sb3->s_zmap_blocks = fs_zmap_blocks;
+			sb3->s_firstdatazone = fs_firstdatazone;
+			break;
+	}
 
-  /* allocate inodes bitmap */
-  imap = (char *) malloc(fs_imap_blocks * MINIX_BLOCK_SIZE);
-  if (!imap) {
-    fprintf(stderr, "can't allocate inodes bitmap\n");
-    return -ENOMEM;
-  }
+	/* allocate inodes bitmap */
+	imap = (char *) malloc(fs_imap_blocks * MINIX_BLOCK_SIZE);
+	if (!imap) {
+		fprintf(stderr, "can't allocate inodes bitmap\n");
+		return -ENOMEM;
+	}
 
-  /* allocate zones bitmap */
-  zmap = (char *) malloc(fs_zmap_blocks * MINIX_BLOCK_SIZE);
-  if (!zmap) {
-    fprintf(stderr, "can't allocate zones bitmap\n");
-    return -ENOMEM;
-  }
+	/* allocate zones bitmap */
+	zmap = (char *) malloc(fs_zmap_blocks * MINIX_BLOCK_SIZE);
+	if (!zmap) {
+		fprintf(stderr, "can't allocate zones bitmap\n");
+		return -ENOMEM;
+	}
 
-  /* mark all inodes and all zones busy */
-  memset(imap, 0xFF, fs_imap_blocks * MINIX_BLOCK_SIZE);
-  memset(zmap, 0xFF, fs_zmap_blocks * MINIX_BLOCK_SIZE);
+	/* mark all inodes and all zones busy */
+	memset(imap, 0xFF, fs_imap_blocks * MINIX_BLOCK_SIZE);
+	memset(zmap, 0xFF, fs_zmap_blocks * MINIX_BLOCK_SIZE);
 
-  /* mark data zones free */
-  for (i = fs_firstdatazone; i < fs_blocks; i++)
-    BITMAP_CLR(zmap, i);
+	/* mark data zones free */
+	for (i = fs_firstdatazone; i < fs_blocks; i++)
+		BITMAP_CLR(zmap, i);
 
-  /* mark all inodes free (except first one : MINIX_ROOT_INODE = 1) */
-  for (i = MINIX_ROOT_INODE; i <= fs_inodes; i++)
-    BITMAP_CLR(imap, i);
+	/* mark all inodes free (except first one : MINIX_ROOT_INODE = 1) */
+	for (i = MINIX_ROOT_INODE; i <= fs_inodes; i++)
+		BITMAP_CLR(imap, i);
 
-  /* allocate inodes table */
-  itable = (char *) malloc(fs_itable_blocks * MINIX_BLOCK_SIZE);
-  if (!itable) {
-    fprintf(stderr, "can't allocate inodes table\n");
-    return -ENOMEM;
-  }
+	/* allocate inodes table */
+	itable = (char *) malloc(fs_itable_blocks * MINIX_BLOCK_SIZE);
+	if (!itable) {
+		fprintf(stderr, "can't allocate inodes table\n");
+		return -ENOMEM;
+	}
 
-  /* reset inodes table */
-  memset(itable, 0, fs_itable_blocks * MINIX_BLOCK_SIZE);
+	/* reset inodes table */
+	memset(itable, 0, fs_itable_blocks * MINIX_BLOCK_SIZE);
 
-  /* print informations */
-  printf("%d inodes\n", fs_inodes);
-  printf("%lu blocks\n", fs_blocks);
-  printf("First datazone = %d\n", fs_firstdatazone);
-  printf("Zone size = %d\n", MINIX_BLOCK_SIZE);
-  printf("Max file size = %d\n", fs_version == 3 ? sb3->s_max_size : sb1->s_max_size);
+	/* print informations */
+	printf("%d inodes\n", fs_inodes);
+	printf("%lu blocks\n", fs_blocks);
+	printf("First datazone = %d\n", fs_firstdatazone);
+	printf("Zone size = %d\n", MINIX_BLOCK_SIZE);
+	printf("Max file size = %d\n", fs_version == 3 ? sb3->s_max_size : sb1->s_max_size);
 
-  return 0;
+	return 0;
 }
 
 /*
@@ -349,31 +349,31 @@ static int set_super_block()
  */
 static int create_root_inode_v1()
 {
-  struct minix1_inode_t *inode = &((struct minix1_inode_t *) itable)[MINIX_ROOT_INODE - 1];
-  int err;
+	struct minix1_inode_t *inode = &((struct minix1_inode_t *) itable)[MINIX_ROOT_INODE - 1];
+	int err;
 
-  /* mark inode in bitmap */
-  BITMAP_SET(imap, MINIX_ROOT_INODE);
+	/* mark inode in bitmap */
+	BITMAP_SET(imap, MINIX_ROOT_INODE);
 
-  /* set root inode */
-  inode->i_zone[0] = fs_firstdatazone;
-  inode->i_nlinks = 2;
-  inode->i_time = time(NULL);
-  inode->i_size = 2 * fs_dirsize;
-  inode->i_mode = S_IFDIR | 0755;
-  inode->i_uid = getuid();
-  if (inode->i_uid)
-    inode->i_gid = getgid();
+	/* set root inode */
+	inode->i_zone[0] = fs_firstdatazone;
+	inode->i_nlinks = 2;
+	inode->i_time = time(NULL);
+	inode->i_size = 2 * fs_dirsize;
+	inode->i_mode = S_IFDIR | 0755;
+	inode->i_uid = getuid();
+	if (inode->i_uid)
+		inode->i_gid = getgid();
 
-  /* write root block */
-  err = write_block(inode->i_zone[0], root_block);
-  if (err)
-    return err;
+	/* write root block */
+	err = write_block(inode->i_zone[0], root_block);
+	if (err)
+		return err;
 
-  /* mark zone */
-  BITMAP_SET(zmap, fs_firstdatazone);
+	/* mark zone */
+	BITMAP_SET(zmap, fs_firstdatazone);
 
-  return 0;
+	return 0;
 }
 
 /*
@@ -381,31 +381,31 @@ static int create_root_inode_v1()
  */
 static int create_root_inode_v2()
 {
-  struct minix2_inode_t *inode = &((struct minix2_inode_t *) itable)[MINIX_ROOT_INODE - 1];
-  int err;
+	struct minix2_inode_t *inode = &((struct minix2_inode_t *) itable)[MINIX_ROOT_INODE - 1];
+	int err;
 
-  /* mark inode in bitmap */
-  BITMAP_SET(imap, MINIX_ROOT_INODE);
+	/* mark inode in bitmap */
+	BITMAP_SET(imap, MINIX_ROOT_INODE);
 
-  /* set root inode */
-  inode->i_zone[0] = fs_firstdatazone;
-  inode->i_nlinks = 2;
-  inode->i_atime = inode->i_mtime = inode->i_ctime = time(NULL);
-  inode->i_size = 2 * fs_dirsize;
-  inode->i_mode = S_IFDIR | 0755;
-  inode->i_uid = getuid();
-  if (inode->i_uid)
-    inode->i_gid = getgid();
+	/* set root inode */
+	inode->i_zone[0] = fs_firstdatazone;
+	inode->i_nlinks = 2;
+	inode->i_atime = inode->i_mtime = inode->i_ctime = time(NULL);
+	inode->i_size = 2 * fs_dirsize;
+	inode->i_mode = S_IFDIR | 0755;
+	inode->i_uid = getuid();
+	if (inode->i_uid)
+		inode->i_gid = getgid();
 
-  /* write root block */
-  err = write_block(inode->i_zone[0], root_block);
-  if (err)
-    return err;
+	/* write root block */
+	err = write_block(inode->i_zone[0], root_block);
+	if (err)
+		return err;
 
-  /* mark zone */
-  BITMAP_SET(zmap, fs_firstdatazone);
+	/* mark zone */
+	BITMAP_SET(zmap, fs_firstdatazone);
 
-  return 0;
+	return 0;
 }
 
 /*
@@ -413,30 +413,30 @@ static int create_root_inode_v2()
  */
 static int set_root_inode()
 {
-  char *p = root_block;
+	char *p = root_block;
 
-  /* reset root block */
-  memset(p, 0, MINIX_BLOCK_SIZE);
+	/* reset root block */
+	memset(p, 0, MINIX_BLOCK_SIZE);
 
-  /* add '.' and '..' entries */
-  if (fs_version == 3) {
-    *((uint32_t *) p) = MINIX_ROOT_INODE;
-    strcpy(p + sizeof(uint32_t), ".");
-    p += fs_dirsize;
-    *((uint32_t *) p) = MINIX_ROOT_INODE;
-    strcpy(p + sizeof(uint32_t), "..");
-  } else {
-    *((uint16_t *) p) = MINIX_ROOT_INODE;
-    strcpy(p + sizeof(uint16_t), ".");
-    p += fs_dirsize;
-    *((uint16_t *) p) = MINIX_ROOT_INODE;
-    strcpy(p + sizeof(uint16_t), ".");
-  }
+	/* add '.' and '..' entries */
+	if (fs_version == 3) {
+		*((uint32_t *) p) = MINIX_ROOT_INODE;
+		strcpy(p + sizeof(uint32_t), ".");
+		p += fs_dirsize;
+		*((uint32_t *) p) = MINIX_ROOT_INODE;
+		strcpy(p + sizeof(uint32_t), "..");
+	} else {
+		*((uint16_t *) p) = MINIX_ROOT_INODE;
+		strcpy(p + sizeof(uint16_t), ".");
+		p += fs_dirsize;
+		*((uint16_t *) p) = MINIX_ROOT_INODE;
+		strcpy(p + sizeof(uint16_t), ".");
+	}
 
-  /* create root inode */
-  if (fs_version == 1)
-    return create_root_inode_v1();
-  return create_root_inode_v2();
+	/* create root inode */
+	if (fs_version == 1)
+		return create_root_inode_v1();
+	return create_root_inode_v2();
 }
 
 /*
@@ -444,35 +444,35 @@ static int set_root_inode()
  */
 int write_super_block_itable_bitmaps()
 {
-  int err, i, block;
+	int err, i, block;
 
-  /* write super block */
-  err = write_block(1, sb_block);
-  if (err)
-    return err;
+	/* write super block */
+	err = write_block(1, sb_block);
+	if (err)
+		return err;
 
-  /* write inodes bitmap */
-  for (i = 0, block = 2; i < fs_imap_blocks; i++, block++) {
-    err = write_block(block, &imap[i * MINIX_BLOCK_SIZE]);
-    if (err)
-      return err;
-  }
+	/* write inodes bitmap */
+	for (i = 0, block = 2; i < fs_imap_blocks; i++, block++) {
+		err = write_block(block, &imap[i * MINIX_BLOCK_SIZE]);
+		if (err)
+			return err;
+	}
 
-  /* write zones bitmap */
-  for (i = 0; i < fs_zmap_blocks; i++, block++) {
-    err = write_block(block, &zmap[i * MINIX_BLOCK_SIZE]);
-    if (err)
-      return err;
-  }
+	/* write zones bitmap */
+	for (i = 0; i < fs_zmap_blocks; i++, block++) {
+		err = write_block(block, &zmap[i * MINIX_BLOCK_SIZE]);
+		if (err)
+			return err;
+	}
 
-  /* write inodes table */
-  for (i = 0; i < fs_itable_blocks; i++, block++) {
-    err = write_block(block, &itable[i * MINIX_BLOCK_SIZE]);
-    if (err)
-      return err;
-  }
+	/* write inodes table */
+	for (i = 0; i < fs_itable_blocks; i++, block++) {
+		err = write_block(block, &itable[i * MINIX_BLOCK_SIZE]);
+		if (err)
+			return err;
+	}
 
-  return 0;
+	return 0;
 }
 
 /*
@@ -480,48 +480,48 @@ int write_super_block_itable_bitmaps()
  */
 int main(int argc, char **argv)
 {
-  int err;
+	int err;
 
-  /* parse options */
-  err = parse_options(argc, argv);
-  if (err)
-    goto out;
+	/* parse options */
+	err = parse_options(argc, argv);
+	if (err)
+		goto out;
 
-  /* open device */
-  err = open_device();
-  if (err)
-    goto out;
+	/* open device */
+	err = open_device();
+	if (err)
+		goto out;
 
-  /* set super block */
-  err = set_super_block();
-  if (err)
-    goto out;
+	/* set super block */
+	err = set_super_block();
+	if (err)
+		goto out;
 
-  /* set root inode */
-  err = set_root_inode();
-  if (err)
-    goto out;
+	/* set root inode */
+	err = set_root_inode();
+	if (err)
+		goto out;
 
-  /* write super blocks and bitmaps */
-  err = write_super_block_itable_bitmaps();
+	/* write super blocks and bitmaps */
+	err = write_super_block_itable_bitmaps();
 
 out:
-  /* free inodes map */
-  if (imap)
-    free(imap);
+	/* free inodes map */
+	if (imap)
+		free(imap);
 
-  /* free zones map */
-  if (zmap)
-    free(zmap);
+	/* free zones map */
+	if (zmap)
+		free(zmap);
 
-  /* free inodes table */
-  if (itable)
-    free(itable);
+	/* free inodes table */
+	if (itable)
+		free(itable);
 
-  /* close device */
-  if (fs_dev_fd > 0)
-    close(fs_dev_fd);
+	/* close device */
+	if (fs_dev_fd > 0)
+		close(fs_dev_fd);
 
-  return err;
+	return err;
 }
 

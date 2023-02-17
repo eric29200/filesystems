@@ -5,60 +5,60 @@
 
 #include "../vfs/vfs.h"
 
-#define FTPFS_MAGIC                   0xFAFA
-#define FTPFS_PATH_LEN                BUFSIZ
-#define FTPFS_NAME_LEN                1024
+#define FTPFS_MAGIC									 0xFAFA
+#define FTPFS_PATH_LEN								BUFSIZ
+#define FTPFS_NAME_LEN								1024
 
-#define FTPFS_INODE_HTABLE_BITS       12
-#define FTPFS_INODE_HTABLE_SIZE       (1 << FTPFS_INODE_HTABLE_BITS)
+#define FTPFS_INODE_HTABLE_BITS			 12
+#define FTPFS_INODE_HTABLE_SIZE			 (1 << FTPFS_INODE_HTABLE_BITS)
 
-#define FTPFS_USER_DEFAULT            "anonymous"
-#define FTPFS_PASWD_DEFAULT           "anonymous"
+#define FTPFS_USER_DEFAULT						"anonymous"
+#define FTPFS_PASWD_DEFAULT					 "anonymous"
 
 /*
  * FTP parameters.
  */
 struct ftp_param_t {
-  char                            user[FTPFS_NAME_LEN];         /* FTP user */
-  char                            passwd[FTPFS_NAME_LEN];       /* FTP password */
+	char														user[FTPFS_NAME_LEN];				 /* FTP user */
+	char														passwd[FTPFS_NAME_LEN];			 /* FTP password */
 };
 
 /*
  * FTP buffer.
  */
 struct ftp_buffer_t {
-  char                            *data;                        /* buffer */
-  size_t                          len;                          /* buffer length */
-  size_t                          capacity;                     /* buffer capacity */
+	char														*data;												/* buffer */
+	size_t													len;													/* buffer length */
+	size_t													capacity;										 /* buffer capacity */
 };
 
 /*
  * FTPFS file attributes.
  */
 struct ftpfs_fattr_t {
-  char                            name[FTPFS_NAME_LEN];         /* file name */
-  char                            link[FTPFS_NAME_LEN];         /* link target */
-  struct stat                     statbuf;                      /* stat buf */
+	char														name[FTPFS_NAME_LEN];				 /* file name */
+	char														link[FTPFS_NAME_LEN];				 /* link target */
+	struct stat										 statbuf;											/* stat buf */
 };
 
 /*
  * FTPFS in memory super block.
  */
 struct ftpfs_sb_info_t {
-  struct sockaddr                 s_addr;                       /* FTP server address */
-  struct list_head_t              s_inodes_cache_list;          /* inodes cache list */
-  struct htable_link_t            **s_inodes_cache_htable;      /* inodes cache hash table */
-  size_t                          s_inodes_cache_size;          /* inodes cache size */
+	struct sockaddr								 s_addr;											 /* FTP server address */
+	struct list_head_t							s_inodes_cache_list;					/* inodes cache list */
+	struct htable_link_t						**s_inodes_cache_htable;			/* inodes cache hash table */
+	size_t													s_inodes_cache_size;					/* inodes cache size */
 };
 
 /*
  * FTPFS in memory inode.
  */
 struct ftpfs_inode_info_t {
-  char                            *i_path;                      /* inode path */
-  struct ftp_buffer_t             i_cache;                      /* cached data */
-  struct inode_t                  vfs_inode;                    /* VFS inode */
-  struct list_head_t              i_list;                       /* FTPFS inodes linked list */
+	char														*i_path;											/* inode path */
+	struct ftp_buffer_t						 i_cache;											/* cached data */
+	struct inode_t									vfs_inode;										/* VFS inode */
+	struct list_head_t							i_list;											 /* FTPFS inodes linked list */
 };
 
 /* FTPFS file system operations */
@@ -103,7 +103,7 @@ int ftpfs_unlink(struct inode_t *dir, const char *name, size_t name_len);
 int ftpfs_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mode);
 int ftpfs_rmdir(struct inode_t *dir, const char *name, size_t name_len);
 int ftpfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_name_len,
-                 struct inode_t *new_dir, const char *new_name, size_t new_name_len);
+								 struct inode_t *new_dir, const char *new_name, size_t new_name_len);
 
 /* FTPFS symlink prototypes */
 int ftpfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t **res_inode);
@@ -129,7 +129,7 @@ static inline struct ftpfs_sb_info_t *ftpfs_sb(struct super_block_t *sb)
  */
 static inline struct ftpfs_inode_info_t *ftpfs_i(struct inode_t *inode)
 {
-  return container_of(inode, struct ftpfs_inode_info_t, vfs_inode);
+	return container_of(inode, struct ftpfs_inode_info_t, vfs_inode);
 }
 
 #endif
