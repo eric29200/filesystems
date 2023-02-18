@@ -6,3 +6,4 @@ mkfs.minix
 mkfs.bfs
 mnt
 test.img
+.vscode
