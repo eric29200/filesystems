@@ -5,12 +5,12 @@
 #include "vfs.h"
 
 /* global inodes hash table */
-static struct htable_link_t **inode_htable = NULL;
+static struct htable_link **inode_htable = NULL;
 
 /*
  * Insert an inode in gobal inode htable.
  */
-void vfs_ihash(struct inode_t *inode)
+void vfs_ihash(struct inode *inode)
 {
 	htable_insert64(inode_htable, &inode->i_htable, inode->i_ino, VFS_INODE_HTABLE_BITS);
 }
@@ -18,9 +18,9 @@ void vfs_ihash(struct inode_t *inode)
 /*
  * Get an empty inode.
  */
-struct inode_t *vfs_get_empty_inode(struct super_block_t *sb)
+struct inode *vfs_get_empty_inode(struct super_block *sb)
 {
-	struct inode_t *inode;
+	struct inode *inode;
 
 	/* allocation inode not implemented */
 	if (!sb->s_op || !sb->s_op->alloc_inode)
@@ -32,7 +32,7 @@ struct inode_t *vfs_get_empty_inode(struct super_block_t *sb)
 		return NULL;
 
 	/* reset inode */
-	memset(inode, 0, sizeof(struct inode_t));
+	memset(inode, 0, sizeof(struct inode));
 
 	/* set new inode */
 	inode->i_sb = sb;
@@ -44,16 +44,16 @@ struct inode_t *vfs_get_empty_inode(struct super_block_t *sb)
 /*
  * Get an inode.
  */
-struct inode_t *vfs_iget(struct super_block_t *sb, ino_t ino)
+struct inode *vfs_iget(struct super_block *sb, ino_t ino)
 {
-	struct htable_link_t *node;
-	struct inode_t *inode;
+	struct htable_link *node;
+	struct inode *inode;
 	int err;
 
 	/* try to find inode in cache */
 	node = htable_lookup64(inode_htable, ino, VFS_INODE_HTABLE_BITS);
 	while (node) {
-		inode = htable_entry(node, struct inode_t, i_htable);
+		inode = htable_entry(node, struct inode, i_htable);
 		if (inode->i_sb == sb && inode->i_ino == ino) {
 			inode->i_ref++;
 			return inode;
@@ -88,9 +88,9 @@ struct inode_t *vfs_iget(struct super_block_t *sb, ino_t ino)
 /*
  * Release an inode.
  */
-void vfs_iput(struct inode_t *inode)
+void vfs_iput(struct inode *inode)
 {
-	struct super_operations_t *op = NULL;
+	struct super_operations *op = NULL;
 
 	if (!inode)
 		return;
@@ -126,7 +126,7 @@ void vfs_iput(struct inode_t *inode)
 int vfs_iinit()
 {
 	/* allocate inodes hash table */
-	inode_htable = (struct htable_link_t **) malloc(sizeof(struct htable_link_t *) * VFS_NR_INODE);
+	inode_htable = (struct htable_link **) malloc(sizeof(struct htable_link *) * VFS_NR_INODE);
 	if (!inode_htable)
 		return -ENOMEM;
 

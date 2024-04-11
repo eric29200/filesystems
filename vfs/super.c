@@ -17,13 +17,13 @@
 /*
  * Mount a file system.
  */
-struct super_block_t *vfs_mount(const char *dev, int fs_type, void *data)
+struct super_block *vfs_mount(const char *dev, int fs_type, void *data)
 {
-	struct super_block_t *sb;
+	struct super_block *sb;
 	int err;
 
 	/* allocate a super block */
-	sb = (struct super_block_t *) malloc(sizeof(struct super_block_t));
+	sb = (struct super_block *) malloc(sizeof(struct super_block));
 	if (!sb)
 		return NULL;
 
@@ -98,7 +98,7 @@ struct super_block_t *vfs_mount(const char *dev, int fs_type, void *data)
 /*
  * Unmount a file system.
  */
-int vfs_umount(struct super_block_t *sb)
+int vfs_umount(struct super_block *sb)
 {
 	/* check super block */
 	if (!sb)
@@ -125,7 +125,7 @@ int vfs_umount(struct super_block_t *sb)
 /*
  * Get file system statistics.
  */
-int vfs_statfs(struct super_block_t *sb, struct statfs *buf)
+int vfs_statfs(struct super_block *sb, struct statfs *buf)
 {
 	/* check super block */
 	if (!sb)

@@ -12,7 +12,7 @@
 /*
  * Count number of free bits in a bitmap.
  */
-static uint32_t minix_count_free_bitmap(struct super_block_t *sb, struct buffer_head_t **maps, int nb_maps)
+static uint32_t minix_count_free_bitmap(struct super_block *sb, struct buffer_head **maps, int nb_maps)
 {
 	uint32_t *bits, res = 0;
 	register int i, j, k;
@@ -33,7 +33,7 @@ static uint32_t minix_count_free_bitmap(struct super_block_t *sb, struct buffer_
 /*
  * Get first free bit in a bitmap block.
  */
-static inline int minix_get_free_bitmap(struct super_block_t *sb, struct buffer_head_t *bh)
+static inline int minix_get_free_bitmap(struct super_block *sb, struct buffer_head *bh)
 {
 	uint32_t *bits = (uint32_t *) bh->b_data;
 	register int i, j;
@@ -50,10 +50,10 @@ static inline int minix_get_free_bitmap(struct super_block_t *sb, struct buffer_
 /*
  * Create a new Minix inode.
  */
-struct inode_t *minix_new_inode(struct super_block_t *sb)
+struct inode *minix_new_inode(struct super_block *sb)
 {
-	struct minix_sb_info_t *sbi = minix_sb(sb);
-	struct inode_t *inode;
+	struct minix_sb_info *sbi = minix_sb(sb);
+	struct inode *inode;
 	int i, j;
 
 	/* get an empty inode */
@@ -94,10 +94,10 @@ struct inode_t *minix_new_inode(struct super_block_t *sb)
 /*
  * Create a new Minix block (return block number or 0 on failure).
  */
-uint32_t minix_new_block(struct super_block_t *sb)
+uint32_t minix_new_block(struct super_block *sb)
 {
-	struct minix_sb_info_t *sbi = minix_sb(sb);
-	struct buffer_head_t *bh;
+	struct minix_sb_info *sbi = minix_sb(sb);
+	struct buffer_head *bh;
 	uint32_t block_nr, i;
 	int j;
 
@@ -139,10 +139,10 @@ uint32_t minix_new_block(struct super_block_t *sb)
 /*
  * Free a Minix inode.
  */
-int minix_free_inode(struct inode_t *inode)
+int minix_free_inode(struct inode *inode)
 {
-	struct minix_sb_info_t *sbi;
-	struct buffer_head_t *bh;
+	struct minix_sb_info *sbi;
+	struct buffer_head *bh;
 
 	if (!inode)
 		return 0;
@@ -169,10 +169,10 @@ int minix_free_inode(struct inode_t *inode)
 /*
  * Free a Minix block.
  */
-int minix_free_block(struct super_block_t *sb, uint32_t block)
+int minix_free_block(struct super_block *sb, uint32_t block)
 {
-	struct minix_sb_info_t *sbi = minix_sb(sb);
-	struct buffer_head_t *bh;
+	struct minix_sb_info *sbi = minix_sb(sb);
+	struct buffer_head *bh;
 
 	/* check block number */
 	if (block < sbi->s_firstdatazone || block >= sbi->s_nzones) {
@@ -205,17 +205,17 @@ clear_bitmap:
 /*
  * Get number of free inodes.
  */
-uint32_t minix_count_free_inodes(struct super_block_t *sb)
+uint32_t minix_count_free_inodes(struct super_block *sb)
 {
-	struct minix_sb_info_t *sbi = minix_sb(sb);
+	struct minix_sb_info *sbi = minix_sb(sb);
 	return minix_count_free_bitmap(sb, sbi->s_imap, sbi->s_imap_blocks);
 }
 
 /*
  * Get number of free blocks.
  */
-uint32_t minix_count_free_blocks(struct super_block_t *sb)
+uint32_t minix_count_free_blocks(struct super_block *sb)
 {
-	struct minix_sb_info_t *sbi = minix_sb(sb);
+	struct minix_sb_info *sbi = minix_sb(sb);
 	return minix_count_free_bitmap(sb, sbi->s_zmap, sbi->s_zmap_blocks);
 }

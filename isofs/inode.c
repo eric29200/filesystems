@@ -8,28 +8,28 @@
 /*
  * ISOFS file operations.
  */
-struct file_operations_t isofs_file_fops = {
+struct file_operations isofs_file_fops = {
 	.read		= isofs_file_read,
 };
 
 /*
  * ISOFS directory operations.
  */
-struct file_operations_t isofs_dir_fops = {
+struct file_operations isofs_dir_fops = {
 	.getdents64	= isofs_getdents64,
 };
 
 /*
  * ISOFS file inode operations.
  */
-struct inode_operations_t isofs_file_iops = {
+struct inode_operations isofs_file_iops = {
 	.fops		= &isofs_file_fops,
 };
 
 /*
  * ISOFS directory inode operations.
  */
-struct inode_operations_t isofs_dir_iops = {
+struct inode_operations isofs_dir_iops = {
 	.fops		= &isofs_dir_fops,
 	.lookup		= isofs_lookup,
 };
@@ -37,12 +37,12 @@ struct inode_operations_t isofs_dir_iops = {
 /*
  * Allocate a ISOFS inode.
  */
-struct inode_t *isofs_alloc_inode(struct super_block_t *sb)
+struct inode *isofs_alloc_inode(struct super_block *sb)
 {
-	struct isofs_inode_info_t *isofs_inode;
+	struct isofs_inode_info *isofs_inode;
 
 	/* allocate ISOFS inode */
-	isofs_inode = (struct isofs_inode_info_t *) malloc(sizeof(struct isofs_inode_info_t));
+	isofs_inode = (struct isofs_inode_info *) malloc(sizeof(struct isofs_inode_info));
 	if (!isofs_inode)
 		return NULL;
 
@@ -52,12 +52,12 @@ struct inode_t *isofs_alloc_inode(struct super_block_t *sb)
 /*
  * Read a ISOFS inode.
  */
-int isofs_read_inode(struct inode_t *inode)
+int isofs_read_inode(struct inode *inode)
 {
-	struct iso_directory_record_t *raw_inode;
+	struct iso_directory_record *raw_inode;
 	int offset, frag1, err = 0;
 	char raw_inode_mem[4096];
-	struct buffer_head_t *bh;
+	struct buffer_head *bh;
 	uint32_t block;
 
 	/* read inode block */
@@ -67,7 +67,7 @@ int isofs_read_inode(struct inode_t *inode)
 		return -EIO;
 
 	/* get raw inode (= directory record) */
-	raw_inode = (struct iso_directory_record_t *) (bh->b_data + (inode->i_ino & (inode->i_sb->s_blocksize - 1)));
+	raw_inode = (struct iso_directory_record *) (bh->b_data + (inode->i_ino & (inode->i_sb->s_blocksize - 1)));
 
 	/* if raw inode is on 2 blocks, copy it in memory */
 	if ((inode->i_ino & (inode->i_sb->s_blocksize - 1)) + raw_inode->length[0] > inode->i_sb->s_blocksize) {
@@ -84,7 +84,7 @@ int isofs_read_inode(struct inode_t *inode)
 
 		/* copy 2nd fragment */
 		memcpy(raw_inode_mem + frag1, bh->b_data, raw_inode->length[0] - frag1);
-		raw_inode = (struct iso_directory_record_t *) &raw_inode_mem[0];
+		raw_inode = (struct iso_directory_record *) &raw_inode_mem[0];
 	}
 
 	/* set inode */
@@ -120,7 +120,7 @@ int isofs_read_inode(struct inode_t *inode)
 /*
  * Release a ISOFS inode.
  */
-void isofs_put_inode(struct inode_t *inode)
+void isofs_put_inode(struct inode *inode)
 {
 	if (!inode)
 		return;

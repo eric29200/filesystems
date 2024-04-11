@@ -7,7 +7,7 @@
 /*
  * Ext2 super operations.
  */
-struct super_operations_t ext2_sops = {
+struct super_operations ext2_sops = {
 	.alloc_inode		= ext2_alloc_inode,
 	.put_inode		= ext2_put_inode,
 	.delete_inode		= ext2_delete_inode,
@@ -20,14 +20,14 @@ struct super_operations_t ext2_sops = {
 /*
  * Read a Ext2 super block.
  */
-int ext2_read_super(struct super_block_t *sb, void *data)
+int ext2_read_super(struct super_block *sb, void *data)
 {
 	uint32_t block, sb_block = 1, offset = 0, logic_sb_block = 1;
 	int err = -ENOSPC, blocksize, i;
-	struct ext2_sb_info_t *sbi;
+	struct ext2_sb_info *sbi;
 
 	/* allocate Ext2 in memory super block */
-	sb->s_fs_info = sbi = (struct ext2_sb_info_t *) malloc(sizeof(struct ext2_sb_info_t));
+	sb->s_fs_info = sbi = (struct ext2_sb_info *) malloc(sizeof(struct ext2_sb_info));
 	if (!sbi)
 		return -ENOMEM;
 
@@ -44,7 +44,7 @@ int ext2_read_super(struct super_block_t *sb, void *data)
 	}
 
 	/* set super block */
-	sbi->s_es = (struct ext2_super_block_t *) sbi->s_sbh->b_data;
+	sbi->s_es = (struct ext2_super_block *) sbi->s_sbh->b_data;
 	sb->s_magic = le16toh(sbi->s_es->s_magic);
 	sb->s_root_inode = NULL;
 	sb->s_op = &ext2_sops;
@@ -83,7 +83,7 @@ int ext2_read_super(struct super_block_t *sb, void *data)
 		}
 
 		/* set super block */
-		sbi->s_es = (struct ext2_super_block_t *) (sbi->s_sbh->b_data + offset);
+		sbi->s_es = (struct ext2_super_block *) (sbi->s_sbh->b_data + offset);
 		sb->s_magic = le16toh(sbi->s_es->s_magic);
 
 		/* check magic number */
@@ -109,12 +109,12 @@ int ext2_read_super(struct super_block_t *sb, void *data)
 	sbi->s_blocks_per_group = le32toh(sbi->s_es->s_blocks_per_group);
 	sbi->s_inodes_per_group = le32toh(sbi->s_es->s_inodes_per_group);
 	sbi->s_itb_per_group = sbi->s_inodes_per_group / sbi->s_inodes_per_block;
-	sbi->s_desc_per_block = sb->s_blocksize / sizeof(struct ext2_group_desc_t);
+	sbi->s_desc_per_block = sb->s_blocksize / sizeof(struct ext2_group_desc);
 	sbi->s_groups_count = (le32toh(sbi->s_es->s_blocks_count) - le32toh(sbi->s_es->s_first_data_block) + sbi->s_blocks_per_group - 1) / sbi->s_blocks_per_group;
 	sbi->s_gdb_count = (sbi->s_groups_count + sbi->s_desc_per_block - 1) / sbi->s_desc_per_block;
 
 	/* allocate group descriptors buffers */
-	sbi->s_group_desc = (struct buffer_head_t **) malloc(sizeof(struct buffer_head_t *) * sbi->s_gdb_count);
+	sbi->s_group_desc = (struct buffer_head **) malloc(sizeof(struct buffer_head *) * sbi->s_gdb_count);
 	if (!sbi->s_group_desc) {
 		err = -ENOMEM;
 		goto err_no_gdb;
@@ -177,9 +177,9 @@ err:
 /*
  * Release a Ext2 super block.
  */
-void ext2_put_super(struct super_block_t *sb)
+void ext2_put_super(struct super_block *sb)
 {
-	struct ext2_sb_info_t *sbi = ext2_sb(sb);
+	struct ext2_sb_info *sbi = ext2_sb(sb);
 	int i;
 
 	/* release root inode */
@@ -203,9 +203,9 @@ void ext2_put_super(struct super_block_t *sb)
 /*
  * Get Ext2 File system status.
  */
-int ext2_statfs(struct super_block_t *sb, struct statfs *buf)
+int ext2_statfs(struct super_block *sb, struct statfs *buf)
 {
-	struct ext2_sb_info_t *sbi = ext2_sb(sb);
+	struct ext2_sb_info *sbi = ext2_sb(sb);
 	uint32_t overhead_per_group, overhead;
 
 	/* compute overhead */

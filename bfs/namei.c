@@ -17,10 +17,10 @@ static inline int bfs_name_match(const char *name1, size_t len1, const char *nam
 /*
  * Find a BFS entry in a directory.
  */
-static struct buffer_head_t *bfs_find_entry(struct inode_t *dir, const char *name, size_t name_len, struct bfs_dir_entry_t **res_de)
+static struct buffer_head *bfs_find_entry(struct inode *dir, const char *name, size_t name_len, struct bfs_dir_entry **res_de)
 {
-	struct buffer_head_t *bh = NULL;
-	struct bfs_dir_entry_t *de;
+	struct buffer_head *bh = NULL;
+	struct bfs_dir_entry *de;
 	int nb_entries, i;
 
 	/* check file name length */
@@ -44,7 +44,7 @@ static struct buffer_head_t *bfs_find_entry(struct inode_t *dir, const char *nam
 		}
 
 		/* get directory entry */
-		de = (struct bfs_dir_entry_t *) (bh->b_data + (i % BFS_DIRS_PER_BLOCK) * BFS_DIRENT_SIZE);
+		de = (struct bfs_dir_entry *) (bh->b_data + (i % BFS_DIRS_PER_BLOCK) * BFS_DIRENT_SIZE);
 		if (bfs_name_match(name, name_len, de->d_name)) {
 			*res_de = de;
 			return bh;
@@ -59,10 +59,10 @@ static struct buffer_head_t *bfs_find_entry(struct inode_t *dir, const char *nam
 /*
  * Lookup for a file in a directory.
  */
-int bfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode)
+int bfs_lookup(struct inode *dir, const char *name, size_t name_len, struct inode **res_inode)
 {
-	struct buffer_head_t *bh = NULL;
-	struct bfs_dir_entry_t *de;
+	struct buffer_head *bh = NULL;
+	struct bfs_dir_entry *de;
 	ino_t ino;
 
 	/* check dir */
@@ -102,11 +102,11 @@ int bfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct in
 /*
  * Add a BFS entry in a directory.
  */
-static int bfs_add_entry(struct inode_t *dir, const char *name, size_t name_len, struct inode_t *inode)
+static int bfs_add_entry(struct inode *dir, const char *name, size_t name_len, struct inode *inode)
 {
-	struct bfs_inode_info_t *bfs_dir = bfs_i(dir);
-	struct bfs_dir_entry_t *de;
-	struct buffer_head_t *bh;
+	struct bfs_inode_info *bfs_dir = bfs_i(dir);
+	struct bfs_dir_entry *de;
+	struct buffer_head *bh;
 	int block, off;
 
 	/* check file name */
@@ -124,7 +124,7 @@ static int bfs_add_entry(struct inode_t *dir, const char *name, size_t name_len,
 
 		/* walk through all directory entries */
 		for (off = 0; off < BFS_BLOCK_SIZE; off += BFS_DIRENT_SIZE) {
-			de = (struct bfs_dir_entry_t *) (bh->b_data + off);
+			de = (struct bfs_dir_entry *) (bh->b_data + off);
 
 			/* free inode */
 			if (!le16toh(de->d_ino)) {
@@ -163,9 +163,9 @@ static int bfs_add_entry(struct inode_t *dir, const char *name, size_t name_len,
 /*
  * Create a file in a directory.
  */
-int bfs_create(struct inode_t *dir, const char *name, size_t name_len, mode_t mode, struct inode_t **res_inode)
+int bfs_create(struct inode *dir, const char *name, size_t name_len, mode_t mode, struct inode **res_inode)
 {
-	struct inode_t *inode, *tmp;
+	struct inode *inode, *tmp;
 	ino_t ino;
 	int err;
 
@@ -223,10 +223,10 @@ int bfs_create(struct inode_t *dir, const char *name, size_t name_len, mode_t mo
 /*
  * Make a new name for a BFS file (= hard link).
  */
-int bfs_link(struct inode_t *old_inode, struct inode_t *dir, const char *name, size_t name_len)
+int bfs_link(struct inode *old_inode, struct inode *dir, const char *name, size_t name_len)
 {
-	struct bfs_dir_entry_t *de;
-	struct buffer_head_t *bh;
+	struct bfs_dir_entry *de;
+	struct buffer_head *bh;
 	int err;
 
 	/* check if new file exists */
@@ -261,11 +261,11 @@ int bfs_link(struct inode_t *old_inode, struct inode_t *dir, const char *name, s
 /*
  * Unlink (remove) a BFS file.
  */
-int bfs_unlink(struct inode_t *dir, const char *name, size_t name_len)
+int bfs_unlink(struct inode *dir, const char *name, size_t name_len)
 {
-	struct bfs_dir_entry_t *de;
-	struct buffer_head_t *bh;
-	struct inode_t *inode;
+	struct bfs_dir_entry *de;
+	struct buffer_head *bh;
+	struct inode *inode;
 
 	/* get directory entry */
 	bh = bfs_find_entry(dir, name, name_len, &de);
@@ -306,11 +306,11 @@ int bfs_unlink(struct inode_t *dir, const char *name, size_t name_len)
 /*
  * Rename a BFS file.
  */
-int bfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_name_len, struct inode_t *new_dir, const char *new_name, size_t new_name_len)
+int bfs_rename(struct inode *old_dir, const char *old_name, size_t old_name_len, struct inode *new_dir, const char *new_name, size_t new_name_len)
 {
-	struct inode_t *old_inode = NULL, *new_inode = NULL;
-	struct buffer_head_t *old_bh = NULL, *new_bh = NULL;
-	struct bfs_dir_entry_t *old_de, *new_de;
+	struct inode *old_inode = NULL, *new_inode = NULL;
+	struct buffer_head *old_bh = NULL, *new_bh = NULL;
+	struct bfs_dir_entry *old_de, *new_de;
 	int err;
 
 	/* find old entry */

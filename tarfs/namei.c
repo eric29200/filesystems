@@ -5,14 +5,14 @@
 /*
  * Find an entry in a directory.
  */
-static struct tar_entry_t *tarfs_find_entry(struct inode_t *dir, const char *name, size_t name_len)
+static struct tar_entry *tarfs_find_entry(struct inode *dir, const char *name, size_t name_len)
 {
-	struct tar_entry_t *tar_entry = tarfs_i(dir)->entry, *child;
-	struct list_head_t *pos;
+	struct tar_entry *tar_entry = tarfs_i(dir)->entry, *child;
+	struct list_head *pos;
 
 	/* for each child */
 	list_for_each(pos, &tar_entry->children) {
-		child = list_entry(pos, struct tar_entry_t, list);
+		child = list_entry(pos, struct tar_entry, list);
 		if (strlen(child->name) == name_len && memcmp(child->name, name, name_len) == 0)
 			return child;
 	}
@@ -23,9 +23,9 @@ static struct tar_entry_t *tarfs_find_entry(struct inode_t *dir, const char *nam
 /*
  * Lookup for a file in a directory.
  */
-int tarfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode)
+int tarfs_lookup(struct inode *dir, const char *name, size_t name_len, struct inode **res_inode)
 {
-	struct tar_entry_t *entry;
+	struct tar_entry *entry;
 
 	/* check dir */
 	if (!dir)

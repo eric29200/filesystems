@@ -12,7 +12,7 @@
 /*
  * Minix super block operations.
  */
-struct super_operations_t minix_sops = {
+struct super_operations minix_sops = {
 	.alloc_inode		= minix_alloc_inode,
 	.put_inode		= minix_put_inode,
 	.delete_inode		= minix_delete_inode,
@@ -25,16 +25,16 @@ struct super_operations_t minix_sops = {
 /*
  * Read a minix super block.
  */
-int minix_read_super(struct super_block_t *sb, void *data)
+int minix_read_super(struct super_block *sb, void *data)
 {
-	struct minix1_super_block_t *msb1;
-	struct minix3_super_block_t *msb3;
-	struct minix_sb_info_t *sbi;
+	struct minix1_super_block *msb1;
+	struct minix3_super_block *msb3;
+	struct minix_sb_info *sbi;
 	int i, err = -ENOSPC;
 	uint32_t block;
 
 	/* allocate Minix file system */
-	sb->s_fs_info = sbi = (struct minix_sb_info_t *) malloc(sizeof(struct minix_sb_info_t));
+	sb->s_fs_info = sbi = (struct minix_sb_info *) malloc(sizeof(struct minix_sb_info));
 	if (!sbi)
 		return -ENOMEM;
 
@@ -50,7 +50,7 @@ int minix_read_super(struct super_block_t *sb, void *data)
 	}
 
 	/* set Minix file system */
-	msb1 = (struct minix1_super_block_t *) sbi->s_sbh->b_data;
+	msb1 = (struct minix1_super_block *) sbi->s_sbh->b_data;
 	sbi->s_ninodes = msb1->s_ninodes;
 	sbi->s_nzones = msb1->s_nzones;
 	sbi->s_imap_blocks = msb1->s_imap_blocks;
@@ -83,7 +83,7 @@ int minix_read_super(struct super_block_t *sb, void *data)
 		sbi->s_name_len = 30;
 		sbi->s_dirsize = 32;
 	} else if (*((uint16_t *) (sbi->s_sbh->b_data + 24)) == MINIX3_MAGIC) {
-		msb3 = (struct minix3_super_block_t *) sbi->s_sbh->b_data;
+		msb3 = (struct minix3_super_block *) sbi->s_sbh->b_data;
 		sbi->s_ninodes = msb3->s_ninodes;
 		sbi->s_nzones = msb3->s_zones;
 		sbi->s_imap_blocks = msb3->s_imap_blocks;
@@ -102,7 +102,7 @@ int minix_read_super(struct super_block_t *sb, void *data)
 	}
 
 	/* allocate inodes bitmap */
-	sbi->s_imap = (struct buffer_head_t **) malloc(sizeof(struct buffer_head_t *) * sbi->s_imap_blocks);
+	sbi->s_imap = (struct buffer_head **) malloc(sizeof(struct buffer_head *) * sbi->s_imap_blocks);
 	if (!sbi->s_imap) {
 		err = -ENOMEM;
 		goto err_no_map;
@@ -122,7 +122,7 @@ int minix_read_super(struct super_block_t *sb, void *data)
 	}
 
 	/* allocate zones bitmap */
-	sbi->s_zmap = (struct buffer_head_t **) malloc(sizeof(struct buffer_head_t *) * sbi->s_zmap_blocks);
+	sbi->s_zmap = (struct buffer_head **) malloc(sizeof(struct buffer_head *) * sbi->s_zmap_blocks);
 	if (!sbi->s_zmap) {
 		err = -ENOMEM;
 		goto err_no_map;
@@ -185,9 +185,9 @@ err:
 /*
  * Unmount a Minix File System.
  */
-void minix_put_super(struct super_block_t *sb)
+void minix_put_super(struct super_block *sb)
 {
-	struct minix_sb_info_t *sbi = minix_sb(sb);
+	struct minix_sb_info *sbi = minix_sb(sb);
 	int i;
 
 	/* release root inode */
@@ -219,9 +219,9 @@ void minix_put_super(struct super_block_t *sb)
 /*
  * Get Minix File system status.
  */
-int minix_statfs(struct super_block_t *sb, struct statfs *buf)
+int minix_statfs(struct super_block *sb, struct statfs *buf)
 {
-	struct minix_sb_info_t *sbi = minix_sb(sb);
+	struct minix_sb_info *sbi = minix_sb(sb);
 
 	buf->f_type = sb->s_magic;
 	buf->f_bsize = sb->s_blocksize;

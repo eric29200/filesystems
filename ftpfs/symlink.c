@@ -6,7 +6,7 @@
 /*
  * Follow a link (inode will be released).
  */
-int ftpfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t **res_inode)
+int ftpfs_follow_link(struct inode *dir, struct inode *inode, struct inode **res_inode)
 {
 	char target[FTPFS_NAME_LEN];
 
@@ -40,9 +40,9 @@ int ftpfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t
 /*
  * Read value of a symbolic link.
  */
-ssize_t ftpfs_readlink(struct inode_t *inode, char *buf, size_t bufsize)
+ssize_t ftpfs_readlink(struct inode *inode, char *buf, size_t bufsize)
 {
-	struct ftpfs_inode_info_t *ftpfs_inode = ftpfs_i(inode);
+	struct ftpfs_inode_info *ftpfs_inode = ftpfs_i(inode);
 	ssize_t len;
 
 	/* inode must be a link */

@@ -13,7 +13,7 @@
 /*
  * ISO volume descriptor.
  */
-struct iso_volume_descriptor_t {
+struct iso_volume_descriptor {
 	char type				[ISODCL(1,    1)];
 	char id					[ISODCL(2,    6)];
 	char version				[ISODCL(7,    7)];
@@ -23,7 +23,7 @@ struct iso_volume_descriptor_t {
 /*
  * ISO primary descriptor.
  */
-struct iso_primary_descriptor_t {
+struct iso_primary_descriptor {
 	char type				[ISODCL (  1,    1)];
 	char id					[ISODCL (  2,    6)];
 	char version				[ISODCL (  7,    7)];
@@ -62,7 +62,7 @@ struct iso_primary_descriptor_t {
 /*
  * ISOFS root directory record.
  */
-struct iso_directory_record_t {
+struct iso_directory_record {
 	char length				[ISODCL (1, 1)];
 	char ext_attr_length			[ISODCL (2, 2)];
 	char extent				[ISODCL (3, 10)];
@@ -79,7 +79,7 @@ struct iso_directory_record_t {
 /*
  * ISOFS super block in memory.
  */
-struct isofs_sb_info_t {
+struct isofs_sb_info {
 	uint32_t				s_ninodes;
 	uint32_t				s_nzones;
 	uint32_t				s_firstdatazone;
@@ -90,35 +90,35 @@ struct isofs_sb_info_t {
 /*
  * ISOFS in memory inode.
  */
-struct isofs_inode_info_t {
+struct isofs_inode_info {
 	uint32_t				i_first_extent;
 	uint32_t				i_backlink;
-	struct inode_t				vfs_inode;
+	struct inode				vfs_inode;
 };
 
 /* BFS file system operations */
-extern struct file_operations_t isofs_file_fops;
-extern struct file_operations_t isofs_dir_fops;
-extern struct super_operations_t isofs_sops;
-extern struct inode_operations_t isofs_file_iops;
-extern struct inode_operations_t isofs_dir_iops;
+extern struct file_operations isofs_file_fops;
+extern struct file_operations isofs_dir_fops;
+extern struct super_operations isofs_sops;
+extern struct inode_operations isofs_file_iops;
+extern struct inode_operations isofs_dir_iops;
 
 /* ISOFS super prototypes */
-int isofs_read_super(struct super_block_t *sb, void *data);
-void isofs_put_super(struct super_block_t *sb);
-int isofs_statfs(struct super_block_t *sb, struct statfs *buf);
+int isofs_read_super(struct super_block *sb, void *data);
+void isofs_put_super(struct super_block *sb);
+int isofs_statfs(struct super_block *sb, struct statfs *buf);
 
 /* ISOFS inode prototypes */
-struct inode_t *isofs_alloc_inode(struct super_block_t *sb);
-void isofs_put_inode(struct inode_t *inode);
-int isofs_read_inode(struct inode_t *inode);
+struct inode *isofs_alloc_inode(struct super_block *sb);
+void isofs_put_inode(struct inode *inode);
+int isofs_read_inode(struct inode *inode);
 
 /* ISOFS name resolution prototypes */
-int isofs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
+int isofs_lookup(struct inode *dir, const char *name, size_t name_len, struct inode **res_inode);
 
 /* ISOFS file prototypes */
-int isofs_file_read(struct file_t *filp, char *buf, int count);
-int isofs_getdents64(struct file_t *filp, void *dirp, size_t count);
+int isofs_file_read(struct file *filp, char *buf, int count);
+int isofs_getdents64(struct file *filp, void *dirp, size_t count);
 
 /* ISOFS utils prototypes */
 int isofs_num711(char *p);
@@ -127,13 +127,13 @@ int isofs_num723(char *p);
 int isofs_num731(char *p);
 int isofs_num733(char *p);
 int isofs_date(char *p);
-ino_t isofs_parent_ino(struct inode_t *inode);
+ino_t isofs_parent_ino(struct inode *inode);
 int isofs_name_translate(char *old, size_t old_len, char *new);
 
 /*
  * Get ISOFS in memory super block from generic super block.
  */
-static inline struct isofs_sb_info_t *isofs_sb(struct super_block_t *sb)
+static inline struct isofs_sb_info *isofs_sb(struct super_block *sb)
 {
 	return sb->s_fs_info;
 }
@@ -141,9 +141,9 @@ static inline struct isofs_sb_info_t *isofs_sb(struct super_block_t *sb)
 /*
  * Get ISOFS in memory inode from generic inode.
  */
-static inline struct isofs_inode_info_t *isofs_i(struct inode_t *inode)
+static inline struct isofs_inode_info *isofs_i(struct inode *inode)
 {
-	return container_of(inode, struct isofs_inode_info_t, vfs_inode);
+	return container_of(inode, struct isofs_inode_info, vfs_inode);
 }
 
 #endif

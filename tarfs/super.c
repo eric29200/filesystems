@@ -8,7 +8,7 @@
 /*
  * TarFS super block operations.
  */
-struct super_operations_t tarfs_sops = {
+struct super_operations tarfs_sops = {
 	.alloc_inode		= tarfs_alloc_inode,
 	.put_inode		= tarfs_put_inode,
 	.read_inode		= tarfs_read_inode,
@@ -19,14 +19,14 @@ struct super_operations_t tarfs_sops = {
 /*
  * Read a TarFS super block.
  */
-int tarfs_read_super(struct super_block_t *sb, void *data)
+int tarfs_read_super(struct super_block *sb, void *data)
 {
-	struct tarfs_sb_info_t *sbi;
+	struct tarfs_sb_info *sbi;
 	size_t i;
 	int err;
 
 	/* allocate TarFS super block */
-	sb->s_fs_info = sbi = (struct tarfs_sb_info_t *) malloc(sizeof(struct tarfs_sb_info_t));
+	sb->s_fs_info = sbi = (struct tarfs_sb_info *) malloc(sizeof(struct tarfs_sb_info));
 	if (!sbi)
 		return -ENOMEM;
 
@@ -46,7 +46,7 @@ int tarfs_read_super(struct super_block_t *sb, void *data)
 		goto err_bad_sb;
 
 	/* create TAR entries index */
-	sbi->s_tar_entries = (struct tar_entry_t **) malloc(sizeof(struct tar_entry_t *) * sbi->s_ninodes);
+	sbi->s_tar_entries = (struct tar_entry **) malloc(sizeof(struct tar_entry *) * sbi->s_ninodes);
 	if (!sbi->s_tar_entries) {
 		err = -ENOMEM;
 		goto err_index;
@@ -85,9 +85,9 @@ err:
 /*
  * Unmount a TarFS File System.
  */
-void tarfs_put_super(struct super_block_t *sb)
+void tarfs_put_super(struct super_block *sb)
 {
-	struct tarfs_sb_info_t *sbi = tarfs_sb(sb);
+	struct tarfs_sb_info *sbi = tarfs_sb(sb);
 
 	/* release root inode */
 	vfs_iput(sb->s_root_inode);
@@ -104,9 +104,9 @@ void tarfs_put_super(struct super_block_t *sb)
 /*
  * Get TarFS File system status.
  */
-int tarfs_statfs(struct super_block_t *sb, struct statfs *buf)
+int tarfs_statfs(struct super_block *sb, struct statfs *buf)
 {
-	struct tarfs_sb_info_t *sbi = tarfs_sb(sb);
+	struct tarfs_sb_info *sbi = tarfs_sb(sb);
 
 	buf->f_type = sb->s_magic;
 	buf->f_bsize = sb->s_blocksize;

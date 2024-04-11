@@ -9,21 +9,21 @@
 #include "vfs.h"
 
 /* global buffer table */
-static struct buffer_head_t *buffer_table = NULL;
-static struct htable_link_t **buffer_htable = NULL;
+static struct buffer_head *buffer_table = NULL;
+static struct htable_link **buffer_htable = NULL;
 static LIST_HEAD(lru_buffers);
 
 /*
  * Get an empty buffer.
  */
-static struct buffer_head_t *get_empty_buffer(struct super_block_t *sb)
+static struct buffer_head *get_empty_buffer(struct super_block *sb)
 {
-	struct buffer_head_t *bh;
-	struct list_head_t *pos;
+	struct buffer_head *bh;
+	struct list_head *pos;
 
 	/* get first free entry from LRU list */
 	list_for_each(pos, &lru_buffers) {
-		bh = list_entry(pos, struct buffer_head_t, b_list);
+		bh = list_entry(pos, struct buffer_head, b_list);
 		if (!bh->b_ref)
 			goto found;
 	}
@@ -58,15 +58,15 @@ found:
 /*
  * Get a buffer (from cache or create one).
  */
-struct buffer_head_t *getblk(struct super_block_t *sb, uint32_t block)
+struct buffer_head *getblk(struct super_block *sb, uint32_t block)
 {
-	struct htable_link_t *node;
-	struct buffer_head_t *bh;
+	struct htable_link *node;
+	struct buffer_head *bh;
 
 	/* try to find buffer in cache */
 	node = htable_lookup32(buffer_htable, block, VFS_BUFFER_HTABLE_BITS);
 	while (node) {
-		bh = htable_entry(node, struct buffer_head_t, b_htable);
+		bh = htable_entry(node, struct buffer_head, b_htable);
 		if (bh->b_block == block && bh->b_sb == sb && bh->b_size == sb->s_blocksize) {
 			bh->b_ref++;
 			goto out;
@@ -97,9 +97,9 @@ out:
 /*
  * Read a block buffer.
  */
-struct buffer_head_t *sb_bread(struct super_block_t *sb, uint32_t block)
+struct buffer_head *sb_bread(struct super_block *sb, uint32_t block)
 {
-	struct buffer_head_t *bh;
+	struct buffer_head *bh;
 
 	/* get block buffer */
 	bh = getblk(sb, block);
@@ -129,7 +129,7 @@ err:
 /*
  * Write a block buffer on disk.
  */
-int bwrite(struct buffer_head_t *bh)
+int bwrite(struct buffer_head *bh)
 {
 	if (!bh)
 		return -EINVAL;
@@ -151,7 +151,7 @@ int bwrite(struct buffer_head_t *bh)
 /*
  * Release a block buffer.
  */
-void brelse(struct buffer_head_t *bh)
+void brelse(struct buffer_head *bh)
 {
 	if (!bh) 
 		return;
@@ -172,12 +172,12 @@ int vfs_binit()
 	int i;
 
 	/* allocate buffers */
-	buffer_table = (struct buffer_head_t *) malloc(sizeof(struct buffer_head_t) * VFS_NR_BUFFER);
+	buffer_table = (struct buffer_head *) malloc(sizeof(struct buffer_head) * VFS_NR_BUFFER);
 	if (!buffer_table)
 		return -ENOMEM;
 
 	/* memzero all buffers */
-	memset(buffer_table, 0, sizeof(struct buffer_head_t) * VFS_NR_BUFFER);
+	memset(buffer_table, 0, sizeof(struct buffer_head) * VFS_NR_BUFFER);
 
 	/* init Last Recently Used buffers list */
 	INIT_LIST_HEAD(&lru_buffers);
@@ -187,7 +187,7 @@ int vfs_binit()
 		list_add(&buffer_table[i].b_list, &lru_buffers);
 
 	/* allocate buffers hash table */
-	buffer_htable = (struct htable_link_t **) malloc(sizeof(struct htable_link_t *) * VFS_NR_BUFFER);
+	buffer_htable = (struct htable_link **) malloc(sizeof(struct htable_link *) * VFS_NR_BUFFER);
 	if (!buffer_htable) {
 		free(buffer_table);
 		return -ENOMEM;

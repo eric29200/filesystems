@@ -5,7 +5,7 @@
 /*
  * Get directory entries.
  */
-int vfs_getdents64(struct file_t *filp, void *dirp, size_t count)
+int vfs_getdents64(struct file *filp, void *dirp, size_t count)
 {
 	/* check file */
 	if (!filp)

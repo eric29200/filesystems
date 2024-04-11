@@ -1,10 +1,10 @@
 # Collection of Fuse filesystems, based on linux 2.0 VFS
 
 ## Virtual File System structure
-  - **_struct buffer_head_t_** : block buffers, used to access disk
-  - **_struct super_block_t_** : generic super block, describing a file system
-  - **_struct inode_t_** : generic inode, describing a file on disk
-  - **_struct file_t_** : generic opened file
+  - **_struct buffer_head_** : block buffers, used to access disk
+  - **_struct super_block_** : generic super block, describing a file system
+  - **_struct inode_** : generic inode, describing a file on disk
+  - **_struct file_** : generic opened file
   - **implemented system calls** : mount, umount, statfs, stat, access, chmod, chown, create, unlink, mkdir, rmdir, rename, link, readlink, symlink, read, write, lseek, getdents64, truncate, utimens
 
 ## Disk file systems

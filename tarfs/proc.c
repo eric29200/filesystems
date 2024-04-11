@@ -33,24 +33,24 @@ static inline mode_t tar_type_to_posix(int typeflag)
 /*
  * Get or create a TAR entry.
  */
-static struct tar_entry_t *tar_get_or_create_entry(struct super_block_t *sb, struct tar_entry_t *parent, const char *name, char *linkname, struct tar_header_t *tar_header, off_t offset)
+static struct tar_entry *tar_get_or_create_entry(struct super_block *sb, struct tar_entry *parent, const char *name, char *linkname, struct tar_header *tar_header, off_t offset)
 {
-	struct tarfs_sb_info_t *sbi = tarfs_sb(sb);
-	struct tar_entry_t *entry = NULL;
-	struct list_head_t *pos;
+	struct tarfs_sb_info *sbi = tarfs_sb(sb);
+	struct tar_entry *entry = NULL;
+	struct list_head *pos;
 	size_t link_name_len;
 
 	/* check if entry already exist */
 	if (parent) {
 		list_for_each(pos, &parent->children) {
-			entry = list_entry(pos, struct tar_entry_t, list);
+			entry = list_entry(pos, struct tar_entry, list);
 			if (strcmp(entry->name, name) == 0)
 				return entry;
 		}
 	}
 
 	/* create new entry */
-	entry = (struct tar_entry_t *) malloc(sizeof(struct tar_entry_t));
+	entry = (struct tar_entry *) malloc(sizeof(struct tar_entry));
 	if (!entry)
 		goto err;
 
@@ -130,10 +130,10 @@ err:
  * Build a TAR entry long name (long names are stored in data blocks)
  * Header and offset will be updated to point to real TAR header.
  */
-static char *tar_build_long_name(struct super_block_t *sb, struct tar_header_t *tar_header, off_t *offset)
+static char *tar_build_long_name(struct super_block *sb, struct tar_header *tar_header, off_t *offset)
 {
 	size_t full_name_len, pos, count;
-	struct buffer_head_t *bh;
+	struct buffer_head *bh;
 	char *full_name;
 
 	/* get full name length */
@@ -180,7 +180,7 @@ static char *tar_build_long_name(struct super_block_t *sb, struct tar_header_t *
 	}
 
 	/* update tar header */
-	memcpy(tar_header, bh->b_data, sizeof(struct tar_header_t));
+	memcpy(tar_header, bh->b_data, sizeof(struct tar_header));
 	brelse(bh);
 
 	return full_name;
@@ -189,7 +189,7 @@ static char *tar_build_long_name(struct super_block_t *sb, struct tar_header_t *
 /*
  * Build full name of a TAR entry.
  */
-static char *tar_build_full_name(struct super_block_t *sb, struct tar_header_t *tar_header, off_t *offset)
+static char *tar_build_full_name(struct super_block *sb, struct tar_header *tar_header, off_t *offset)
 {
 	size_t prefix_len, name_len, full_name_len;
 	char *full_name;
@@ -223,7 +223,7 @@ static char *tar_build_full_name(struct super_block_t *sb, struct tar_header_t *
 /*
  * Build link name.
  */
-static char *tar_build_link_name(struct super_block_t *sb, struct tar_header_t *tar_header, off_t *offset)
+static char *tar_build_link_name(struct super_block *sb, struct tar_header *tar_header, off_t *offset)
 {
 	size_t link_name_len;
 	char *link_name;
@@ -252,12 +252,12 @@ static char *tar_build_link_name(struct super_block_t *sb, struct tar_header_t *
 /*
  * Parse a TAR entry.
  */
-static struct tar_entry_t *tar_parse_entry(struct super_block_t *sb, off_t offset)
+static struct tar_entry *tar_parse_entry(struct super_block *sb, off_t offset)
 {
-	struct tar_entry_t *entry = NULL, *parent;
+	struct tar_entry *entry = NULL, *parent;
 	char *full_name, *link_name, *start, *end;
-	struct tar_header_t tar_header;
-	struct buffer_head_t *bh;
+	struct tar_header tar_header;
+	struct buffer_head *bh;
 
 	/* read block buffer */
 	bh = sb_bread(sb, offset / sb->s_blocksize);
@@ -265,7 +265,7 @@ static struct tar_entry_t *tar_parse_entry(struct super_block_t *sb, off_t offse
 		return NULL;
 
 	/* get tar header */
-	memcpy(&tar_header, bh->b_data, sizeof(struct tar_header_t));
+	memcpy(&tar_header, bh->b_data, sizeof(struct tar_header));
 	brelse(bh);
 
 	/* check magic string */
@@ -320,10 +320,10 @@ static struct tar_entry_t *tar_parse_entry(struct super_block_t *sb, off_t offse
 /*
  * Create and parse a TAR archive.
  */
-int tar_create(struct super_block_t *sb)
+int tar_create(struct super_block *sb)
 {
-	struct tarfs_sb_info_t *sbi = tarfs_sb(sb);
-	struct tar_entry_t *entry;
+	struct tarfs_sb_info *sbi = tarfs_sb(sb);
+	struct tar_entry *entry;
 	off_t offset;
 
 	/* create root entry */
@@ -348,9 +348,9 @@ int tar_create(struct super_block_t *sb)
 /*
  * Free a TAR entry and its children.
  */
-void tar_free(struct tar_entry_t *entry)
+void tar_free(struct tar_entry *entry)
 {
-	struct list_head_t *pos, *n;
+	struct list_head *pos, *n;
 
 	if (!entry)
 		return;
@@ -361,15 +361,15 @@ void tar_free(struct tar_entry_t *entry)
 
 	/* free children */
 	list_for_each_safe(pos, n, &entry->children)
-		tar_free(list_entry(pos, struct tar_entry_t, list));
+		tar_free(list_entry(pos, struct tar_entry, list));
 }
 
 /*
  * Index a TAR entry by its inode number.
  */
-void tar_index(struct super_block_t *sb, struct tar_entry_t *entry)
+void tar_index(struct super_block *sb, struct tar_entry *entry)
 {
-	struct list_head_t *pos;
+	struct list_head *pos;
 
 	if (!entry)
 		return;
@@ -379,6 +379,6 @@ void tar_index(struct super_block_t *sb, struct tar_entry_t *entry)
 
 	/* index children */
 	list_for_each(pos, &entry->children)
-		tar_index(sb, list_entry(pos, struct tar_entry_t, list));
+		tar_index(sb, list_entry(pos, struct tar_entry, list));
 }
 

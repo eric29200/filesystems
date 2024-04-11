@@ -7,9 +7,9 @@
 /*
  * Follow a Minix link (inode will be released).
  */
-int minix_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t **res_inode)
+int minix_follow_link(struct inode *dir, struct inode *inode, struct inode **res_inode)
 {
-	struct buffer_head_t *bh;
+	struct buffer_head *bh;
 
 	/* reset result inode */
 	*res_inode = NULL;
@@ -48,9 +48,9 @@ int minix_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t
 /*
  * Read value of a Minix symbolic link.
  */
-ssize_t minix_readlink(struct inode_t *inode, char *buf, size_t bufsize)
+ssize_t minix_readlink(struct inode *inode, char *buf, size_t bufsize)
 {
-	struct buffer_head_t *bh;
+	struct buffer_head *bh;
 	ssize_t len;
 
 	/* inode must be a link */

@@ -6,9 +6,9 @@
 /*
  * Read a Ext2 file.
  */
-int ext2_file_read(struct file_t *filp, char *buf, int count)
+int ext2_file_read(struct file *filp, char *buf, int count)
 {
-	struct buffer_head_t *bh;
+	struct buffer_head *bh;
 	int pos, nb_chars, left;
 
 	/* adjust size */
@@ -51,9 +51,9 @@ out:
 /*
  * Write to a Ext2 file.
  */
-int ext2_file_write(struct file_t *filp, const char *buf, int count)
+int ext2_file_write(struct file *filp, const char *buf, int count)
 {
-	struct buffer_head_t *bh;
+	struct buffer_head *bh;
 	int pos, nb_chars, left;
 
 	/* handle append flag */

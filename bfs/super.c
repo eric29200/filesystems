@@ -7,7 +7,7 @@
 /*
  * BFS super operations.
  */
-struct super_operations_t bfs_sops = {
+struct super_operations bfs_sops = {
 	.alloc_inode		= bfs_alloc_inode,
 	.put_inode		= bfs_put_inode,
 	.delete_inode		= bfs_delete_inode,
@@ -20,17 +20,17 @@ struct super_operations_t bfs_sops = {
 /*
  * Read a BFS super block.
  */
-int bfs_read_super(struct super_block_t *sb, void *data)
+int bfs_read_super(struct super_block *sb, void *data)
 {
-	struct bfs_super_block_t *bfs_sb;
+	struct bfs_super_block *bfs_sb;
 	int err = -ENOSPC, i, block, off;
-	struct buffer_head_t *bh, *sbh;
-	struct bfs_inode_t *bfs_inode;
-	struct bfs_sb_info_t *sbi;
+	struct buffer_head *bh, *sbh;
+	struct bfs_inode *bfs_inode;
+	struct bfs_sb_info *sbi;
 	size_t imap_len;
 
 	/* allocate BFS super block */
-	sb->s_fs_info = sbi = (struct bfs_sb_info_t *) malloc(sizeof(struct bfs_sb_info_t));
+	sb->s_fs_info = sbi = (struct bfs_sb_info *) malloc(sizeof(struct bfs_sb_info));
 	if (!sbi)
 		return -ENOMEM;
 
@@ -46,7 +46,7 @@ int bfs_read_super(struct super_block_t *sb, void *data)
 	}
 
 	/* check magic number */
-	bfs_sb = (struct bfs_super_block_t *) sbh->b_data;
+	bfs_sb = (struct bfs_super_block *) sbh->b_data;
 	if (le32toh(bfs_sb->s_magic) != BFS_MAGIC)
 		goto err_bad_magic;
 
@@ -55,7 +55,7 @@ int bfs_read_super(struct super_block_t *sb, void *data)
 	sbi->s_freeb = (le32toh(bfs_sb->s_end) + 1 - le32toh(bfs_sb->s_start)) >> BFS_BLOCK_SIZE_BITS;
 	sbi->s_freei = 0;
 	sbi->s_lf_eblk = 0;
-	sbi->s_lasti = (le32toh(bfs_sb->s_start) - BFS_BLOCK_SIZE) / sizeof(struct bfs_inode_t) + BFS_ROOT_INO - 1;
+	sbi->s_lasti = (le32toh(bfs_sb->s_start) - BFS_BLOCK_SIZE) / sizeof(struct bfs_inode) + BFS_ROOT_INO - 1;
 	sbi->s_imap = NULL;
 	sb->s_magic = le32toh(bfs_sb->s_magic);
 	sb->s_op = &bfs_sops;
@@ -88,7 +88,7 @@ int bfs_read_super(struct super_block_t *sb, void *data)
 			continue;
 
 		/* get inode */
-		bfs_inode = (struct bfs_inode_t *) bh->b_data + off;
+		bfs_inode = (struct bfs_inode *) bh->b_data + off;
 
 		/* free inode */
 		if (!bfs_inode->i_ino) {
@@ -139,9 +139,9 @@ err:
 /*
  * Release a BFS super block.
  */
-void bfs_put_super(struct super_block_t *sb)
+void bfs_put_super(struct super_block *sb)
 {
-	struct bfs_sb_info_t *sbi = bfs_sb(sb);
+	struct bfs_sb_info *sbi = bfs_sb(sb);
 
 	/* release root inode */
 	vfs_iput(sb->s_root_inode);
@@ -156,9 +156,9 @@ void bfs_put_super(struct super_block_t *sb)
 /*
  * Get BFS file system status.
  */
-int bfs_statfs(struct super_block_t *sb, struct statfs *buf)
+int bfs_statfs(struct super_block *sb, struct statfs *buf)
 {
-	struct bfs_sb_info_t *sbi = bfs_sb(sb);
+	struct bfs_sb_info *sbi = bfs_sb(sb);
 
 	buf->f_type = sb->s_magic;
 	buf->f_bsize = sb->s_blocksize;

@@ -6,9 +6,9 @@
 /*
  * Follow a link.
  */
-static struct inode_t *vfs_follow_link(struct inode_t *dir, struct inode_t *inode)
+static struct inode *vfs_follow_link(struct inode *dir, struct inode *inode)
 {
-	struct inode_t *res_inode;
+	struct inode *res_inode;
 
 	/* follow link not implemented : return inode */
 	if (!inode || !inode->i_op || !inode->i_op->follow_link)
@@ -22,9 +22,9 @@ static struct inode_t *vfs_follow_link(struct inode_t *dir, struct inode_t *inod
 /*
  * Resolve a path name to the inode of the top most directory.
  */
-static struct inode_t *vfs_dir_namei(struct inode_t *root, struct inode_t *dir, const char *pathname, const char **basename, size_t *basename_len)
+static struct inode *vfs_dir_namei(struct inode *root, struct inode *dir, const char *pathname, const char **basename, size_t *basename_len)
 {
-	struct inode_t *inode, *tmp;
+	struct inode *inode, *tmp;
 	const char *name;
 	size_t name_len;
 	int err;
@@ -93,9 +93,9 @@ static struct inode_t *vfs_dir_namei(struct inode_t *root, struct inode_t *dir, 
 /*
  * Resolve a path name to an inode.
  */
-struct inode_t *vfs_namei(struct inode_t *root, struct inode_t *base, const char *pathname, int follow_links)
+struct inode *vfs_namei(struct inode *root, struct inode *base, const char *pathname, int follow_links)
 {
-	struct inode_t *dir, *inode;
+	struct inode *dir, *inode;
 	const char *basename;
 	size_t basename_len;
 	int err;
@@ -136,9 +136,9 @@ struct inode_t *vfs_namei(struct inode_t *root, struct inode_t *base, const char
 /*
  * Resolve and open a file.
  */
-int vfs_open_namei(struct inode_t *root, const char *pathname, int flags, mode_t mode, struct inode_t **res_inode)
+int vfs_open_namei(struct inode *root, const char *pathname, int flags, mode_t mode, struct inode **res_inode)
 {
-	struct inode_t *dir, *inode;
+	struct inode *dir, *inode;
 	const char *basename;
 	size_t basename_len;
 	int err;
@@ -214,9 +214,9 @@ int vfs_open_namei(struct inode_t *root, const char *pathname, int flags, mode_t
 /*
  * Create a file in a directory.
  */
-int vfs_create(struct inode_t *root, const char *pathname, mode_t mode)
+int vfs_create(struct inode *root, const char *pathname, mode_t mode)
 {
-	struct inode_t *dir, *res_inode;
+	struct inode *dir, *res_inode;
 	const char *basename;
 	size_t basename_len;
 	int err;
@@ -255,9 +255,9 @@ int vfs_create(struct inode_t *root, const char *pathname, mode_t mode)
 /*
  * Unlink (remove) a file.
  */
-int vfs_unlink(struct inode_t *root, const char *pathname)
+int vfs_unlink(struct inode *root, const char *pathname)
 {
-	struct inode_t *dir;
+	struct inode *dir;
 	const char *basename;
 	size_t basename_len;
 
@@ -285,11 +285,11 @@ int vfs_unlink(struct inode_t *root, const char *pathname)
 /*
  * Make a directory.
  */
-int vfs_mkdir(struct inode_t *root, const char *pathname, mode_t mode)
+int vfs_mkdir(struct inode *root, const char *pathname, mode_t mode)
 {
 	const char *basename;
 	size_t basename_len;
-	struct inode_t *dir;
+	struct inode *dir;
 	int err;
 
 	/* get parent directory */
@@ -322,11 +322,11 @@ int vfs_mkdir(struct inode_t *root, const char *pathname, mode_t mode)
 /*
  * Remove a directory.
  */
-int vfs_rmdir(struct inode_t *root, const char *pathname)
+int vfs_rmdir(struct inode *root, const char *pathname)
 {
 	const char *basename;
 	size_t basename_len;
-	struct inode_t *dir;
+	struct inode *dir;
 
 	/* get parent directory */
 	dir = vfs_dir_namei(root, NULL, pathname, &basename, &basename_len);
@@ -352,9 +352,9 @@ int vfs_rmdir(struct inode_t *root, const char *pathname)
 /*
  * Make a new name for a file (= hard link).
  */
-int vfs_link(struct inode_t *root, const char *oldpath, const char *new_path)
+int vfs_link(struct inode *root, const char *oldpath, const char *new_path)
 {
-	struct inode_t *old_inode, *dir;
+	struct inode *old_inode, *dir;
 	const char *basename;
 	size_t basename_len;
 	int err;
@@ -405,11 +405,11 @@ int vfs_link(struct inode_t *root, const char *oldpath, const char *new_path)
 /*
  * Create a symbolic link.
  */
-int vfs_symlink(struct inode_t *root, const char *target, const char *linkpath)
+int vfs_symlink(struct inode *root, const char *target, const char *linkpath)
 {
 	const char *basename;
 	size_t basename_len;
-	struct inode_t *dir;
+	struct inode *dir;
 	int err;
 
 	/* get new parent directory */
@@ -442,11 +442,11 @@ int vfs_symlink(struct inode_t *root, const char *target, const char *linkpath)
 /*
  * Rename a file.
  */
-int vfs_rename(struct inode_t *root, const char *oldpath, const char *newpath)
+int vfs_rename(struct inode *root, const char *oldpath, const char *newpath)
 {
 	size_t old_basename_len, new_basename_len;
 	const char *old_basename, *new_basename;
-	struct inode_t *old_dir, *new_dir;
+	struct inode *old_dir, *new_dir;
 
 	/* get old directory */
 	old_dir = vfs_dir_namei(root, NULL, oldpath, &old_basename, &old_basename_len);
@@ -488,9 +488,9 @@ int vfs_rename(struct inode_t *root, const char *oldpath, const char *newpath)
 /*
  * Read value of a symbolic link.
  */
-ssize_t vfs_readlink(struct inode_t *root, const char *pathname, char *buf, size_t bufsize)
+ssize_t vfs_readlink(struct inode *root, const char *pathname, char *buf, size_t bufsize)
 {
-	struct inode_t *inode;
+	struct inode *inode;
 
 	/* get inode */
 	inode = vfs_namei(root, NULL, pathname, 0);

@@ -5,9 +5,9 @@
 /*
  * Get file status.
  */
-int vfs_stat(struct inode_t *root, const char *filename, struct stat *statbuf)
+int vfs_stat(struct inode *root, const char *filename, struct stat *statbuf)
 {
-	struct inode_t *inode;
+	struct inode *inode;
 
 	/* get inode */
 	inode = vfs_namei(root, NULL, filename, 0);

@@ -6,7 +6,7 @@
 /*
  * Ext2 file operations.
  */
-struct file_operations_t ext2_file_fops = {
+struct file_operations ext2_file_fops = {
 	.read			= ext2_file_read,
 	.write			= ext2_file_write,
 };
@@ -14,14 +14,14 @@ struct file_operations_t ext2_file_fops = {
 /*
  * Ext2 directory operations.
  */
-struct file_operations_t ext2_dir_fops = {
+struct file_operations ext2_dir_fops = {
 	.getdents64		= ext2_getdents64,
 };
 
 /*
  * Ext2 file inode operations.
  */
-struct inode_operations_t ext2_file_iops = {
+struct inode_operations ext2_file_iops = {
 	.fops			= &ext2_file_fops,
 	.truncate		= ext2_truncate,
 };
@@ -29,7 +29,7 @@ struct inode_operations_t ext2_file_iops = {
 /*
  * Ext2 symbolic link inode operations.
  */
-struct inode_operations_t ext2_symlink_iops = {
+struct inode_operations ext2_symlink_iops = {
 	.follow_link		= ext2_follow_link,
 	.readlink		= ext2_readlink,
 };
@@ -37,7 +37,7 @@ struct inode_operations_t ext2_symlink_iops = {
 /*
  * Ext2 directory inode operations.
  */
-struct inode_operations_t ext2_dir_iops = {
+struct inode_operations ext2_dir_iops = {
 	.fops			= &ext2_dir_fops,
 	.lookup			= ext2_lookup,
 	.create			= ext2_create,
@@ -53,13 +53,13 @@ struct inode_operations_t ext2_dir_iops = {
 /*
  * Allocate a Ext2 inode.
  */
-struct inode_t *ext2_alloc_inode(struct super_block_t *sb)
+struct inode *ext2_alloc_inode(struct super_block *sb)
 {
-	struct ext2_inode_info_t *ext2_inode;
+	struct ext2_inode_info *ext2_inode;
 	int i;
 
 	/* allocate ext2 specific inode */
-	ext2_inode = malloc(sizeof(struct ext2_inode_info_t));
+	ext2_inode = malloc(sizeof(struct ext2_inode_info));
 	if (!ext2_inode)
 		return NULL;
 
@@ -73,7 +73,7 @@ struct inode_t *ext2_alloc_inode(struct super_block_t *sb)
 /*
  * Release a Ext2 inode.
  */
-void ext2_put_inode(struct inode_t *inode)
+void ext2_put_inode(struct inode *inode)
 {
 	if (!inode)
 		return;
@@ -88,7 +88,7 @@ void ext2_put_inode(struct inode_t *inode)
 /*
  * Delete a Ext2 inode.
  */
-void ext2_delete_inode(struct inode_t *inode)
+void ext2_delete_inode(struct inode *inode)
 {
 	/* check inode */
 	if (!inode)
@@ -105,14 +105,14 @@ void ext2_delete_inode(struct inode_t *inode)
 /*
  * Read a Ext2 inode.
  */
-int ext2_read_inode(struct inode_t *inode)
+int ext2_read_inode(struct inode *inode)
 {
-	struct ext2_inode_info_t *ext2_inode = ext2_i(inode);
-	struct ext2_sb_info_t *sbi = ext2_sb(inode->i_sb);
+	struct ext2_inode_info *ext2_inode = ext2_i(inode);
+	struct ext2_sb_info *sbi = ext2_sb(inode->i_sb);
 	uint32_t block_group, offset, block;
-	struct ext2_inode_t *raw_inode;
-	struct ext2_group_desc_t *gdp;
-	struct buffer_head_t *bh;
+	struct ext2_inode *raw_inode;
+	struct ext2_group_desc *gdp;
+	struct buffer_head *bh;
 	int i;
 
 	/* check inode number */
@@ -127,7 +127,7 @@ int ext2_read_inode(struct inode_t *inode)
 
 	/* get inode table block */
 	offset = ((inode->i_ino - 1) % sbi->s_inodes_per_group) * sbi->s_inode_size;
-	block = le32toh(gdp->bg_inode_table) + (offset >> inode->i_sb->s_blocksize_bits);
+	block = le32toh(gdp->bg_inodeable) + (offset >> inode->i_sb->s_blocksize_bits);
 
 	/* read inode table block buffer */
 	bh = sb_bread(inode->i_sb, block);
@@ -136,7 +136,7 @@ int ext2_read_inode(struct inode_t *inode)
 
 	/* get inode */
 	offset &= (inode->i_sb->s_blocksize - 1);
-	raw_inode = (struct ext2_inode_t *) (bh->b_data + offset);
+	raw_inode = (struct ext2_inode *) (bh->b_data + offset);
 
 	/* set generic inode */
 	inode->i_mode = le16toh(raw_inode->i_mode);
@@ -180,14 +180,14 @@ int ext2_read_inode(struct inode_t *inode)
 /*
  * Write a Ext2 inode.
  */
-int ext2_write_inode(struct inode_t *inode)
+int ext2_write_inode(struct inode *inode)
 {
-	struct ext2_inode_info_t *ext2_inode = ext2_i(inode);
-	struct ext2_sb_info_t *sbi = ext2_sb(inode->i_sb);
+	struct ext2_inode_info *ext2_inode = ext2_i(inode);
+	struct ext2_sb_info *sbi = ext2_sb(inode->i_sb);
 	uint32_t block_group, offset, block;
-	struct ext2_inode_t *raw_inode;
-	struct ext2_group_desc_t *gdp;
-	struct buffer_head_t *bh;
+	struct ext2_inode *raw_inode;
+	struct ext2_group_desc *gdp;
+	struct buffer_head *bh;
 	int i;
 
 	/* check inode number */
@@ -202,7 +202,7 @@ int ext2_write_inode(struct inode_t *inode)
 
 	/* get inode table block */
 	offset = ((inode->i_ino - 1) % sbi->s_inodes_per_group) * sbi->s_inode_size;
-	block = le32toh(gdp->bg_inode_table) + (offset >> inode->i_sb->s_blocksize_bits);
+	block = le32toh(gdp->bg_inodeable) + (offset >> inode->i_sb->s_blocksize_bits);
 
 	/* read inode table block buffer */
 	bh = sb_bread(inode->i_sb, block);
@@ -211,7 +211,7 @@ int ext2_write_inode(struct inode_t *inode)
 
 	/* get inode */
 	offset &= (inode->i_sb->s_blocksize - 1);
-	raw_inode = (struct ext2_inode_t *) (bh->b_data + offset);
+	raw_inode = (struct ext2_inode *) (bh->b_data + offset);
 
 	/* set raw inode */
 	raw_inode->i_mode = htole16(inode->i_mode);
@@ -246,10 +246,10 @@ int ext2_write_inode(struct inode_t *inode)
 /*
  * Read a Ext2 inode block.
  */
-static struct buffer_head_t *ext2_inode_getblk(struct inode_t *inode, int inode_block, int create)
+static struct buffer_head *ext2_inode_getblk(struct inode *inode, int inode_block, int create)
 {
-	struct ext2_inode_info_t *ext2_inode = ext2_i(inode);
-	struct ext2_sb_info_t *sbi = ext2_sb(inode->i_sb);
+	struct ext2_inode_info *ext2_inode = ext2_i(inode);
+	struct ext2_sb_info *sbi = ext2_sb(inode->i_sb);
 	uint32_t goal = 0;
 	int i;
 
@@ -286,7 +286,7 @@ static struct buffer_head_t *ext2_inode_getblk(struct inode_t *inode, int inode_
 /*
  * Read a Ext2 indirect block.
  */
-static struct buffer_head_t *ext2_block_getblk(struct inode_t *inode, struct buffer_head_t *bh, int block_block, int create)
+static struct buffer_head *ext2_block_getblk(struct inode *inode, struct buffer_head *bh, int block_block, int create)
 {
 	uint32_t goal = 0;
 	int i, tmp;
@@ -328,10 +328,10 @@ static struct buffer_head_t *ext2_block_getblk(struct inode_t *inode, struct buf
 /*
  * Read a Ext2 inode block.
  */
-struct buffer_head_t *ext2_bread(struct inode_t *inode, uint32_t block, int create)
+struct buffer_head *ext2_bread(struct inode *inode, uint32_t block, int create)
 {
-	struct super_block_t *sb = inode->i_sb;
-	struct buffer_head_t *bh;
+	struct super_block *sb = inode->i_sb;
+	struct buffer_head *bh;
 	int addr_per_block;
 
 	/* compute number of addresses per block */

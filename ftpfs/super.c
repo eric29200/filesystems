@@ -8,22 +8,22 @@
 /*
  * FTPFS super operations.
  */
-struct super_operations_t ftpfs_sops = {
-	.alloc_inode					= ftpfs_alloc_inode,
-	.put_inode						= ftpfs_put_inode,
-	.delete_inode				 = ftpfs_delete_inode,
-	.read_inode					 = NULL,
-	.write_inode					= NULL,
-	.put_super						= ftpfs_put_super,
-	.statfs							 = ftpfs_statfs,
+struct super_operations ftpfs_sops = {
+	.alloc_inode		= ftpfs_alloc_inode,
+	.put_inode		= ftpfs_put_inode,
+	.delete_inode		= ftpfs_delete_inode,
+	.read_inode		= NULL,
+	.write_inode		= NULL,
+	.put_super		= ftpfs_put_super,
+	.statfs			= ftpfs_statfs,
 };
 
 /*
  * Create root inode.
  */
-static struct inode_t *ftpfs_create_root_inode(struct super_block_t *sb)
+static struct inode *ftpfs_create_root_inode(struct super_block *sb)
 {
-	struct ftpfs_fattr_t fattr;
+	struct ftpfs_fattr fattr;
 
 	/* set attributes */
 	memset(fattr.name, 0, FTPFS_NAME_LEN);
@@ -40,20 +40,20 @@ static struct inode_t *ftpfs_create_root_inode(struct super_block_t *sb)
 /*
  * Read a FTPFS super block.
  */
-int ftpfs_read_super(struct super_block_t *sb, void *data)
+int ftpfs_read_super(struct super_block *sb, void *data)
 {
-	struct ftp_param_t *params = (struct ftp_param_t *) data;
-	struct ftpfs_sb_info_t *sbi;
+	struct ftp_param *params = (struct ftp_param *) data;
+	struct ftpfs_sb_info *sbi;
 	char *user, *passwd;
 	int err = -ENOSPC;
 
 	/* allocate FTPFS super block */
-	sb->s_fs_info = sbi = (struct ftpfs_sb_info_t *) malloc(sizeof(struct ftpfs_sb_info_t));
+	sb->s_fs_info = sbi = (struct ftpfs_sb_info *) malloc(sizeof(struct ftpfs_sb_info));
 	if (!sbi)
 		return -ENOMEM;
 
 	/* create inodes cache hash table */
-	sbi->s_inodes_cache_htable = (struct htable_link_t **) malloc(sizeof(struct htable_link_t *) * FTPFS_INODE_HTABLE_SIZE);
+	sbi->s_inodes_cache_htable = (struct htable_link **) malloc(sizeof(struct htable_link *) * FTPFS_INODE_HTABLE_SIZE);
 	if (!sbi->s_inodes_cache_htable)
 		goto err_inodes_cache;
 
@@ -108,9 +108,9 @@ err:
 /*
  * Release a FTPFS super block.
  */
-void ftpfs_put_super(struct super_block_t *sb)
+void ftpfs_put_super(struct super_block *sb)
 {
-	struct ftpfs_sb_info_t *sbi = ftpfs_sb(sb);
+	struct ftpfs_sb_info *sbi = ftpfs_sb(sb);
 
 	/* release root inode */
 	vfs_iput(sb->s_root_inode);
@@ -126,7 +126,7 @@ void ftpfs_put_super(struct super_block_t *sb)
 /*
  * Get FTPFS file system status.
  */
-int ftpfs_statfs(struct super_block_t *sb, struct statfs *buf)
+int ftpfs_statfs(struct super_block *sb, struct statfs *buf)
 {
 	buf->f_type = sb->s_magic;
 	buf->f_bsize = sb->s_blocksize;

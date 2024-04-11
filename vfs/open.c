@@ -9,17 +9,17 @@
 /*
  * Get an empty file.
  */
-static struct file_t *vfs_get_empty_file()
+static struct file *vfs_get_empty_file()
 {
-	struct file_t *filp;
+	struct file *filp;
 
 	/* allocate new file */
-	filp = (struct file_t *) malloc(sizeof(struct file_t));
+	filp = (struct file *) malloc(sizeof(struct file));
 	if (!filp)
 		return NULL;
 
 	/* memzero file */
-	memset(filp, 0, sizeof(struct file_t));
+	memset(filp, 0, sizeof(struct file));
 
 	/* set reference */
 	filp->f_ref = 1;
@@ -30,10 +30,10 @@ static struct file_t *vfs_get_empty_file()
 /*
  * Open a file.
  */
-struct file_t *vfs_open(struct inode_t *root, const char *pathname, int flags, mode_t mode)
+struct file *vfs_open(struct inode *root, const char *pathname, int flags, mode_t mode)
 {
-	struct inode_t *inode;
-	struct file_t *filp;
+	struct inode *inode;
+	struct file *filp;
 	int err;
 
 	/* get an empty file */
@@ -65,7 +65,7 @@ struct file_t *vfs_open(struct inode_t *root, const char *pathname, int flags, m
 /*
  * Close a file.
  */
-int vfs_close(struct file_t *filp)
+int vfs_close(struct file *filp)
 {
 	/* check file */
 	if (!filp)
@@ -91,9 +91,9 @@ int vfs_close(struct file_t *filp)
 /*
  * Change mode of a file.
  */
-int vfs_chmod(struct inode_t *root, const char *pathname, mode_t mode)
+int vfs_chmod(struct inode *root, const char *pathname, mode_t mode)
 {
-	struct inode_t *inode;
+	struct inode *inode;
 
 	/* get inode */
 	inode = vfs_namei(root, NULL, pathname, 1);
@@ -117,9 +117,9 @@ int vfs_chmod(struct inode_t *root, const char *pathname, mode_t mode)
 /*
  * Change file's owner.
  */
-int vfs_chown(struct inode_t *root, const char *pathname, uid_t uid, gid_t gid)
+int vfs_chown(struct inode *root, const char *pathname, uid_t uid, gid_t gid)
 {
-	struct inode_t *inode;
+	struct inode *inode;
 
 	/* get inode */
 	inode = vfs_namei(root, NULL, pathname, 1);
@@ -140,9 +140,9 @@ int vfs_chown(struct inode_t *root, const char *pathname, uid_t uid, gid_t gid)
 /*
  * Set file's timestamps.
  */
-int vfs_utimens(struct inode_t *root, const char *pathname, const struct timespec times[2], int flags)
+int vfs_utimens(struct inode *root, const char *pathname, const struct timespec times[2], int flags)
 {
-	struct inode_t *inode;
+	struct inode *inode;
 
 	/* get inode */
 	inode = vfs_namei(root, NULL, pathname, flags & AT_SYMLINK_NOFOLLOW ? 0 : 1);

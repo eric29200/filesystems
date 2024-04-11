@@ -11,11 +11,11 @@
 /*
  * Get directory entries.
  */
-int ftpfs_getdents64(struct file_t *filp, void *dirp, size_t count)
+int ftpfs_getdents64(struct file *filp, void *dirp, size_t count)
 {
-	struct ftpfs_inode_info_t *ftpfs_inode = ftpfs_i(filp->f_inode);
-	struct ftpfs_fattr_t fattr;
-	struct dirent64_t *dirent;
+	struct ftpfs_inode_info *ftpfs_inode = ftpfs_i(filp->f_inode);
+	struct ftpfs_fattr fattr;
+	struct dirent64 *dirent;
 	int err, entries_size = 0;
 	char *start, *end, *line;
 	size_t filename_len;
@@ -30,37 +30,37 @@ int ftpfs_getdents64(struct file_t *filp, void *dirp, size_t count)
 		return -ENOENT;
 
 	/* set start offset */
-	dirent = (struct dirent64_t *) dirp;
+	dirent = (struct dirent64 *) dirp;
 	start = ftpfs_inode->i_cache.data + filp->f_pos;
 
 	/* add "." and ".." entries */
 	if (filp->f_pos == 0) {
 		/* check if input buffer is big enough */
-		if (count < sizeof(struct dirent64_t) * 2 + 2 + 3)
+		if (count < sizeof(struct dirent64) * 2 + 2 + 3)
 			return -ENOSPC;
 
 		/* add "." entry */
 		dirent->d_inode = 0;
 		dirent->d_off = 0;
-		dirent->d_reclen = sizeof(struct dirent64_t) + 2;
+		dirent->d_reclen = sizeof(struct dirent64) + 2;
 		dirent->d_type = 0;
 		dirent->d_name[0] = '.';
 		dirent->d_name[1] = 0;
 		count -= dirent->d_reclen;
 		entries_size += dirent->d_reclen;
-		dirent = (struct dirent64_t *) ((char *) dirent + dirent->d_reclen);
+		dirent = (struct dirent64 *) ((char *) dirent + dirent->d_reclen);
 
 		/* add ".." entry */
 		dirent->d_inode = 0;
 		dirent->d_off = 0;
-		dirent->d_reclen = sizeof(struct dirent64_t) + 3;
+		dirent->d_reclen = sizeof(struct dirent64) + 3;
 		dirent->d_type = 0;
 		dirent->d_name[0] = '.';
 		dirent->d_name[1] = '.';
 		dirent->d_name[2] = 0;
 		count -= dirent->d_reclen;
 		entries_size += dirent->d_reclen;
-		dirent = (struct dirent64_t *) ((char *) dirent + dirent->d_reclen);
+		dirent = (struct dirent64 *) ((char *) dirent + dirent->d_reclen);
 	}
 
 	/* parse directory listing */
@@ -84,7 +84,7 @@ int ftpfs_getdents64(struct file_t *filp, void *dirp, size_t count)
 
 		/* not enough space to fill in next dir entry : break */
 		filename_len = strlen(fattr.name);
-		if (count < sizeof(struct dirent64_t) + filename_len + 1) {
+		if (count < sizeof(struct dirent64) + filename_len + 1) {
 			free(line);
 			return entries_size;
 		}
@@ -92,7 +92,7 @@ int ftpfs_getdents64(struct file_t *filp, void *dirp, size_t count)
 		/* fill in dirent */
 		dirent->d_inode = 0;
 		dirent->d_off = 0;
-		dirent->d_reclen = sizeof(struct dirent64_t) + filename_len + 1;
+		dirent->d_reclen = sizeof(struct dirent64) + filename_len + 1;
 		dirent->d_type = 0;
 		memcpy(dirent->d_name, fattr.name, filename_len);
 		dirent->d_name[filename_len] = 0;
@@ -100,7 +100,7 @@ int ftpfs_getdents64(struct file_t *filp, void *dirp, size_t count)
 		/* go to next entry */
 		count -= dirent->d_reclen;
 		entries_size += dirent->d_reclen;
-		dirent = (struct dirent64_t *) ((char *) dirent + dirent->d_reclen);
+		dirent = (struct dirent64 *) ((char *) dirent + dirent->d_reclen);
 
 next_line:
 		/* free line */

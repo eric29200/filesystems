@@ -3,21 +3,21 @@
 /*
  * Get directory entries.
  */
-int isofs_getdents64(struct file_t *filp, void *dirp, size_t count)
+int isofs_getdents64(struct file *filp, void *dirp, size_t count)
 {
-	struct isofs_inode_info_t *isofs_inode = isofs_i(filp->f_inode);
+	struct isofs_inode_info *isofs_inode = isofs_i(filp->f_inode);
 	char name[ISOFS_MAX_NAME_LEN + 1], de_tmp[4096];
-	struct super_block_t *sb = filp->f_inode->i_sb;
+	struct super_block *sb = filp->f_inode->i_sb;
 	int de_len, entries_size = 0, name_len;
-	struct inode_t *inode = filp->f_inode;
+	struct inode *inode = filp->f_inode;
 	uint32_t offset, next_offset, block;
-	struct iso_directory_record_t *de;
-	struct dirent64_t *dirent;
-	struct buffer_head_t *bh;
+	struct iso_directory_record *de;
+	struct dirent64 *dirent;
+	struct buffer_head *bh;
 	ino_t ino;
 
 	/* init */
-	dirent = (struct dirent64_t *) dirp;
+	dirent = (struct dirent64 *) dirp;
 
 	/* compute position */
 	offset = filp->f_pos & (sb->s_blocksize - 1);
@@ -50,7 +50,7 @@ int isofs_getdents64(struct file_t *filp, void *dirp, size_t count)
 		}
 
 		/* get directory entry and compute inode */
-		de = (struct iso_directory_record_t *) (bh->b_data + offset);
+		de = (struct iso_directory_record *) (bh->b_data + offset);
 		ino = (block << sb->s_blocksize_bits) + (offset & (sb->s_blocksize - 1));
 		de_len = *((unsigned char *) de);
 
@@ -99,7 +99,7 @@ int isofs_getdents64(struct file_t *filp, void *dirp, size_t count)
 		if (de->name_len[0] == 1 && de->name[0] == 0) {
 			dirent->d_inode = inode->i_ino;
 			dirent->d_off = 0;
-			dirent->d_reclen = sizeof(struct dirent64_t) + 2;
+			dirent->d_reclen = sizeof(struct dirent64) + 2;
 			dirent->d_type = 0;
 			strcpy(dirent->d_name, ".");
 			goto next;
@@ -109,7 +109,7 @@ int isofs_getdents64(struct file_t *filp, void *dirp, size_t count)
 		if (de->name_len[0] == 1 && de->name[0] == 1) {
 			dirent->d_inode = isofs_parent_ino(inode);
 			dirent->d_off = 0;
-			dirent->d_reclen = sizeof(struct dirent64_t) + 3;
+			dirent->d_reclen = sizeof(struct dirent64) + 3;
 			dirent->d_type = 0;
 			strcpy(dirent->d_name, "..");
 			goto next;
@@ -119,7 +119,7 @@ int isofs_getdents64(struct file_t *filp, void *dirp, size_t count)
 		name_len = isofs_name_translate(de->name, de->name_len[0], name);
 
 		/* not enough space to fill in next dir entry : break */
-		if (count < sizeof(struct dirent64_t) + name_len + 1) {
+		if (count < sizeof(struct dirent64) + name_len + 1) {
 			brelse(bh);
 			return entries_size;
 		}
@@ -127,7 +127,7 @@ int isofs_getdents64(struct file_t *filp, void *dirp, size_t count)
 		/* fill in directory entry */
 		dirent->d_inode = ino;
 		dirent->d_off = 0;
-		dirent->d_reclen = sizeof(struct dirent64_t) + name_len + 1;
+		dirent->d_reclen = sizeof(struct dirent64) + name_len + 1;
 		dirent->d_type = 0;
 		memcpy(dirent->d_name, name, name_len);
 		dirent->d_name[name_len] = 0;
@@ -136,7 +136,7 @@ int isofs_getdents64(struct file_t *filp, void *dirp, size_t count)
 next:
 		count -= dirent->d_reclen;
 		entries_size += dirent->d_reclen;
-		dirent = (struct dirent64_t *) ((char *) dirent + dirent->d_reclen);
+		dirent = (struct dirent64 *) ((char *) dirent + dirent->d_reclen);
 
 		/* update file position */
 		filp->f_pos += de_len;

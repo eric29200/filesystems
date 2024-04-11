@@ -7,11 +7,11 @@
 /*
  * Read a BFS file.
  */
-int bfs_file_read(struct file_t *filp, char *buf, int count)
+int bfs_file_read(struct file *filp, char *buf, int count)
 {
-	struct super_block_t *sb;
-	struct buffer_head_t *bh;
-	struct inode_t *inode;
+	struct super_block *sb;
+	struct buffer_head *bh;
+	struct inode *inode;
 	int pos, nb_chars, left;
 
 	/* get inode */
@@ -56,11 +56,11 @@ out:
 /*
  * Write a BFS file.
  */
-int bfs_file_write(struct file_t *filp, const char *buf, int count)
+int bfs_file_write(struct file *filp, const char *buf, int count)
 {
-	struct super_block_t *sb;
-	struct buffer_head_t *bh;
-	struct inode_t *inode;
+	struct super_block *sb;
+	struct buffer_head *bh;
+	struct inode *inode;
 	int pos, nb_chars, left;
 
 	/* get inode */
@@ -108,9 +108,9 @@ out:
 /*
  * Move BFS block.
  */
-static int bfs_move_block(struct super_block_t *sb, uint32_t from, uint32_t to)
+static int bfs_move_block(struct super_block *sb, uint32_t from, uint32_t to)
 {
-	struct buffer_head_t *bh_from, *bh_to;
+	struct buffer_head *bh_from, *bh_to;
 
 	/* read source block */
 	bh_from = sb_bread(sb, from);
@@ -142,7 +142,7 @@ static int bfs_move_block(struct super_block_t *sb, uint32_t from, uint32_t to)
 /*
  * Move BFS blocks.
  */
-static int bfs_move_blocks(struct super_block_t *sb, uint32_t start, uint32_t end, uint32_t to)
+static int bfs_move_blocks(struct super_block *sb, uint32_t start, uint32_t end, uint32_t to)
 {
 	uint32_t i;
 
@@ -157,11 +157,11 @@ static int bfs_move_blocks(struct super_block_t *sb, uint32_t start, uint32_t en
 /*
  * Read a BFS inode block.
  */
-struct buffer_head_t *bfs_bread(struct inode_t *inode, uint32_t block, int create)
+struct buffer_head *bfs_bread(struct inode *inode, uint32_t block, int create)
 {
-	struct bfs_inode_info_t *bfs_inode = bfs_i(inode);
-	struct super_block_t *sb = inode->i_sb;
-	struct bfs_sb_info_t *sbi = bfs_sb(sb);
+	struct bfs_inode_info *bfs_inode = bfs_i(inode);
+	struct super_block *sb = inode->i_sb;
+	struct bfs_sb_info *sbi = bfs_sb(sb);
 	uint32_t phys, old_blocks;
 
 	/* get physical address and compute old blocks */

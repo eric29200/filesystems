@@ -8,10 +8,10 @@
 /*
  * Open a file.
  */
-int ftpfs_open(struct file_t *filp)
+int ftpfs_open(struct file *filp)
 {
-	struct ftpfs_inode_info_t *ftpfs_inode = ftpfs_i(filp->f_inode);
-	struct super_block_t *sb = filp->f_inode->i_sb;
+	struct ftpfs_inode_info *ftpfs_inode = ftpfs_i(filp->f_inode);
+	struct super_block *sb = filp->f_inode->i_sb;
 	char filename[FTPFS_NAME_LEN];
 	int fd, err;
 
@@ -64,7 +64,7 @@ int ftpfs_open(struct file_t *filp)
 /*
  * Close a file.
  */
-int ftpfs_close(struct file_t *filp)
+int ftpfs_close(struct file *filp)
 {
 	int fd;
 

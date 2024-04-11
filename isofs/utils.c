@@ -73,7 +73,7 @@ int isofs_date(char *p)
 /*
  * Get parent inode number.
  */
-ino_t isofs_parent_ino(struct inode_t *inode)
+ino_t isofs_parent_ino(struct inode *inode)
 {
 	if (isofs_sb(inode->i_sb)->s_firstdatazone != inode->i_ino)
 		return isofs_i(inode)->i_backlink;

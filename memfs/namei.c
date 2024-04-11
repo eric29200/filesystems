@@ -6,7 +6,7 @@
 /*
  * Test file names equality.
  */
-static inline int memfs_name_match(const char *name, size_t len, struct memfs_dir_entry_t *de)
+static inline int memfs_name_match(const char *name, size_t len, struct memfs_dir_entry *de)
 {
 	/* check dir entry */
 	if (!de || !de->d_inode || len > MEMFS_NAME_LEN)
@@ -18,15 +18,15 @@ static inline int memfs_name_match(const char *name, size_t len, struct memfs_di
 /*
  * Find a MemFS entry in a directory.
  */
-static int memfs_find_entry(struct inode_t *dir, const char *name, size_t name_len, struct memfs_dir_entry_t **res_de)
+static int memfs_find_entry(struct inode *dir, const char *name, size_t name_len, struct memfs_dir_entry **res_de)
 {
-	struct memfs_dir_entry_t *de;
+	struct memfs_dir_entry *de;
 	uint32_t pos;
 
 	/* read all entries */
 	for (pos = 0; pos < dir->i_size;) {
 		/* check next entry */
-		de = (struct memfs_dir_entry_t *) (memfs_i(dir)->i_data + pos);
+		de = (struct memfs_dir_entry *) (memfs_i(dir)->i_data + pos);
 		if (de->d_rec_len <= 0)
 			return -ENOENT;
 
@@ -52,9 +52,9 @@ static int memfs_find_entry(struct inode_t *dir, const char *name, size_t name_l
 /*
  * Add an entry in a directory.
  */
-int memfs_add_entry(struct inode_t *dir, const char *name, size_t name_len, ino_t ino)
+int memfs_add_entry(struct inode *dir, const char *name, size_t name_len, ino_t ino)
 {
-	struct memfs_dir_entry_t *de;
+	struct memfs_dir_entry *de;
 	uint16_t rec_len;
 	uint32_t pos;
 
@@ -68,7 +68,7 @@ int memfs_add_entry(struct inode_t *dir, const char *name, size_t name_len, ino_
 	/* try to find a free entry */
 	for (pos = 0; pos < dir->i_size;) {
 		/* check next entry */
-		de = (struct memfs_dir_entry_t *) (memfs_i(dir)->i_data + pos);
+		de = (struct memfs_dir_entry *) (memfs_i(dir)->i_data + pos);
 		if (de->d_rec_len <= 0)
 			return -ENOENT;
 
@@ -80,7 +80,7 @@ int memfs_add_entry(struct inode_t *dir, const char *name, size_t name_len, ino_
 
 		/* go to next entry */
 		pos += de->d_rec_len;
-		de = (struct memfs_dir_entry_t *) ((char *) de + de->d_rec_len);
+		de = (struct memfs_dir_entry *) ((char *) de + de->d_rec_len);
 	}
 
 	/* grow directory */
@@ -89,7 +89,7 @@ int memfs_add_entry(struct inode_t *dir, const char *name, size_t name_len, ino_
 		return -ENOMEM;
 
 	/* go to new entry */
-	de = (struct memfs_dir_entry_t *) (memfs_i(dir)->i_data + dir->i_size);
+	de = (struct memfs_dir_entry *) (memfs_i(dir)->i_data + dir->i_size);
 	dir->i_size += rec_len;
 	dir->i_dirt = 1;
 	goto found_entry;
@@ -100,7 +100,7 @@ found_entry:
 	de->d_rec_len = rec_len;
 	de->d_inode = ino;
 	de->d_name_len = name_len;
-	de->d_file_type = 0;
+	de->d_fileype = 0;
 	memcpy(de->d_name, name, name_len);
 
 	/* update parent directory */
@@ -113,9 +113,9 @@ found_entry:
 /*
  * Check if a directory is empty.
  */
-static int memfs_empty_dir(struct inode_t *inode)
+static int memfs_empty_dir(struct inode *inode)
 {
-	struct memfs_dir_entry_t *de, *de1;
+	struct memfs_dir_entry *de, *de1;
 	uint32_t offset;
 
 	/* check directory size : must contain '.' and '..' */
@@ -125,8 +125,8 @@ static int memfs_empty_dir(struct inode_t *inode)
 	}
 
 	/* get first 2 entries */
-	de = (struct memfs_dir_entry_t *) memfs_i(inode)->i_data;
-	de1 = (struct memfs_dir_entry_t *) ((char *) de + de->d_rec_len);
+	de = (struct memfs_dir_entry *) memfs_i(inode)->i_data;
+	de1 = (struct memfs_dir_entry *) ((char *) de + de->d_rec_len);
 
 	/* first 2 entries must be '.' and '..' */
 	if (de->d_inode != inode->i_ino || !de1->d_inode || de->d_name_len != 1
@@ -137,7 +137,7 @@ static int memfs_empty_dir(struct inode_t *inode)
 
 	/* try to find an entry */
 	offset = de->d_rec_len + de1->d_rec_len;
-	de = (struct memfs_dir_entry_t *) ((char *) de1 + de1->d_rec_len);
+	de = (struct memfs_dir_entry *) ((char *) de1 + de1->d_rec_len);
 	while (offset < inode->i_size) {
 		/* check entry */
 		if (de->d_rec_len <= 0)
@@ -149,7 +149,7 @@ static int memfs_empty_dir(struct inode_t *inode)
 
 		/* go to next entry */
 		offset += de->d_rec_len;
-		de = (struct memfs_dir_entry_t *) ((char *) de + de->d_rec_len);
+		de = (struct memfs_dir_entry *) ((char *) de + de->d_rec_len);
 	}
 
 	return 1;
@@ -158,9 +158,9 @@ static int memfs_empty_dir(struct inode_t *inode)
 /*
  * Lookup for a file in a directory.
  */
-int memfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode)
+int memfs_lookup(struct inode *dir, const char *name, size_t name_len, struct inode **res_inode)
 {
-	struct memfs_dir_entry_t *de;
+	struct memfs_dir_entry *de;
 	ino_t ino;
 	int err;
 
@@ -198,9 +198,9 @@ int memfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct 
 /*
  * Create a file in a directory.
  */
-int memfs_create(struct inode_t *dir, const char *name, size_t name_len, mode_t mode, struct inode_t **res_inode)
+int memfs_create(struct inode *dir, const char *name, size_t name_len, mode_t mode, struct inode **res_inode)
 {
-	struct inode_t *inode, *tmp;
+	struct inode *inode, *tmp;
 	int err;
 
 	/* check directory */
@@ -247,10 +247,10 @@ int memfs_create(struct inode_t *dir, const char *name, size_t name_len, mode_t 
 /*
  * Make a directory.
  */
-int memfs_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mode)
+int memfs_mkdir(struct inode *dir, const char *name, size_t name_len, mode_t mode)
 {
-	struct memfs_dir_entry_t *de;
-	struct inode_t *inode;
+	struct memfs_dir_entry *de;
+	struct inode *inode;
 	int err;
 
 	/* check if file exists */
@@ -311,10 +311,10 @@ int memfs_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t m
 /*
  * Remove a directory.
  */
-int memfs_rmdir(struct inode_t *dir, const char *name, size_t name_len)
+int memfs_rmdir(struct inode *dir, const char *name, size_t name_len)
 {
-	struct memfs_dir_entry_t *de;
-	struct inode_t *inode;
+	struct memfs_dir_entry *de;
+	struct inode *inode;
 	int err;
 
 	/* check if file exists */
@@ -368,9 +368,9 @@ int memfs_rmdir(struct inode_t *dir, const char *name, size_t name_len)
 /*
  * Make a new name for a file (= hard link).
  */
-int memfs_link(struct inode_t *old_inode, struct inode_t *dir, const char *name, size_t name_len)
+int memfs_link(struct inode *old_inode, struct inode *dir, const char *name, size_t name_len)
 {
-	struct memfs_dir_entry_t *de;
+	struct memfs_dir_entry *de;
 	int err;
 
 	/* check if new file exists */
@@ -404,10 +404,10 @@ int memfs_link(struct inode_t *old_inode, struct inode_t *dir, const char *name,
 /*
  * Unlink (remove) a file.
  */
-int memfs_unlink(struct inode_t *dir, const char *name, size_t name_len)
+int memfs_unlink(struct inode *dir, const char *name, size_t name_len)
 {
-	struct memfs_dir_entry_t *de;
-	struct inode_t *inode;
+	struct memfs_dir_entry *de;
+	struct inode *inode;
 	int err;
 
 	/* get directory entry */
@@ -451,10 +451,10 @@ out:
 /*
  * Create a symbolic link.
  */
-int memfs_symlink(struct inode_t *dir, const char *name, size_t name_len, const char *target)
+int memfs_symlink(struct inode *dir, const char *name, size_t name_len, const char *target)
 {
-	struct memfs_dir_entry_t *de;
-	struct inode_t *inode;
+	struct memfs_dir_entry *de;
+	struct inode *inode;
 	int err;
 
 	/* create a new inode */
@@ -504,10 +504,10 @@ int memfs_symlink(struct inode_t *dir, const char *name, size_t name_len, const 
 /*
  * Rename a file.
  */
-int memfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_name_len, struct inode_t *new_dir, const char *new_name, size_t new_name_len)
+int memfs_rename(struct inode *old_dir, const char *old_name, size_t old_name_len, struct inode *new_dir, const char *new_name, size_t new_name_len)
 {
-	struct inode_t *old_inode = NULL, *new_inode = NULL;
-	struct memfs_dir_entry_t *old_de, *new_de;
+	struct inode *old_inode = NULL, *new_inode = NULL;
+	struct memfs_dir_entry *old_de, *new_de;
 	int err;
 
 	/* find old entry */

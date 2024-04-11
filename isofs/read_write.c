@@ -7,11 +7,11 @@
 /*
  * Read a file.
  */
-int isofs_file_read(struct file_t *filp, char *buf, int count)
+int isofs_file_read(struct file *filp, char *buf, int count)
 {
-	struct super_block_t *sb;
-	struct buffer_head_t *bh;
-	struct inode_t *inode;
+	struct super_block *sb;
+	struct buffer_head *bh;
+	struct inode *inode;
 	int pos, nb_chars, left;
 	uint32_t block;
 

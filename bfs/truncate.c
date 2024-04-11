@@ -6,12 +6,12 @@
 /*
  * Truncate a BFS inode.
  */
-void bfs_truncate(struct inode_t *inode)
+void bfs_truncate(struct inode *inode)
 {
-	struct bfs_inode_info_t *bfs_inode = bfs_i(inode);
-	struct super_block_t *sb = inode->i_sb;
-	struct bfs_sb_info_t *sbi = bfs_sb(sb);
-	struct buffer_head_t *bh;
+	struct bfs_inode_info *bfs_inode = bfs_i(inode);
+	struct super_block *sb = inode->i_sb;
+	struct bfs_sb_info *sbi = bfs_sb(sb);
+	struct buffer_head *bh;
 	int i;
 
 	/* do not truncate if inode is not the last file */

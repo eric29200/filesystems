@@ -6,9 +6,9 @@
 /*
  * Check user's permissions for a file.
  */
-int vfs_access(struct inode_t *root, const char *pathname, int flags)
+int vfs_access(struct inode *root, const char *pathname, int flags)
 {
-	struct inode_t *inode;
+	struct inode *inode;
 
 	/* get inode */
 	inode = vfs_namei(root, NULL, pathname, flags & AT_SYMLINK_NOFOLLOW ? 0 : 1);

@@ -6,28 +6,28 @@
 /*
  * TarFS file operations.
  */
-struct file_operations_t tarfs_file_fops = {
+struct file_operations tarfs_file_fops = {
 	.read			= tarfs_file_read,
 };
 
 /*
  * TarFS directory operations.
  */
-struct file_operations_t tarfs_dir_fops = {
+struct file_operations tarfs_dir_fops = {
 	.getdents64		= tarfs_getdents64,
 };
 
 /*
  * TarFS file inode operations.
  */
-struct inode_operations_t tarfs_file_iops = {
+struct inode_operations tarfs_file_iops = {
 	.fops			= &tarfs_file_fops,
 };
 
 /*
  * TarFS directory inode operations.
  */
-struct inode_operations_t tarfs_dir_iops = {
+struct inode_operations tarfs_dir_iops = {
 	.fops			= &tarfs_dir_fops,
 	.lookup			= tarfs_lookup,
 };
@@ -35,7 +35,7 @@ struct inode_operations_t tarfs_dir_iops = {
 /*
  * TarFS symbolic link operations.
  */
-struct inode_operations_t tarfs_symlink_iops = {
+struct inode_operations tarfs_symlink_iops = {
 	.follow_link		= tarfs_follow_link,
 	.readlink		= tarfs_readlink,
 };
@@ -43,12 +43,12 @@ struct inode_operations_t tarfs_symlink_iops = {
 /*
  * Allocate a TarFS inode.
  */
-struct inode_t *tarfs_alloc_inode(struct super_block_t *sb)
+struct inode *tarfs_alloc_inode(struct super_block *sb)
 {
-	struct tarfs_inode_info_t *tarfs_inode;
+	struct tarfs_inode_info *tarfs_inode;
 
 	/* allocate TarFS inode */
-	tarfs_inode = (struct tarfs_inode_info_t *) malloc(sizeof(struct tarfs_inode_info_t));
+	tarfs_inode = (struct tarfs_inode_info *) malloc(sizeof(struct tarfs_inode_info));
 	if (!tarfs_inode)
 		return NULL;
 
@@ -58,7 +58,7 @@ struct inode_t *tarfs_alloc_inode(struct super_block_t *sb)
 /*
  * Release a TarFS inode.
  */
-void tarfs_put_inode(struct inode_t *inode)
+void tarfs_put_inode(struct inode *inode)
 {
 	if (!inode)
 		return;
@@ -73,9 +73,9 @@ void tarfs_put_inode(struct inode_t *inode)
 /*
  * Read a TarFS inode.
  */
-int tarfs_read_inode(struct inode_t *inode)
+int tarfs_read_inode(struct inode *inode)
 {
-	struct tar_entry_t *entry;
+	struct tar_entry *entry;
 
 	/* check inode number */
 	if (!inode || inode->i_ino >= tarfs_sb(inode->i_sb)->s_ninodes)

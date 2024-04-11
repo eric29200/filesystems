@@ -29,7 +29,7 @@
 /*
  * Minix in memory super block.
  */
-struct minix_sb_info_t {
+struct minix_sb_info {
 	uint32_t			s_ninodes;			/* number of inodes */
 	uint32_t			s_nzones;			/* number of zones */
 	uint16_t			s_imap_blocks;			/* number of inodes bitmap blocks */
@@ -41,15 +41,15 @@ struct minix_sb_info_t {
 	int				s_name_len;			/* file name length */
 	int				s_dirsize;			/* directory entry size */
 	uint32_t			s_max_size;			/* maximum size of file */
-	struct buffer_head_t *		s_sbh;				/* super block buffer */
-	struct buffer_head_t **		s_imap;				/* inodes bitmap buffers */
-	struct buffer_head_t **		s_zmap;				/* zones bitmap buffers */
+	struct buffer_head *		s_sbh;				/* super block buffer */
+	struct buffer_head **		s_imap;				/* inodes bitmap buffers */
+	struct buffer_head **		s_zmap;				/* zones bitmap buffers */
 };
 
 /*
  * Minix V1/V2 super block.
  */
-struct minix1_super_block_t {
+struct minix1_super_block {
 	uint16_t			s_ninodes;			/* number of inodes */
 	uint16_t			s_nzones;			/* number of zones */
 	uint16_t			s_imap_blocks;			/* number of inodes bitmap blocks */
@@ -65,7 +65,7 @@ struct minix1_super_block_t {
 /*
  * Minix V3 super block.
  */
-struct minix3_super_block_t {
+struct minix3_super_block {
 	uint32_t			s_ninodes;			/* number of inodes */
 	uint16_t			s_pad0;				/* padding */
 	uint16_t			s_imap_blocks;			/* number of inodes bitmap blocks */
@@ -84,15 +84,15 @@ struct minix3_super_block_t {
 /*
  * Minix in memory inode.
  */
-struct minix_inode_info_t {
+struct minix_inode_info {
 	uint32_t			i_zone[10];			/* data zones */
-	struct inode_t			vfs_inode;			/* VFS inode */
+	struct inode			vfs_inode;			/* VFS inode */
 };
 
 /*
  * Minix V1 inode.
  */
-struct minix1_inode_t {
+struct minix1_inode {
 	uint16_t			i_mode;				/* file mode */
 	uint16_t			i_uid;				/* user id */
 	uint32_t			i_size;				/* file size in bytes */
@@ -105,7 +105,7 @@ struct minix1_inode_t {
 /*
  * Minix V2/V3 inode.
  */
-struct minix2_inode_t {
+struct minix2_inode {
 	uint16_t			i_mode;				/* file mode */
 	uint16_t			i_nlinks;			/* number of links to this file */
 	uint16_t			i_uid;				/* user id */
@@ -120,7 +120,7 @@ struct minix2_inode_t {
 /*
  * Minix V1/V2 directory entry.
  */
-struct minix1_dir_entry_t {
+struct minix1_dir_entry {
 	uint16_t			d_inode;			/* inode number */
 	char				d_name[0];			/* file name */
 };
@@ -128,65 +128,65 @@ struct minix1_dir_entry_t {
 /*
  * Minix V3 directory entry.
  */
-struct minix3_dir_entry_t {
+struct minix3_dir_entry {
 	uint32_t			d_inode;			/* inode number */
 	char				d_name[0];			/* file name */
 };
 
 /* Minix file system operations */
-extern struct super_operations_t minix_sops;
-extern struct inode_operations_t minix_file_iops;
-extern struct inode_operations_t minix_dir_iops;
-extern struct file_operations_t minix_file_fops;
-extern struct file_operations_t minix_dir_fops;
+extern struct super_operations minix_sops;
+extern struct inode_operations minix_file_iops;
+extern struct inode_operations minix_dir_iops;
+extern struct file_operations minix_file_fops;
+extern struct file_operations minix_dir_fops;
 
 /* Minix super operations */
-int minix_read_super(struct super_block_t *sb, void *data);
-void minix_put_super(struct super_block_t *sb);
-int minix_statfs(struct super_block_t *sb, struct statfs *buf);
+int minix_read_super(struct super_block *sb, void *data);
+void minix_put_super(struct super_block *sb);
+int minix_statfs(struct super_block *sb, struct statfs *buf);
 
 /* Minix bitmap prototypes */
-struct inode_t *minix_new_inode(struct super_block_t *sb);
-uint32_t minix_new_block(struct super_block_t *sb);
-int minix_free_inode(struct inode_t *inode);
-int minix_free_block(struct super_block_t *sb, uint32_t block);
-uint32_t minix_count_free_inodes(struct super_block_t *sb);
-uint32_t minix_count_free_blocks(struct super_block_t *sb);
+struct inode *minix_new_inode(struct super_block *sb);
+uint32_t minix_new_block(struct super_block *sb);
+int minix_free_inode(struct inode *inode);
+int minix_free_block(struct super_block *sb, uint32_t block);
+uint32_t minix_count_free_inodes(struct super_block *sb);
+uint32_t minix_count_free_blocks(struct super_block *sb);
 
 /* Minix inode prototypes */
-struct buffer_head_t *minix_bread(struct inode_t *inode, uint32_t block, int create);
-struct inode_t *minix_alloc_inode(struct super_block_t *sb);
-void minix_put_inode(struct inode_t *inode);
-void minix_delete_inode(struct inode_t *inode);
-int minix_read_inode(struct inode_t *inode);
-int minix_write_inode(struct inode_t *inode);
+struct buffer_head *minix_bread(struct inode *inode, uint32_t block, int create);
+struct inode *minix_alloc_inode(struct super_block *sb);
+void minix_put_inode(struct inode *inode);
+void minix_delete_inode(struct inode *inode);
+int minix_read_inode(struct inode *inode);
+int minix_write_inode(struct inode *inode);
 
 /* Minix names resolution prototypes */
-int minix_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
-int minix_create(struct inode_t *dir, const char *name, size_t name_len, mode_t mode, struct inode_t **res_inode);
-int minix_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mode);
-int minix_unlink(struct inode_t *dir, const char *name, size_t name_len);
-int minix_rmdir(struct inode_t *dir, const char *name, size_t name_len);
-int minix_link(struct inode_t *old_inode, struct inode_t *dir, const char *name, size_t name_len);
-int minix_symlink(struct inode_t *dir, const char *name, size_t name_len, const char *target);
-int minix_rename(struct inode_t *old_dir, const char *old_name, size_t old_name_len, struct inode_t *new_dir, const char *new_name, size_t new_name_len);
+int minix_lookup(struct inode *dir, const char *name, size_t name_len, struct inode **res_inode);
+int minix_create(struct inode *dir, const char *name, size_t name_len, mode_t mode, struct inode **res_inode);
+int minix_mkdir(struct inode *dir, const char *name, size_t name_len, mode_t mode);
+int minix_unlink(struct inode *dir, const char *name, size_t name_len);
+int minix_rmdir(struct inode *dir, const char *name, size_t name_len);
+int minix_link(struct inode *old_inode, struct inode *dir, const char *name, size_t name_len);
+int minix_symlink(struct inode *dir, const char *name, size_t name_len, const char *target);
+int minix_rename(struct inode *old_dir, const char *old_name, size_t old_name_len, struct inode *new_dir, const char *new_name, size_t new_name_len);
 
 /* Minix truncate prototypes */
-void minix_truncate(struct inode_t *inode);
+void minix_truncate(struct inode *inode);
 
 /* Minix symlink prototypes */
-int minix_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t **res_inode);
-ssize_t minix_readlink(struct inode_t *inode, char *buf, size_t bufsize);
+int minix_follow_link(struct inode *dir, struct inode *inode, struct inode **res_inode);
+ssize_t minix_readlink(struct inode *inode, char *buf, size_t bufsize);
 
 /* Minix file prototypes */
-int minix_file_read(struct file_t *filp, char *buf, int count);
-int minix_file_write(struct file_t *filp, const char *buf, int count);
-int minix_getdents64(struct file_t *filp, void *dirp, size_t count);
+int minix_file_read(struct file *filp, char *buf, int count);
+int minix_file_write(struct file *filp, const char *buf, int count);
+int minix_getdents64(struct file *filp, void *dirp, size_t count);
 
 /*
  * Get Minix in memory super block from generic super block.
  */
-static inline struct minix_sb_info_t *minix_sb(struct super_block_t *sb)
+static inline struct minix_sb_info *minix_sb(struct super_block *sb)
 {
 	return sb->s_fs_info;
 }
@@ -194,9 +194,9 @@ static inline struct minix_sb_info_t *minix_sb(struct super_block_t *sb)
 /*
  * Get Minix in memory inode from generic inode.
  */
-static inline struct minix_inode_info_t *minix_i(struct inode_t *inode)
+static inline struct minix_inode_info *minix_i(struct inode *inode)
 {
-	return container_of(inode, struct minix_inode_info_t, vfs_inode);
+	return container_of(inode, struct minix_inode_info, vfs_inode);
 }
 
 #endif

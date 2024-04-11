@@ -14,8 +14,8 @@
 #define BITS_PER_BLOCK					(MINIX_BLOCK_SIZE << 3)
 
 #define UPPER(size, n)					((size + ((n) - 1)) / (n))
-#define MINIX_INODES_PER_BLOCK				((MINIX_BLOCK_SIZE) / sizeof(struct minix1_inode_t))
-#define MINIX2_INODES_PER_BLOCK		 		((MINIX_BLOCK_SIZE) / sizeof(struct minix2_inode_t))
+#define MINIX_INODES_PER_BLOCK				((MINIX_BLOCK_SIZE) / sizeof(struct minix1_inode))
+#define MINIX2_INODES_PER_BLOCK		 		((MINIX_BLOCK_SIZE) / sizeof(struct minix2_inode))
 
 /* global variables */
 static int fs_version = DEFAULTS_FS_VERSION;
@@ -57,10 +57,10 @@ static void usage(char *prog_name)
 static int parse_options(int argc, char **argv)
 {
 	static const struct option opts[] = {
-			{ "namelength",		required_argument,	NULL,	'n' },
-			{ "inodes",		required_argument,	NULL,	'i' },
-			{ "help",		no_argument,		NULL,	'h' },
-			{ NULL,			0,			NULL,	0 }
+		{ "namelength",		required_argument,	NULL,	'n' },
+		{ "inodes",		required_argument,	NULL,	'i' },
+		{ "help",		no_argument,		NULL,	'h' },
+		{ NULL,			0,			NULL,	0 }
 	};
 	int c;
 
@@ -244,16 +244,16 @@ int open_device()
  */
 static int set_super_block()
 {
-	struct minix1_super_block_t *sb1;
-	struct minix3_super_block_t *sb3;
+	struct minix1_super_block *sb1;
+	struct minix3_super_block *sb3;
 	int i;
 
 	/* reset super block */
 	memset(sb_block, 0, MINIX_BLOCK_SIZE);
 
 	/* get super block */
-	sb1 = (struct minix1_super_block_t *) sb_block;
-	sb3 = (struct minix3_super_block_t *) sb_block;
+	sb1 = (struct minix1_super_block *) sb_block;
+	sb3 = (struct minix3_super_block *) sb_block;
 
 	/* set super block */
 	switch (fs_version) {
@@ -349,7 +349,7 @@ static int set_super_block()
  */
 static int create_root_inode_v1()
 {
-	struct minix1_inode_t *inode = &((struct minix1_inode_t *) itable)[MINIX_ROOT_INODE - 1];
+	struct minix1_inode *inode = &((struct minix1_inode *) itable)[MINIX_ROOT_INODE - 1];
 	int err;
 
 	/* mark inode in bitmap */
@@ -381,7 +381,7 @@ static int create_root_inode_v1()
  */
 static int create_root_inode_v2()
 {
-	struct minix2_inode_t *inode = &((struct minix2_inode_t *) itable)[MINIX_ROOT_INODE - 1];
+	struct minix2_inode *inode = &((struct minix2_inode *) itable)[MINIX_ROOT_INODE - 1];
 	int err;
 
 	/* mark inode in bitmap */

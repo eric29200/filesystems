@@ -6,12 +6,12 @@
 /*
  * Get directory entries.
  */
-int minix_getdents64(struct file_t *filp, void *dirp, size_t count)
+int minix_getdents64(struct file *filp, void *dirp, size_t count)
 {
-	struct minix_sb_info_t *sbi = minix_sb(filp->f_inode->i_sb);
-	struct minix1_dir_entry_t *de1;
-	struct minix3_dir_entry_t *de3;
-	struct dirent64_t *dirent;
+	struct minix_sb_info *sbi = minix_sb(filp->f_inode->i_sb);
+	struct minix1_dir_entry *de1;
+	struct minix3_dir_entry *de3;
+	struct dirent64 *dirent;
 	int entries_size;
 	size_t name_len;
 	char *name;
@@ -28,7 +28,7 @@ int minix_getdents64(struct file_t *filp, void *dirp, size_t count)
 	de3 = de;
 
 	/* for each entry */
-	for (entries_size = 0, dirent = (struct dirent64_t *) dirp;;) {
+	for (entries_size = 0, dirent = (struct dirent64 *) dirp;;) {
 		/* read minix dir entry */
 		if (minix_file_read(filp, (char *) de, sbi->s_dirsize) != sbi->s_dirsize)
 			return entries_size;
@@ -48,7 +48,7 @@ int minix_getdents64(struct file_t *filp, void *dirp, size_t count)
 
 		/* not enough space to fill in next dir entry : break */
 		name_len = strlen(name);
-		if (count < sizeof(struct dirent64_t) + name_len + 1) {
+		if (count < sizeof(struct dirent64) + name_len + 1) {
 			filp->f_pos -= sbi->s_dirsize;
 			return entries_size;
 		}
@@ -56,7 +56,7 @@ int minix_getdents64(struct file_t *filp, void *dirp, size_t count)
 		/* fill in dirent */
 		dirent->d_inode = ino;
 		dirent->d_off = 0;
-		dirent->d_reclen = sizeof(struct dirent64_t) + name_len + 1;
+		dirent->d_reclen = sizeof(struct dirent64) + name_len + 1;
 		dirent->d_type = 0;
 		memcpy(dirent->d_name, name, name_len);
 		dirent->d_name[name_len] = 0;
@@ -64,7 +64,7 @@ int minix_getdents64(struct file_t *filp, void *dirp, size_t count)
 		/* go to next entry */
 		count -= dirent->d_reclen;
 		entries_size += dirent->d_reclen;
-		dirent = (struct dirent64_t *) ((char *) dirent + dirent->d_reclen);
+		dirent = (struct dirent64 *) ((char *) dirent + dirent->d_reclen);
 	}
 
 	/* free directory entry */

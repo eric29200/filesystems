@@ -26,7 +26,7 @@
 /*
  * TAR header.
  */
-struct tar_header_t {
+struct tar_header {
 	char 				name[100];
 	char 				mode[8];
 	char 				uid[8];
@@ -50,7 +50,7 @@ struct tar_header_t {
 /*
  * TAR entry.
  */
-struct tar_entry_t {
+struct tar_entry {
 	char *				name;
 	char *				linkname;
 	off_t				data_off;
@@ -62,66 +62,66 @@ struct tar_entry_t {
 	struct timespec			mtime;
 	struct timespec			ctime;
 	ino_t				ino;
-	struct list_head_t		children;
-	struct list_head_t		list;
-	struct tar_entry_t *		parent;
+	struct list_head		children;
+	struct list_head		list;
+	struct tar_entry *		parent;
 };
 
 /*
  * TarFS in memory super block.
  */
-struct tarfs_sb_info_t {
-	struct tar_entry_t *		s_root_entry;		/* root TAR entry */
-	struct tar_entry_t **		s_tar_entries;		/* TAR entries */
+struct tarfs_sb_info {
+	struct tar_entry *		s_root_entry;		/* root TAR entry */
+	struct tar_entry **		s_tar_entries;		/* TAR entries */
 	ino_t				s_ninodes;		/* number of inodes */
 };
 
 /*
  * TarFS in memory inode.
  */
-struct tarfs_inode_info_t {
-	struct tar_entry_t *		entry;			/* TAR entry */
-	struct inode_t			vfs_inode;		/* VFS inode */
+struct tarfs_inode_info {
+	struct tar_entry *		entry;			/* TAR entry */
+	struct inode			vfs_inode;		/* VFS inode */
 };
 
 /* TarFS file system operations */
-extern struct super_operations_t tarfs_sops;
-extern struct inode_operations_t tarfs_file_iops;
-extern struct inode_operations_t tarfs_symlink_iops;
-extern struct inode_operations_t tarfs_dir_iops;
-extern struct file_operations_t tarfs_file_fops;
-extern struct file_operations_t tarfs_dir_fops;
+extern struct super_operations tarfs_sops;
+extern struct inode_operations tarfs_file_iops;
+extern struct inode_operations tarfs_symlink_iops;
+extern struct inode_operations tarfs_dir_iops;
+extern struct file_operations tarfs_file_fops;
+extern struct file_operations tarfs_dir_fops;
 
 /* Tar lib prototypes */
-int tar_create(struct super_block_t *sb);
-void tar_free(struct tar_entry_t *entry);
-void tar_index(struct super_block_t *sb, struct tar_entry_t *entry);
+int tar_create(struct super_block *sb);
+void tar_free(struct tar_entry *entry);
+void tar_index(struct super_block *sb, struct tar_entry *entry);
 
 /* TarFS super operations */
-int tarfs_read_super(struct super_block_t *sb, void *data);
-void tarfs_put_super(struct super_block_t *sb);
-int tarfs_statfs(struct super_block_t *sb, struct statfs *buf);
+int tarfs_read_super(struct super_block *sb, void *data);
+void tarfs_put_super(struct super_block *sb);
+int tarfs_statfs(struct super_block *sb, struct statfs *buf);
 
 /* TarFS inode prototypes */
-struct inode_t *tarfs_alloc_inode(struct super_block_t *sb);
-int tarfs_read_inode(struct inode_t *inode);
-void tarfs_put_inode(struct inode_t *inode);
+struct inode *tarfs_alloc_inode(struct super_block *sb);
+int tarfs_read_inode(struct inode *inode);
+void tarfs_put_inode(struct inode *inode);
 
 /* TarFS symlink prototypes */
-int tarfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t **res_inode);
-ssize_t tarfs_readlink(struct inode_t *inode, char *buf, size_t bufsize);
+int tarfs_follow_link(struct inode *dir, struct inode *inode, struct inode **res_inode);
+ssize_t tarfs_readlink(struct inode *inode, char *buf, size_t bufsize);
 
 /* TarFS names resolution prototypes */
-int tarfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode);
+int tarfs_lookup(struct inode *dir, const char *name, size_t name_len, struct inode **res_inode);
 
 /* TarFS file prototypes */
-int tarfs_file_read(struct file_t *filp, char *buf, int count);
-int tarfs_getdents64(struct file_t *filp, void *dirp, size_t count);
+int tarfs_file_read(struct file *filp, char *buf, int count);
+int tarfs_getdents64(struct file *filp, void *dirp, size_t count);
 
 /*
  * Get TarFS in memory super block from generic super block.
  */
-static inline struct tarfs_sb_info_t *tarfs_sb(struct super_block_t *sb)
+static inline struct tarfs_sb_info *tarfs_sb(struct super_block *sb)
 {
 	return sb->s_fs_info;
 }
@@ -129,9 +129,9 @@ static inline struct tarfs_sb_info_t *tarfs_sb(struct super_block_t *sb)
 /*
  * Get TarFS in memory inode from generic inode.
  */
-static inline struct tarfs_inode_info_t *tarfs_i(struct inode_t *inode)
+static inline struct tarfs_inode_info *tarfs_i(struct inode *inode)
 {
-	return container_of(inode, struct tarfs_inode_info_t, vfs_inode);
+	return container_of(inode, struct tarfs_inode_info, vfs_inode);
 }
 
 #endif

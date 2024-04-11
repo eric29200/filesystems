@@ -3,9 +3,9 @@
 /*
  * Read a file.
  */
-int tarfs_file_read(struct file_t *filp, char *buf, int count)
+int tarfs_file_read(struct file *filp, char *buf, int count)
 {
-	struct buffer_head_t *bh;
+	struct buffer_head *bh;
 	int pos, nb_chars, left;
 	uint32_t block;
 

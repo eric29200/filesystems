@@ -38,36 +38,36 @@
 /*
  * Block buffer.
  */
-struct buffer_head_t {
+struct buffer_head {
 	uint32_t				b_block;		/* block number */
 	char *					b_data;			/* data buffer */
 	size_t					b_size;			/* buffer block size */
 	int					b_ref;			/* reference counter */
 	char					b_dirt;			/* dirty flag */
 	char					b_uptodate;		/* up to date flag */
-	struct super_block_t *			b_sb;			/* super block of device */
-	struct list_head_t			b_list;			/* global blocks linked list */
-	struct htable_link_t			b_htable;		/* global blocks hash table */
+	struct super_block *			b_sb;			/* super block of device */
+	struct list_head			b_list;			/* global blocks linked list */
+	struct htable_link			b_htable;		/* global blocks hash table */
 };
 
 /*
  * Generic super block.
  */
-struct super_block_t {
+struct super_block {
 	char *					s_dev;			/* device path */
 	int					s_fd;			/* device file descriptor */
 	uint16_t				s_blocksize;		/* block size in byte */
 	uint8_t					s_blocksize_bits;	/* block size in bit (log2) */
 	uint16_t				s_magic;		/* magic number */
 	void *					s_fs_info;		/* specific file system informations */
-	struct inode_t *			s_root_inode;		/* root inode */
-	struct super_operations_t *		s_op;			/* super block operations */
+	struct inode *				s_root_inode;		/* root inode */
+	struct super_operations *		s_op;			/* super block operations */
 };
 
 /*
  * Generic inode.
  */
-struct inode_t {
+struct inode {
 	mode_t					i_mode;			/* file mode */
 	uint16_t				i_nlinks;		/* number of links to this file */
 	uid_t					i_uid;			/* user id */
@@ -78,17 +78,17 @@ struct inode_t {
 	struct timespec				i_mtime;		/* last modification time */
 	struct timespec				i_ctime;		/* creation time */
 	ino_t					i_ino;			/* inode number */
-	struct super_block_t *			i_sb;			/* super block */
+	struct super_block *			i_sb;			/* super block */
 	int					i_ref;			/* reference counter */
 	char					i_dirt;			/* dirty flag */
-	struct inode_operations_t *		i_op;			/* inode operations */
-	struct htable_link_t			i_htable;		/* global inodes hash table */
+	struct inode_operations *		i_op;			/* inode operations */
+	struct htable_link			i_htable;		/* global inodes hash table */
 };
 
 /*
  * Generic directory entry.
  */
-struct dirent64_t {
+struct dirent64 {
 	uint64_t				d_inode;		/* inode number */
 	int64_t					d_off;			/* offset to next directory entry */
 	uint16_t				d_reclen;		/* length of this struct */
@@ -99,100 +99,100 @@ struct dirent64_t {
 /*
  * Generic file.
  */
-struct file_t {
+struct file {
 	mode_t					f_mode;			/* file mode */
 	int					f_flags;		/* file flags */
 	size_t					f_pos;			/* file position */
 	int					f_ref;			/* reference counter */
 	void *					f_private;		/* private data */
-	struct inode_t *			f_inode;		/* inode */
-	struct file_operations_t *		f_op;			/* file operations */
+	struct inode *				f_inode;		/* inode */
+	struct file_operations *		f_op;			/* file operations */
 };
 
 /*
  * Super block operations.
  */
-struct super_operations_t {
-	struct inode_t *(*alloc_inode)(struct super_block_t *);
-	void (*put_inode)(struct inode_t *);
-	void (*delete_inode)(struct inode_t *);
-	int (*read_inode)(struct inode_t *);
-	int (*write_inode)(struct inode_t *);
-	void (*put_super)(struct super_block_t *);
-	int (*statfs)(struct super_block_t *, struct statfs *);
+struct super_operations {
+	struct inode *(*alloc_inode)(struct super_block *);
+	void (*put_inode)(struct inode *);
+	void (*delete_inode)(struct inode *);
+	int (*read_inode)(struct inode *);
+	int (*write_inode)(struct inode *);
+	void (*put_super)(struct super_block *);
+	int (*statfs)(struct super_block *, struct statfs *);
 };
 
 /*
  * Inode operations.
  */
-struct inode_operations_t {
-	struct file_operations_t *fops;
-	int (*lookup)(struct inode_t *, const char *, size_t, struct inode_t **);
-	int (*create)(struct inode_t *, const char *, size_t, mode_t, struct inode_t **);
-	int (*follow_link)(struct inode_t *, struct inode_t *, struct inode_t **);
-	ssize_t (*readlink)(struct inode_t *, char *, size_t);
-	int (*link)(struct inode_t *, struct inode_t *, const char *, size_t);
-	int (*unlink)(struct inode_t *, const char *, size_t);
-	int (*symlink)(struct inode_t *, const char *, size_t, const char *);
-	int (*mkdir)(struct inode_t *, const char *, size_t, mode_t);
-	int (*rmdir)(struct inode_t *, const char *, size_t);
-	int (*rename)(struct inode_t *, const char *, size_t, struct inode_t *, const char *, size_t);
-	void (*truncate)(struct inode_t *);
+struct inode_operations {
+	struct file_operations *fops;
+	int (*lookup)(struct inode *, const char *, size_t, struct inode **);
+	int (*create)(struct inode *, const char *, size_t, mode_t, struct inode **);
+	int (*follow_link)(struct inode *, struct inode *, struct inode **);
+	ssize_t (*readlink)(struct inode *, char *, size_t);
+	int (*link)(struct inode *, struct inode *, const char *, size_t);
+	int (*unlink)(struct inode *, const char *, size_t);
+	int (*symlink)(struct inode *, const char *, size_t, const char *);
+	int (*mkdir)(struct inode *, const char *, size_t, mode_t);
+	int (*rmdir)(struct inode *, const char *, size_t);
+	int (*rename)(struct inode *, const char *, size_t, struct inode *, const char *, size_t);
+	void (*truncate)(struct inode *);
 };
 
 /*
  * File operations.
  */
-struct file_operations_t {
-	int (*open)(struct file_t *);
-	int (*close)(struct file_t *);
-	int (*read)(struct file_t *, char *, int);
-	int (*write)(struct file_t *, const char *, int);
-	int (*getdents64)(struct file_t *, void *, size_t);
+struct file_operations {
+	int (*open)(struct file *);
+	int (*close)(struct file *);
+	int (*read)(struct file *, char *, int);
+	int (*write)(struct file *, const char *, int);
+	int (*getdents64)(struct file *, void *, size_t);
 };
 
 /* VFS block buffer protoypes */
-struct buffer_head_t *sb_bread(struct super_block_t *sb, uint32_t block);
-int bwrite(struct buffer_head_t *bh);
-void brelse(struct buffer_head_t *bh);
+struct buffer_head *sb_bread(struct super_block *sb, uint32_t block);
+int bwrite(struct buffer_head *bh);
+void brelse(struct buffer_head *bh);
 
 /* VFS inode prototypes */
-struct inode_t *vfs_get_empty_inode(struct super_block_t *sb);
-struct inode_t *vfs_iget(struct super_block_t *sb, ino_t ino);
-void vfs_iput(struct inode_t *inode);
-void vfs_ihash(struct inode_t *inode);
+struct inode *vfs_get_empty_inode(struct super_block *sb);
+struct inode *vfs_iget(struct super_block *sb, ino_t ino);
+void vfs_iput(struct inode *inode);
+void vfs_ihash(struct inode *inode);
 
 /* VFS name resolution prototypes */
-struct inode_t *vfs_namei(struct inode_t *root, struct inode_t *base, const char *pathname, int follow_links);
-int vfs_open_namei(struct inode_t *root, const char *pathname, int flags, mode_t mode, struct inode_t **res_inode);
+struct inode *vfs_namei(struct inode *root, struct inode *base, const char *pathname, int follow_links);
+int vfs_open_namei(struct inode *root, const char *pathname, int flags, mode_t mode, struct inode **res_inode);
 
 /* VFS system calls */
 int vfs_init();
 int vfs_binit();
 int vfs_iinit();
-struct super_block_t *vfs_mount(const char *dev, int fs_type, void *data);
-int vfs_umount(struct super_block_t *sb);
-int vfs_statfs(struct super_block_t *sb, struct statfs *buf);
-int vfs_create(struct inode_t *root, const char *pathname, mode_t mode);
-int vfs_unlink(struct inode_t *root, const char *pathname);
-int vfs_mkdir(struct inode_t *root, const char *pathname, mode_t mode);
-int vfs_rmdir(struct inode_t *root, const char *pathname);
-int vfs_link(struct inode_t *root, const char *oldpath, const char *new_path);
-int vfs_symlink(struct inode_t *root, const char *target, const char *linkpath);
-int vfs_rename(struct inode_t *root, const char *oldpath, const char *newpath);
-ssize_t vfs_readlink(struct inode_t *root, const char *pathname, char *buf, size_t bufsize);
-int vfs_stat(struct inode_t *root, const char *filename, struct stat *statbuf);
-int vfs_access(struct inode_t *root, const char *pathname, int flags);
-int vfs_chmod(struct inode_t *root, const char *pathname, mode_t mode);
-int vfs_chown(struct inode_t *root, const char *pathname, uid_t uid, gid_t gid);
-int vfs_utimens(struct inode_t *root, const char *pathname, const struct timespec times[2], int flags);
-struct file_t *vfs_open(struct inode_t *root, const char *pathname, int flags, mode_t mode);
-int vfs_close(struct file_t *filp);
-ssize_t vfs_read(struct file_t *filp, char *buf, int count);
-ssize_t vfs_write(struct file_t *filp, const char *buf, int count);
-off_t vfs_lseek(struct file_t *filp, off_t offset, int whence);
-int vfs_getdents64(struct file_t *filp, void *dirp, size_t count);
-int vfs_truncate(struct inode_t *root, const char *pathname, off_t length);
+struct super_block *vfs_mount(const char *dev, int fs_type, void *data);
+int vfs_umount(struct super_block *sb);
+int vfs_statfs(struct super_block *sb, struct statfs *buf);
+int vfs_create(struct inode *root, const char *pathname, mode_t mode);
+int vfs_unlink(struct inode *root, const char *pathname);
+int vfs_mkdir(struct inode *root, const char *pathname, mode_t mode);
+int vfs_rmdir(struct inode *root, const char *pathname);
+int vfs_link(struct inode *root, const char *oldpath, const char *new_path);
+int vfs_symlink(struct inode *root, const char *target, const char *linkpath);
+int vfs_rename(struct inode *root, const char *oldpath, const char *newpath);
+ssize_t vfs_readlink(struct inode *root, const char *pathname, char *buf, size_t bufsize);
+int vfs_stat(struct inode *root, const char *filename, struct stat *statbuf);
+int vfs_access(struct inode *root, const char *pathname, int flags);
+int vfs_chmod(struct inode *root, const char *pathname, mode_t mode);
+int vfs_chown(struct inode *root, const char *pathname, uid_t uid, gid_t gid);
+int vfs_utimens(struct inode *root, const char *pathname, const struct timespec times[2], int flags);
+struct file *vfs_open(struct inode *root, const char *pathname, int flags, mode_t mode);
+int vfs_close(struct file *filp);
+ssize_t vfs_read(struct file *filp, char *buf, int count);
+ssize_t vfs_write(struct file *filp, const char *buf, int count);
+off_t vfs_lseek(struct file *filp, off_t offset, int whence);
+int vfs_getdents64(struct file *filp, void *dirp, size_t count);
+int vfs_truncate(struct inode *root, const char *pathname, off_t length);
 
 /*
  * Get current time.

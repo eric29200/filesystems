@@ -5,9 +5,9 @@
 /*
  * Truncate an inode.
  */
-void memfs_truncate(struct inode_t *inode)
+void memfs_truncate(struct inode *inode)
 {
-	struct memfs_inode_info_t *memfs_inode = memfs_i(inode);
+	struct memfs_inode_info *memfs_inode = memfs_i(inode);
 
 	/* just free data */
 	if (inode->i_size <= 0 && memfs_inode->i_data) {

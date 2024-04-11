@@ -8,59 +8,59 @@
 /*
  * FTPFS file operations.
  */
-struct file_operations_t ftpfs_file_fops = {
-	.open							 = ftpfs_open,
-	.close							= ftpfs_close,
-	.read							 = ftpfs_file_read,
-	.write							= ftpfs_file_write,
+struct file_operations ftpfs_file_fops = {
+	.open		= ftpfs_open,
+	.close		= ftpfs_close,
+	.read		= ftpfs_file_read,
+	.write		= ftpfs_file_write,
 };
 
 /*
  * FTPFS file inode operations.
  */
-struct inode_operations_t ftpfs_file_iops = {
-	.fops							 = &ftpfs_file_fops,
-	.truncate					 = NULL,
+struct inode_operations ftpfs_file_iops = {
+	.fops		= &ftpfs_file_fops,
+	.truncate	= NULL,
 };
 
 /*
  * FTPFS directory operations.
  */
-struct file_operations_t ftpfs_dir_fops = {
-	.getdents64				 = ftpfs_getdents64,
+struct file_operations ftpfs_dir_fops = {
+	.getdents64	= ftpfs_getdents64,
 };
 
 /*
  * FTPFS directory inode operations.
  */
-struct inode_operations_t ftpfs_dir_iops = {
-	.fops							 = &ftpfs_dir_fops,
-	.lookup						 = ftpfs_lookup,
-	.create						 = ftpfs_create,
-	.unlink						 = ftpfs_unlink,
-	.mkdir							= ftpfs_mkdir,
-	.rmdir							= ftpfs_rmdir,
-	.rename						 = ftpfs_rename,
-	.truncate					 = NULL,
+struct inode_operations ftpfs_dir_iops = {
+	.fops		= &ftpfs_dir_fops,
+	.lookup		= ftpfs_lookup,
+	.create		= ftpfs_create,
+	.unlink		= ftpfs_unlink,
+	.mkdir		= ftpfs_mkdir,
+	.rmdir		= ftpfs_rmdir,
+	.rename		= ftpfs_rename,
+	.truncate	= NULL,
 };
 
 /*
  * FTPFS symbolic link inode operations.
  */
-struct inode_operations_t ftpfs_symlink_iops = {
-	.follow_link				= ftpfs_follow_link,
-	.readlink					 = ftpfs_readlink,
+struct inode_operations ftpfs_symlink_iops = {
+	.follow_link	= ftpfs_follow_link,
+	.readlink	= ftpfs_readlink,
 };
 
 /*
  * Allocate a FTPFS inode.
  */
-struct inode_t *ftpfs_alloc_inode(struct super_block_t *sb)
+struct inode *ftpfs_alloc_inode(struct super_block *sb)
 {
-	struct ftpfs_inode_info_t *ftpfs_inode;
+	struct ftpfs_inode_info *ftpfs_inode;
 
 	/* allocate FTPFS inode */
-	ftpfs_inode = (struct ftpfs_inode_info_t *) malloc(sizeof(struct ftpfs_inode_info_t));
+	ftpfs_inode = (struct ftpfs_inode_info *) malloc(sizeof(struct ftpfs_inode_info));
 	if (!ftpfs_inode)
 		return NULL;
 
@@ -70,7 +70,7 @@ struct inode_t *ftpfs_alloc_inode(struct super_block_t *sb)
 /*
  * Clear an inode (remove it from cache and release it).
  */
-static void ftpfs_clear_inode(struct super_block_t *sb, struct ftpfs_inode_info_t *inode)
+static void ftpfs_clear_inode(struct super_block *sb, struct ftpfs_inode_info *inode)
 {
 	/* unhash inode */
 	list_del(&inode->i_list);
@@ -94,14 +94,14 @@ static void ftpfs_clear_inode(struct super_block_t *sb, struct ftpfs_inode_info_
 /*
  * Clear inodes cache.
  */
-static void ftpfs_clear_inode_cache(struct super_block_t *sb)
+static void ftpfs_clear_inode_cache(struct super_block *sb)
 {
-	struct ftpfs_inode_info_t *inode;
-	struct list_head_t *pos, *n;
+	struct ftpfs_inode_info *inode;
+	struct list_head *pos, *n;
 
 	/* free all unused inodes */
 	list_for_each_safe(pos, n, &ftpfs_sb(sb)->s_inodes_cache_list) {
-		inode = list_entry(pos, struct ftpfs_inode_info_t, i_list);
+		inode = list_entry(pos, struct ftpfs_inode_info, i_list);
 
 		/* if inode is unused delete it */
 		if (inode->vfs_inode.i_ref <= 0)
@@ -115,7 +115,7 @@ static void ftpfs_clear_inode_cache(struct super_block_t *sb)
 /*
  * Release a FTPFS inode.
  */
-void ftpfs_put_inode(struct inode_t *inode)
+void ftpfs_put_inode(struct inode *inode)
 {
 	/* nothing to do */
 }
@@ -123,7 +123,7 @@ void ftpfs_put_inode(struct inode_t *inode)
 /*
  * Delete a FTPFS inode inode.
  */
-void ftpfs_delete_inode(struct inode_t *inode)
+void ftpfs_delete_inode(struct inode *inode)
 {
 	if (!inode || inode->i_nlinks)
 		return;
@@ -135,7 +135,7 @@ void ftpfs_delete_inode(struct inode_t *inode)
 /*
  * Build full path (concat dir and name).
  */
-char *ftpfs_build_path(struct inode_t *dir, struct ftpfs_fattr_t *fattr)
+char *ftpfs_build_path(struct inode *dir, struct ftpfs_fattr *fattr)
 {
 	size_t dir_path_len, name_len;
 	char *path;
@@ -168,10 +168,10 @@ char *ftpfs_build_path(struct inode_t *dir, struct ftpfs_fattr_t *fattr)
 /*
  * Load inode data (= store directory listing or link target).
  */
-int ftpfs_load_inode_data(struct inode_t *inode, struct ftpfs_fattr_t *fattr)
+int ftpfs_load_inode_data(struct inode *inode, struct ftpfs_fattr *fattr)
 {
-	struct ftpfs_inode_info_t *ftpfs_inode = ftpfs_i(inode);
-	struct super_block_t *sb = inode->i_sb;
+	struct ftpfs_inode_info *ftpfs_inode = ftpfs_i(inode);
+	struct super_block *sb = inode->i_sb;
 	size_t link_len;
 
 	/* data cache already set */
@@ -207,9 +207,9 @@ int ftpfs_load_inode_data(struct inode_t *inode, struct ftpfs_fattr_t *fattr)
 /*
  * Reload inode data.
  */
-int ftpfs_reload_inode_data(struct inode_t *inode, struct ftpfs_fattr_t *fattr)
+int ftpfs_reload_inode_data(struct inode *inode, struct ftpfs_fattr *fattr)
 {
-	struct ftpfs_inode_info_t *ftpfs_inode = ftpfs_i(inode);
+	struct ftpfs_inode_info *ftpfs_inode = ftpfs_i(inode);
 
 	/* clear cache */
 	if (ftpfs_inode->i_cache.data) {
@@ -226,7 +226,7 @@ int ftpfs_reload_inode_data(struct inode_t *inode, struct ftpfs_fattr_t *fattr)
 /*
  * Read an inode.
  */
-static int ftpfs_read_inode(struct inode_t *inode, struct ftpfs_fattr_t *fattr, char *path)
+static int ftpfs_read_inode(struct inode *inode, struct ftpfs_fattr *fattr, char *path)
 {
 	int err;
 
@@ -267,10 +267,10 @@ static int ftpfs_read_inode(struct inode_t *inode, struct ftpfs_fattr_t *fattr, 
 /*
  * Get a FTPFS inode.
  */
-struct inode_t *ftpfs_iget(struct super_block_t *sb, struct inode_t *dir, struct ftpfs_fattr_t *fattr)
+struct inode *ftpfs_iget(struct super_block *sb, struct inode *dir, struct ftpfs_fattr *fattr)
 {
-	struct htable_link_t *node;
-	struct inode_t *inode;
+	struct htable_link *node;
+	struct inode *inode;
 	char *path;
 	int err;
 
@@ -282,7 +282,7 @@ struct inode_t *ftpfs_iget(struct super_block_t *sb, struct inode_t *dir, struct
 	/* try to find inode in cache */
 	node = htable_lookupstr(ftpfs_sb(sb)->s_inodes_cache_htable, path, FTPFS_INODE_HTABLE_BITS);
 	while (node) {
-		inode = htable_entry(node, struct inode_t, i_htable);
+		inode = htable_entry(node, struct inode, i_htable);
 		if (strcmp(ftpfs_i(inode)->i_path, path) == 0) {
 			free(path);
 			inode->i_ref++;

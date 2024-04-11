@@ -18,9 +18,9 @@ static inline int ftpfs_name_match(const char *name1, size_t len1, const char *n
 /*
  * Find an entry in a directory.
  */
-static int ftpfs_find_entry(struct inode_t *dir, const char *name, size_t name_len, struct ftpfs_fattr_t *res_fattr)
+static int ftpfs_find_entry(struct inode *dir, const char *name, size_t name_len, struct ftpfs_fattr *res_fattr)
 {
-	struct ftpfs_inode_info_t *ftpfs_dir = ftpfs_i(dir);
+	struct ftpfs_inode_info *ftpfs_dir = ftpfs_i(dir);
 	char *start, *end, *line;
 	int err;
 
@@ -77,9 +77,9 @@ next_line:
 /*
  * Lookup for a file in a directory.
  */
-int ftpfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct inode_t **res_inode)
+int ftpfs_lookup(struct inode *dir, const char *name, size_t name_len, struct inode **res_inode)
 {
-	struct ftpfs_fattr_t fattr;
+	struct ftpfs_fattr fattr;
 	int err;
 
 	/* check dir */
@@ -113,11 +113,11 @@ int ftpfs_lookup(struct inode_t *dir, const char *name, size_t name_len, struct 
 /*
  * Create a file in a directory.
  */
-int ftpfs_create(struct inode_t *dir, const char *name, size_t name_len, mode_t mode, struct inode_t **res_inode)
+int ftpfs_create(struct inode *dir, const char *name, size_t name_len, mode_t mode, struct inode **res_inode)
 {
-	struct ftpfs_fattr_t fattr;
+	struct ftpfs_fattr fattr;
 	char *full_path = NULL;
-	struct inode_t *tmp;
+	struct inode *tmp;
 	int err;
 
 	/* check directory */
@@ -176,10 +176,10 @@ int ftpfs_create(struct inode_t *dir, const char *name, size_t name_len, mode_t 
 /*
  * Unlink (remove) a file.
  */
-int ftpfs_unlink(struct inode_t *dir, const char *name, size_t name_len)
+int ftpfs_unlink(struct inode *dir, const char *name, size_t name_len)
 {
-	struct ftpfs_fattr_t fattr;
-	struct inode_t *inode;
+	struct ftpfs_fattr fattr;
+	struct inode *inode;
 	char *full_path;
 	int err;
 
@@ -230,9 +230,9 @@ out:
 /*
  * Make a directory.
  */
-int ftpfs_mkdir(struct inode_t *dir, const char *name, size_t name_len, mode_t mode)
+int ftpfs_mkdir(struct inode *dir, const char *name, size_t name_len, mode_t mode)
 {
-	struct ftpfs_fattr_t fattr;
+	struct ftpfs_fattr fattr;
 	char *full_path;
 	int err;
 
@@ -272,10 +272,10 @@ out:
 /*
  * Remove a directory.
  */
-int ftpfs_rmdir(struct inode_t *dir, const char *name, size_t name_len)
+int ftpfs_rmdir(struct inode *dir, const char *name, size_t name_len)
 {
-	struct ftpfs_fattr_t fattr;
-	struct inode_t *inode;
+	struct ftpfs_fattr fattr;
+	struct inode *inode;
 	char *full_path;
 	int err;
 
@@ -326,12 +326,11 @@ out:
 /*
  * Rename a file.
  */
-int ftpfs_rename(struct inode_t *old_dir, const char *old_name, size_t old_name_len,
-								 struct inode_t *new_dir, const char *new_name, size_t new_name_len)
+int ftpfs_rename(struct inode *old_dir, const char *old_name, size_t old_name_len, struct inode *new_dir, const char *new_name, size_t new_name_len)
 {
-	struct inode_t *old_inode = NULL, *new_inode = NULL;
+	struct inode *old_inode = NULL, *new_inode = NULL;
 	char *old_full_path = NULL, *new_full_path = NULL;
-	struct ftpfs_fattr_t old_fattr, new_fattr;
+	struct ftpfs_fattr old_fattr, new_fattr;
 	int err = 0;
 
 	/* adjust names lengths */

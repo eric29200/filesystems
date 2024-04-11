@@ -40,11 +40,11 @@ static void usage(char *prog_name)
 static int parse_options(int argc, char **argv)
 {
 	static const struct option opts[] = {
-			{ "inodes",	required_argument,	NULL,	'N' },
-			{ "vname",	required_argument,	NULL,	'V' },
-			{ "fname",	required_argument,	NULL,	'F' },
-			{ "help",	no_argument,		NULL,	'h' },
-			{ NULL,		0,			NULL,	0 }
+		{ "inodes",	required_argument,	NULL,	'N' },
+		{ "vname",	required_argument,	NULL,	'V' },
+		{ "fname",	required_argument,	NULL,	'F' },
+		{ "help",	no_argument,		NULL,	'h' },
+		{ NULL,		0,			NULL,	0 }
 	};
 	int c;
 
@@ -140,7 +140,7 @@ int open_device()
 	}
 
 	/* compute inodes and data blocks */
-	fs_inode_blocks = (fs_inodes * sizeof(struct bfs_inode_t) + BFS_BLOCK_SIZE - 1) / BFS_BLOCK_SIZE;
+	fs_inode_blocks = (fs_inodes * sizeof(struct bfs_inode) + BFS_BLOCK_SIZE - 1) / BFS_BLOCK_SIZE;
 	fs_data_blocks = fs_blocks - fs_inode_blocks - 1;
 
 	/* check number of data blocks */
@@ -165,12 +165,12 @@ int open_device()
  */
 static int write_super_block()
 {
-	struct bfs_super_block_t sb;
+	struct bfs_super_block sb;
 
 	/* set super block */
-	memset(&sb, 0, sizeof(struct bfs_super_block_t));
+	memset(&sb, 0, sizeof(struct bfs_super_block));
 	sb.s_magic = htole32(BFS_MAGIC);
-	sb.s_start = htole32(fs_inodes * sizeof(struct bfs_inode_t) + sizeof(struct bfs_super_block_t));
+	sb.s_start = htole32(fs_inodes * sizeof(struct bfs_inode) + sizeof(struct bfs_super_block));
 	sb.s_end = htole32(fs_blocks * BFS_BLOCK_SIZE - 1);
 	sb.s_from = -1;
 	sb.s_to = -1;
@@ -180,7 +180,7 @@ static int write_super_block()
 	memcpy(sb.s_volume, fs_volume_name, 6);
 
 	/* write super block */
-	if (write(fs_dev_fd, &sb, sizeof(struct bfs_super_block_t)) != sizeof(struct bfs_super_block_t)) {
+	if (write(fs_dev_fd, &sb, sizeof(struct bfs_super_block)) != sizeof(struct bfs_super_block)) {
 		fprintf(stderr, "can't write super block\n");
 		return -EIO;
 	}
@@ -201,16 +201,16 @@ static int write_super_block()
  */
 static int write_inodes()
 {
-	struct bfs_dir_entry_t de;
-	struct bfs_inode_t inode;
+	struct bfs_dir_entry de;
+	struct bfs_inode inode;
 	int i;
 
 	/* set root inode */
-	memset(&inode, 0, sizeof(struct bfs_inode_t));
+	memset(&inode, 0, sizeof(struct bfs_inode));
 	inode.i_ino = htole16(BFS_ROOT_INO);
 	inode.i_sblock = htole32(fs_inode_blocks + 1);
-	inode.i_eblock = htole32(fs_inode_blocks + 1 + (fs_inodes * sizeof(struct bfs_dir_entry_t) - 1) / BFS_BLOCK_SIZE);
-	inode.i_eoffset = htole32((fs_inode_blocks + 1) * BFS_BLOCK_SIZE + 2 * sizeof(struct bfs_dir_entry_t) - 1);
+	inode.i_eblock = htole32(fs_inode_blocks + 1 + (fs_inodes * sizeof(struct bfs_dir_entry) - 1) / BFS_BLOCK_SIZE);
+	inode.i_eoffset = htole32((fs_inode_blocks + 1) * BFS_BLOCK_SIZE + 2 * sizeof(struct bfs_dir_entry) - 1);
 	inode.i_vtype = htole32(BFS_VDIR);
 	inode.i_mode = htole32(S_IFDIR | 0755);
 	inode.i_uid = htole32(0);
@@ -219,15 +219,15 @@ static int write_inodes()
 	inode.i_atime = inode.i_mtime = inode.i_ctime = htole32(time(NULL));
 
 	/* write root inode */
-	if (write(fs_dev_fd, &inode, sizeof(struct bfs_inode_t)) != sizeof(struct bfs_inode_t)) {
+	if (write(fs_dev_fd, &inode, sizeof(struct bfs_inode)) != sizeof(struct bfs_inode)) {
 		fprintf(stderr, "can't write root inode\n");
 		return -EIO;
 	}
 
 	/* reset all inodes */
-	memset(&inode, 0, sizeof(struct bfs_inode_t));
+	memset(&inode, 0, sizeof(struct bfs_inode));
 	for (i = 1; i < fs_inodes; i++) {
-		if (write(fs_dev_fd, &inode, sizeof(struct bfs_inode_t)) != sizeof(struct bfs_inode_t)) {
+		if (write(fs_dev_fd, &inode, sizeof(struct bfs_inode)) != sizeof(struct bfs_inode)) {
 			fprintf(stderr, "can't write reset inodes\n");
 			return -EIO;
 		}
@@ -240,17 +240,17 @@ static int write_inodes()
 	}
 
 	/* write "." entry */
-	memset(&de, 0, sizeof(struct bfs_dir_entry_t));
+	memset(&de, 0, sizeof(struct bfs_dir_entry));
 	de.d_ino = htole16(BFS_ROOT_INO);
 	memcpy(de.d_name, ".", 1);
-	if (write(fs_dev_fd, &de, sizeof(struct bfs_dir_entry_t)) != sizeof(struct bfs_dir_entry_t)) {
+	if (write(fs_dev_fd, &de, sizeof(struct bfs_dir_entry)) != sizeof(struct bfs_dir_entry)) {
 		fprintf(stderr, "can't write root directory entry\n");
 		return -EIO;
 	}
 
 	/* write ".." entry */
 	memcpy(de.d_name, "..", 2);
-	if (write(fs_dev_fd, &de, sizeof(struct bfs_dir_entry_t)) != sizeof(struct bfs_dir_entry_t)) {
+	if (write(fs_dev_fd, &de, sizeof(struct bfs_dir_entry)) != sizeof(struct bfs_dir_entry)) {
 		fprintf(stderr, "can't write root directory entry\n");
 		return -EIO;
 	}

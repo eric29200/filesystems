@@ -11,12 +11,12 @@
 
 #include "ftpfs.h"
 
-#define FTP_NAME_LEN			256
-#define FTP_PORT_LEN			16
-#define SPACES						"%*[ \t]"
+#define FTP_NAME_LEN		256
+#define FTP_PORT_LEN		16
+#define SPACES			"%*[ \t]"
 
-#define FTP_OK						0
-#define FTP_ERR					 -1
+#define FTP_OK			0
+#define FTP_ERR			-1
 
 /*
  * Get a line from stdin.
@@ -42,14 +42,14 @@ static void get_line(char *line, size_t line_len)
 /*
  * Ask user/password.
  */
-struct ftp_param_t *ftp_ask_parameters()
+struct ftp_param *ftp_ask_parameters()
 {
-	struct ftp_param_t *params;
+	struct ftp_param *params;
 	struct termios term;
 	char *line = NULL;
 
 	/* allocate parameters */
-	params = (struct ftp_param_t *) malloc(sizeof(struct ftp_param_t));
+	params = (struct ftp_param *) malloc(sizeof(struct ftp_param));
 	if (!params)
 		return NULL;
 
@@ -280,7 +280,7 @@ static int ftp_opendatasock(int sockfd_ctrl, struct sockaddr *addr_ctrl)
 static int ftp_read_to_buf(const char *buf, int len, void *arg)
 {
 	/* get ftp buffer */
-	struct ftp_buffer_t *ftp_buf = (struct ftp_buffer_t *) arg;
+	struct ftp_buffer *ftp_buf = (struct ftp_buffer *) arg;
 
 	/* grow buffer if needed */
 	if (ftp_buf->len + len > ftp_buf->capacity) {
@@ -495,7 +495,7 @@ int ftp_quit(int sockfd)
 /*
  * List a FTP directory.
  */
-int ftp_list(int sockfd, struct sockaddr *addr, const char *dir, struct ftp_buffer_t *buf)
+int ftp_list(int sockfd, struct sockaddr *addr, const char *dir, struct ftp_buffer *buf)
 {
 	int sockfd_data, err;
 
@@ -609,7 +609,7 @@ int ftp_store(int sockfd, struct sockaddr *addr, const char *pathname, int fd_in
 /*
  * Parse a FTP dir line.
  */
-int ftp_parse_dir_line(const char *line, struct ftpfs_fattr_t *fattr)
+int ftp_parse_dir_line(const char *line, struct ftpfs_fattr *fattr)
 {
 	char mode[12], user[33], group[3], month[4], day[3], year[6], *link_marker;
 	unsigned long nlinks = 1;
@@ -623,16 +623,16 @@ int ftp_parse_dir_line(const char *line, struct ftpfs_fattr_t *fattr)
 
 	/* parse line */
 	res = sscanf(line,
-							 "%11s"
-							 "%lu"	SPACES
-							 "%32s" SPACES
-							 "%32s" SPACES
-							 "%llu" SPACES
-							 "%3s"	SPACES
-							 "%2s"	SPACES
-							 "%5s"	"%*c"
-							 "%1023c",
-							 mode, &nlinks, user, group, &size, month, day, year, fattr->name);
+		"%11s"
+		"%lu"	SPACES
+		"%32s" SPACES
+		"%32s" SPACES
+		"%llu" SPACES
+		"%3s"	SPACES
+		"%2s"	SPACES
+		"%5s"	"%*c"
+		"%1023c",
+		mode, &nlinks, user, group, &size, month, day, year, fattr->name);
 
 	/* not a directory entry */
 	if (res < 9)

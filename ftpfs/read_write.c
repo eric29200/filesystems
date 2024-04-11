@@ -7,7 +7,7 @@
 /*
  * Read a file.
  */
-int ftpfs_file_read(struct file_t *filp, char *buf, int count)
+int ftpfs_file_read(struct file *filp, char *buf, int count)
 {
 	int fd, n;
 
@@ -36,7 +36,7 @@ int ftpfs_file_read(struct file_t *filp, char *buf, int count)
 /*
  * Write a file.
  */
-int ftpfs_file_write(struct file_t *filp, const char *buf, int count)
+int ftpfs_file_write(struct file *filp, const char *buf, int count)
 {
 	int fd, n;
 

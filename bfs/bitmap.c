@@ -32,10 +32,10 @@ static inline int bfs_get_free_bitmap(char *bitmap, size_t bitmap_len)
 /*
  * Create a new Minix inode.
  */
-struct inode_t *bfs_new_inode(struct super_block_t *sb)
+struct inode *bfs_new_inode(struct super_block *sb)
 {
-	struct bfs_sb_info_t *sbi = bfs_sb(sb);
-	struct inode_t *inode;
+	struct bfs_sb_info *sbi = bfs_sb(sb);
+	struct inode *inode;
 	int ino;
 
 	/* get an empty inode */
@@ -75,12 +75,12 @@ struct inode_t *bfs_new_inode(struct super_block_t *sb)
 /*
  * Free a BFS inode.
  */
-int bfs_free_inode(struct inode_t *inode)
+int bfs_free_inode(struct inode *inode)
 {
-	struct bfs_inode_info_t *bfs_inode = bfs_i(inode);
-	struct bfs_sb_info_t *sbi = bfs_sb(inode->i_sb);
-	struct bfs_inode_t *raw_inode;
-	struct buffer_head_t *bh;
+	struct bfs_inode_info *bfs_inode = bfs_i(inode);
+	struct bfs_sb_info *sbi = bfs_sb(inode->i_sb);
+	struct bfs_inode *raw_inode;
+	struct buffer_head *bh;
 	uint32_t block, off;
 
 	/* compute inode block */
@@ -93,10 +93,10 @@ int bfs_free_inode(struct inode_t *inode)
 
 	/* get bfs inode */
 	off = (inode->i_ino - BFS_ROOT_INO) % BFS_INODES_PER_BLOCK;
-	raw_inode = (struct bfs_inode_t *) bh->b_data + off;
+	raw_inode = (struct bfs_inode *) bh->b_data + off;
 
 	/* memzero raw inode */
-	memset(raw_inode, 0, sizeof(struct bfs_inode_t));
+	memset(raw_inode, 0, sizeof(struct bfs_inode));
 
 	/* release block buffer */
 	bh->b_dirt = 1;

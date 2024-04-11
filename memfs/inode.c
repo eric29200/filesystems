@@ -8,7 +8,7 @@
 /*
  * MemFS file operations.
  */
-struct file_operations_t memfs_file_fops = {
+struct file_operations memfs_file_fops = {
 	.read			= memfs_file_read,
 	.write			= memfs_file_write,
 };
@@ -16,14 +16,14 @@ struct file_operations_t memfs_file_fops = {
 /*
  * MemFS directory operations.
  */
-struct file_operations_t memfs_dir_fops = {
+struct file_operations memfs_dir_fops = {
 	.getdents64		= memfs_getdents64,
 };
 
 /*
  * MemFS file inode operations.
  */
-struct inode_operations_t memfs_file_iops = {
+struct inode_operations memfs_file_iops = {
 	.fops			= &memfs_file_fops,
 	.truncate		= memfs_truncate,
 };
@@ -31,7 +31,7 @@ struct inode_operations_t memfs_file_iops = {
 /*
  * MemFS symbolic link inode operations.
  */
-struct inode_operations_t memfs_symlink_iops = {
+struct inode_operations memfs_symlink_iops = {
 	.follow_link		= memfs_follow_link,
 	.readlink		= memfs_readlink,
 };
@@ -39,7 +39,7 @@ struct inode_operations_t memfs_symlink_iops = {
 /*
  * MemFS directory inode operations.
  */
-struct inode_operations_t memfs_dir_iops = {
+struct inode_operations memfs_dir_iops = {
 	.fops			= &memfs_dir_fops,
 	.lookup			= memfs_lookup,
 	.create			= memfs_create,
@@ -55,12 +55,12 @@ struct inode_operations_t memfs_dir_iops = {
 /*
  * Allocate a MemFS inode.
  */
-struct inode_t *memfs_alloc_inode(struct super_block_t *sb)
+struct inode *memfs_alloc_inode(struct super_block *sb)
 {
-	struct memfs_inode_info_t *memfs_inode;
+	struct memfs_inode_info *memfs_inode;
 
 	/* allocate memfs specific inode */
-	memfs_inode = malloc(sizeof(struct memfs_inode_info_t));
+	memfs_inode = malloc(sizeof(struct memfs_inode_info));
 	if (!memfs_inode)
 		return NULL;
 
@@ -73,7 +73,7 @@ struct inode_t *memfs_alloc_inode(struct super_block_t *sb)
 /*
  * Release a MemFS inode.
  */
-void memfs_put_inode(struct inode_t *inode)
+void memfs_put_inode(struct inode *inode)
 {
 	/* nothing to do */
 }
@@ -81,7 +81,7 @@ void memfs_put_inode(struct inode_t *inode)
 /*
  * Delete a MemFS inode.
  */
-void memfs_delete_inode(struct inode_t *inode)
+void memfs_delete_inode(struct inode *inode)
 {
 	/* check if inode is still referenced */
 	if (inode->i_nlinks)
@@ -104,10 +104,10 @@ void memfs_delete_inode(struct inode_t *inode)
 /*
  * Create a new MemFS inode.
  */
-struct inode_t *memfs_new_inode(struct super_block_t *sb, mode_t mode)
+struct inode *memfs_new_inode(struct super_block *sb, mode_t mode)
 {
-	struct memfs_sb_info_t *sbi = memfs_sb(sb);
-	struct inode_t *inode;
+	struct memfs_sb_info *sbi = memfs_sb(sb);
+	struct inode *inode;
 
 	/* get an empty inode */
 	inode = vfs_get_empty_inode(sb);

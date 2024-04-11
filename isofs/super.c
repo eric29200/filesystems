@@ -7,7 +7,7 @@
 /*
  * IOSFS super operations.
  */
-struct super_operations_t isofs_sops = {
+struct super_operations isofs_sops = {
 	.alloc_inode			= isofs_alloc_inode,
 	.put_inode			= isofs_put_inode,
 	.read_inode			= isofs_read_inode,
@@ -18,17 +18,17 @@ struct super_operations_t isofs_sops = {
 /*
  * Read a ISOFS super block.
  */
-int isofs_read_super(struct super_block_t *sb, void *data)
+int isofs_read_super(struct super_block *sb, void *data)
 {
-	struct iso_directory_record_t *root_dir;
-	struct iso_primary_descriptor_t *pri;
-	struct iso_volume_descriptor_t *vdp;
-	struct isofs_sb_info_t *sbi;
-	struct buffer_head_t *sbh;
+	struct iso_directory_record *root_dir;
+	struct iso_primary_descriptor *pri;
+	struct iso_volume_descriptor *vdp;
+	struct isofs_sb_info *sbi;
+	struct buffer_head *sbh;
 	int block, err = -EINVAL;
 
 	/* allocate ISOFS super block */
-	sb->s_fs_info = sbi = (struct isofs_sb_info_t *) malloc(sizeof(struct isofs_sb_info_t));
+	sb->s_fs_info = sbi = (struct isofs_sb_info *) malloc(sizeof(struct isofs_sb_info));
 	if (!sbi)
 		return -ENOMEM;
 
@@ -44,7 +44,7 @@ int isofs_read_super(struct super_block_t *sb, void *data)
 			goto out_primary_vol;
 
 		/* get volume descriptor */
-		vdp = (struct iso_volume_descriptor_t *) sbh->b_data;
+		vdp = (struct iso_volume_descriptor *) sbh->b_data;
 
 		/* check volume id */
 		if (strncmp(vdp->id, "CD001", sizeof(vdp->id)) == 0) {
@@ -53,7 +53,7 @@ int isofs_read_super(struct super_block_t *sb, void *data)
 				goto out_primary_vol;
 
 			/* get primary descriptor */
-			pri = (struct iso_primary_descriptor_t *) vdp;
+			pri = (struct iso_primary_descriptor *) vdp;
 			break;
 		}
 
@@ -70,7 +70,7 @@ int isofs_read_super(struct super_block_t *sb, void *data)
 		goto out_multivol;
 
 	/* get root directory record */
-	root_dir = (struct iso_directory_record_t *) pri->root_directory_record;
+	root_dir = (struct iso_directory_record *) pri->root_directory_record;
 
 	/* set super block */
 	sbi->s_nzones = isofs_num733(pri->volume_space_size);
@@ -110,9 +110,9 @@ out:
 /*
  * Release a ISOFS super block.
  */
-void isofs_put_super(struct super_block_t *sb)
+void isofs_put_super(struct super_block *sb)
 {
-	struct isofs_sb_info_t *sbi = isofs_sb(sb);
+	struct isofs_sb_info *sbi = isofs_sb(sb);
 
 	/* release root inode */
 	vfs_iput(sb->s_root_inode);
@@ -124,9 +124,9 @@ void isofs_put_super(struct super_block_t *sb)
 /*
  * Get ISOFS file system status.
  */
-int isofs_statfs(struct super_block_t *sb, struct statfs *buf)
+int isofs_statfs(struct super_block *sb, struct statfs *buf)
 {
-	struct isofs_sb_info_t *sbi = isofs_sb(sb);
+	struct isofs_sb_info *sbi = isofs_sb(sb);
 
 	buf->f_type = sb->s_magic;
 	buf->f_bsize = sb->s_blocksize;

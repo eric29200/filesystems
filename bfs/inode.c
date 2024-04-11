@@ -7,7 +7,7 @@
 /*
  * BFS file operations.
  */
-struct file_operations_t bfs_file_fops = {
+struct file_operations bfs_file_fops = {
 	.read			= bfs_file_read,
 	.write			= bfs_file_write,
 };
@@ -15,21 +15,21 @@ struct file_operations_t bfs_file_fops = {
 /*
  * BFS directory operations.
  */
-struct file_operations_t bfs_dir_fops = {
+struct file_operations bfs_dir_fops = {
 	.getdents64		= bfs_getdents64,
 };
 
 /*
  * BFS file inode operations.
  */
-struct inode_operations_t bfs_file_iops = {
+struct inode_operations bfs_file_iops = {
 	.fops			= &bfs_file_fops,
 };
 
 /*
  * BFS directory inode operations.
  */
-struct inode_operations_t bfs_dir_iops = {
+struct inode_operations bfs_dir_iops = {
 	.fops			= &bfs_dir_fops,
 	.lookup			= bfs_lookup,
 	.create			= bfs_create,
@@ -41,12 +41,12 @@ struct inode_operations_t bfs_dir_iops = {
 /*
  * Allocate a BFS inode.
  */
-struct inode_t *bfs_alloc_inode(struct super_block_t *sb)
+struct inode *bfs_alloc_inode(struct super_block *sb)
 {
-	struct bfs_inode_info_t *bfs_inode;
+	struct bfs_inode_info *bfs_inode;
 
 	/* allocate BFS inode */
-	bfs_inode = (struct bfs_inode_info_t *) malloc(sizeof(struct bfs_inode_info_t));
+	bfs_inode = (struct bfs_inode_info *) malloc(sizeof(struct bfs_inode_info));
 	if (!bfs_inode)
 		return NULL;
 
@@ -56,7 +56,7 @@ struct inode_t *bfs_alloc_inode(struct super_block_t *sb)
 /*
  * Delete a BFS inode.
  */
-void bfs_delete_inode(struct inode_t *inode)
+void bfs_delete_inode(struct inode *inode)
 {
 	if (!inode)
 		return;
@@ -72,11 +72,11 @@ void bfs_delete_inode(struct inode_t *inode)
 /*
  * Read a BFS inode.
  */
-int bfs_read_inode(struct inode_t *inode)
+int bfs_read_inode(struct inode *inode)
 {
-	struct bfs_sb_info_t *sbi = bfs_sb(inode->i_sb);
-	struct bfs_inode_t *bfs_inode;
-	struct buffer_head_t *bh;
+	struct bfs_sb_info *sbi = bfs_sb(inode->i_sb);
+	struct bfs_inode *bfs_inode;
+	struct buffer_head *bh;
 	uint32_t block, off;
 
 	/* check inode number */
@@ -95,7 +95,7 @@ int bfs_read_inode(struct inode_t *inode)
 
 	/* get bfs inode */
 	off = (inode->i_ino - BFS_ROOT_INO) % BFS_INODES_PER_BLOCK;
-	bfs_inode = (struct bfs_inode_t *) bh->b_data + off;
+	bfs_inode = (struct bfs_inode *) bh->b_data + off;
 
 	/* set inode */
 	bfs_i(inode)->i_sblock = le32toh(bfs_inode->i_sblock);
@@ -131,12 +131,12 @@ int bfs_read_inode(struct inode_t *inode)
 /*
  * Write a BFS inode.
  */
-int bfs_write_inode(struct inode_t *inode)
+int bfs_write_inode(struct inode *inode)
 {
-	struct bfs_inode_info_t *bfs_inode = bfs_i(inode);
-	struct bfs_sb_info_t *sbi = bfs_sb(inode->i_sb);
-	struct bfs_inode_t *raw_inode;
-	struct buffer_head_t *bh;
+	struct bfs_inode_info *bfs_inode = bfs_i(inode);
+	struct bfs_sb_info *sbi = bfs_sb(inode->i_sb);
+	struct bfs_inode *raw_inode;
+	struct buffer_head *bh;
 	uint32_t block, off;
 
 	/* check inode */
@@ -157,7 +157,7 @@ int bfs_write_inode(struct inode_t *inode)
 
 	/* read bfs raw inode */
 	off = (inode->i_ino - BFS_ROOT_INO) % BFS_INODES_PER_BLOCK;
-	raw_inode = (struct bfs_inode_t *) bh->b_data + off;
+	raw_inode = (struct bfs_inode *) bh->b_data + off;
 
 	/* set on disk inode */
 	if (inode->i_ino == BFS_ROOT_INO)
@@ -188,7 +188,7 @@ int bfs_write_inode(struct inode_t *inode)
 /*
  * Release a BFS inode.
  */
-void bfs_put_inode(struct inode_t *inode)
+void bfs_put_inode(struct inode *inode)
 {
 	if (!inode)
 		return;

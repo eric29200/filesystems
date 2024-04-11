@@ -5,9 +5,9 @@
 /*
  * Truncate a file.
  */
-int vfs_truncate(struct inode_t *root, const char *pathname, off_t length)
+int vfs_truncate(struct inode *root, const char *pathname, off_t length)
 {
-	struct inode_t *inode;
+	struct inode *inode;
 
 	/* get inode */
 	inode = vfs_namei(root, NULL, pathname, 1);

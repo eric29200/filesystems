@@ -6,7 +6,7 @@
 /*
  * MemFS super operations.
  */
-struct super_operations_t memfs_sops = {
+struct super_operations memfs_sops = {
 	.alloc_inode			= memfs_alloc_inode,
 	.put_inode			= memfs_put_inode,
 	.delete_inode			= memfs_delete_inode,
@@ -17,13 +17,13 @@ struct super_operations_t memfs_sops = {
 /*
  * Read a MemFS super block.
  */
-int memfs_read_super(struct super_block_t *sb, void *data)
+int memfs_read_super(struct super_block *sb, void *data)
 {
-	struct memfs_sb_info_t *sbi;
+	struct memfs_sb_info *sbi;
 	int err = -EINVAL;
 
 	/* allocate MemFS super block */
-	sb->s_fs_info = sbi = (struct memfs_sb_info_t *) malloc(sizeof(struct memfs_sb_info_t));
+	sb->s_fs_info = sbi = (struct memfs_sb_info *) malloc(sizeof(struct memfs_sb_info));
 	if (!sbi)
 		return -ENOMEM;
 
@@ -66,9 +66,9 @@ err:
 /*
  * Release a MemFS super block.
  */
-void memfs_put_super(struct super_block_t *sb)
+void memfs_put_super(struct super_block *sb)
 {
-	struct memfs_sb_info_t *sbi = memfs_sb(sb);
+	struct memfs_sb_info *sbi = memfs_sb(sb);
 
 	/* release root inode */
 	vfs_iput(sb->s_root_inode);
@@ -80,7 +80,7 @@ void memfs_put_super(struct super_block_t *sb)
 /*
  * Get MemFS File system status.
  */
-int memfs_statfs(struct super_block_t *sb, struct statfs *buf)
+int memfs_statfs(struct super_block *sb, struct statfs *buf)
 {
 	/* set stat buffer */
 	buf->f_type = sb->s_magic;

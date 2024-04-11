@@ -15,12 +15,12 @@
 /*
  * VFS data.
  */
-struct vfs_data_t {
+struct vfs_data {
 	char *				dev;				/* device path */
 	char *				mnt_point;			/* mount point */
 	int				fs_type;			/* file system type */
 	void *				fs_options;			/* file system options */
-	struct super_block_t *		sb;				/* mounted super block */
+	struct super_block *		sb;				/* mounted super block */
 };
 
 /*
@@ -28,7 +28,7 @@ struct vfs_data_t {
  */
 static int op_getattr(const char *pathname, struct stat *statbuf, struct fuse_file_info *fi)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
@@ -42,7 +42,7 @@ static int op_getattr(const char *pathname, struct stat *statbuf, struct fuse_fi
  */
 static int op_readlink(const char *pathname, char *buf, size_t bufsize)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 	int err;
 
 	/* get VFS data */
@@ -70,7 +70,7 @@ static int op_mknod(const char *pathname, mode_t mode, dev_t dev)
  */
 static int op_mkdir(const char *pathname, mode_t mode)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
@@ -84,7 +84,7 @@ static int op_mkdir(const char *pathname, mode_t mode)
  */
 static int op_unlink(const char *pathname)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
@@ -98,7 +98,7 @@ static int op_unlink(const char *pathname)
  */
 static int op_rmdir(const char *pathname)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
@@ -112,7 +112,7 @@ static int op_rmdir(const char *pathname)
  */
 static int op_symlink(const char *target, const char *linkpath)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
@@ -126,7 +126,7 @@ static int op_symlink(const char *target, const char *linkpath)
  */
 static int op_rename(const char *oldpath, const char *newpath, unsigned int flags)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
@@ -140,7 +140,7 @@ static int op_rename(const char *oldpath, const char *newpath, unsigned int flag
  */
 static int op_link(const char *oldpath, const char *newpath)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
@@ -154,7 +154,7 @@ static int op_link(const char *oldpath, const char *newpath)
  */
 static int op_chmod(const char *pathname, mode_t mode, struct fuse_file_info *fi)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
@@ -168,7 +168,7 @@ static int op_chmod(const char *pathname, mode_t mode, struct fuse_file_info *fi
  */
 static int op_chown(const char *pathname, uid_t uid, gid_t gid, struct fuse_file_info *fi)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
@@ -182,7 +182,7 @@ static int op_chown(const char *pathname, uid_t uid, gid_t gid, struct fuse_file
  */
 static int op_truncate(const char *pathname, off_t length, struct fuse_file_info *fi)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
@@ -196,8 +196,8 @@ static int op_truncate(const char *pathname, off_t length, struct fuse_file_info
  */
 static int op_open(const char *pathname, struct fuse_file_info *fi)
 {
-	struct vfs_data_t *vfs_data;
-	struct file_t *file;
+	struct vfs_data *vfs_data;
+	struct file *file;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
@@ -218,13 +218,13 @@ static int op_open(const char *pathname, struct fuse_file_info *fi)
  */
 static int op_read(const char *pathname, char *buf, size_t length, off_t offset, struct fuse_file_info *fi)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 	int err, close_fi = 0;
-	struct file_t *file;
+	struct file *file;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
-	file = (struct file_t *) fi->fh;
+	file = (struct file *) fi->fh;
 
 	/* open file if needed */
 	if (!file) {
@@ -255,13 +255,13 @@ out:
  */
 static int op_write(const char *pathname, const char *buf, size_t length, off_t offset, struct fuse_file_info *fi)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 	int err, close_fi = 0;
-	struct file_t *file;
+	struct file *file;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
-	file = (struct file_t *) fi->fh;
+	file = (struct file *) fi->fh;
 
 	/* open file if needed */
 	if (!file) {
@@ -292,7 +292,7 @@ out:
  */
 static int op_statfs(const char *pathname, struct statvfs *statbuf)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 	struct statfs statbuf_fs;
 	int err;
 
@@ -331,10 +331,10 @@ static int op_flush(const char *pathname, struct fuse_file_info *fi)
  */
 static int op_release(const char *pathname, struct fuse_file_info *fi)
 {
-	struct file_t *file;
+	struct file *file;
 
 	/* get file */
-	file = (struct file_t *) fi->fh;
+	file = (struct file *) fi->fh;
 
 	/* close file */
 	return vfs_close(file);
@@ -390,13 +390,13 @@ static int op_removexattr(const char *pathname, const char *name)
  */
 static int op_readdir(const char *pathname, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi, enum fuse_readdir_flags flags)
 {
-	struct dirent64_t *dir_entry;
+	struct dirent64 *dir_entry;
 	char dir_buf[DIR_BUF_SIZE];
-	struct file_t *file;
+	struct file *file;
 	int n, i;
 
 	/* get file */
-	file = (struct file_t *) fi->fh;
+	file = (struct file *) fi->fh;
 
 	/* read directory */
 	for (;;) {
@@ -412,7 +412,7 @@ static int op_readdir(const char *pathname, void *buf, fuse_fill_dir_t filler, o
 		/* for each entry */
 		for (i = 0; i < n;) {
 			/* get entry */
-			dir_entry = (struct dirent64_t *) (dir_buf + i);
+			dir_entry = (struct dirent64 *) (dir_buf + i);
 
 			/* fill directory */
 			filler(buf, dir_entry->d_name, NULL, 0, 0);
@@ -430,7 +430,7 @@ static int op_readdir(const char *pathname, void *buf, fuse_fill_dir_t filler, o
  */
 static void *op_init(struct fuse_conn_info *conn, struct fuse_config *cfg)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 	struct fuse_context *ctx;
 
 	/* get VFS data */
@@ -450,7 +450,7 @@ static void *op_init(struct fuse_conn_info *conn, struct fuse_config *cfg)
  */
 static void op_destroy(void *private_data)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
@@ -465,7 +465,7 @@ static void op_destroy(void *private_data)
  */
 static int op_access(const char *pathname, int mask)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
@@ -479,7 +479,7 @@ static int op_access(const char *pathname, int mask)
  */
 static int op_create(const char *pathname, mode_t mode, struct fuse_file_info *fi)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
@@ -502,7 +502,7 @@ static int op_lock(const char *pathname, struct fuse_file_info *fi, int cmd, str
  */
 static int op_utimens(const char *pathname, const struct timespec tv[2], struct fuse_file_info *fi)
 {
-	struct vfs_data_t *vfs_data;
+	struct vfs_data *vfs_data;
 
 	/* get VFS data */
 	vfs_data = fuse_get_context()->private_data;
@@ -573,13 +573,13 @@ static void usage(char *prog_name)
 /*
  * Parse options.
  */
-static int parse_options(int argc, char **argv, struct vfs_data_t *vfs_data)
+static int parse_options(int argc, char **argv, struct vfs_data *vfs_data)
 {
 	char *fs_type = NULL;
 	int c;
 
 	/* reset VFS data */
-	memset(vfs_data, 0, sizeof(struct vfs_data_t));
+	memset(vfs_data, 0, sizeof(struct vfs_data));
 
 	/* parse options */
 	while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != -1) {
@@ -646,7 +646,7 @@ static int parse_options(int argc, char **argv, struct vfs_data_t *vfs_data)
 /*
  * Ask user parameters.
  */
-static void ask_parameters(struct vfs_data_t *vfs_data)
+static void ask_parameters(struct vfs_data *vfs_data)
 {
 	if (vfs_data->fs_type == VFS_FTPFS_TYPE)
 		vfs_data->fs_options = ftp_ask_parameters();
@@ -660,7 +660,7 @@ static void ask_parameters(struct vfs_data_t *vfs_data)
 int main(int argc, char **argv)
 {
 	struct fuse_args fargs = FUSE_ARGS_INIT(0, NULL);
-	struct vfs_data_t vfs_data;
+	struct vfs_data vfs_data;
 	int err;
 
 	/* init VFS block buffers and inodes */

@@ -7,7 +7,7 @@
 /*
  * Follow a link (inode will be released).
  */
-int memfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t **res_inode)
+int memfs_follow_link(struct inode *dir, struct inode *inode, struct inode **res_inode)
 {
 	/* reset result inode */
 	*res_inode = NULL;
@@ -36,7 +36,7 @@ int memfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t
 /*
  * Read value of a symbolic link.
  */
-ssize_t memfs_readlink(struct inode_t *inode, char *buf, size_t bufsize)
+ssize_t memfs_readlink(struct inode *inode, char *buf, size_t bufsize)
 {
 	/* inode must be a link */
 	if (!S_ISLNK(inode->i_mode)) {

@@ -6,7 +6,7 @@
 /*
  * Read from a file.
  */
-ssize_t vfs_read(struct file_t *filp, char *buf, int count)
+ssize_t vfs_read(struct file *filp, char *buf, int count)
 {
 	/* no data to read */
 	if (!filp || count <= 0)
@@ -22,7 +22,7 @@ ssize_t vfs_read(struct file_t *filp, char *buf, int count)
 /*
  * Write to a file.
  */
-ssize_t vfs_write(struct file_t *filp, const char *buf, int count)
+ssize_t vfs_write(struct file *filp, const char *buf, int count)
 {
 	/* no data to write */
 	if (!filp || count <= 0)
@@ -38,7 +38,7 @@ ssize_t vfs_write(struct file_t *filp, const char *buf, int count)
 /*
  * Seek a file.
  */
-off_t vfs_lseek(struct file_t *filp, off_t offset, int whence)
+off_t vfs_lseek(struct file *filp, off_t offset, int whence)
 {
 	off_t new_offset;
 

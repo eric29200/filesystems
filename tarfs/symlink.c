@@ -5,9 +5,9 @@
 /*
  * Follow a link (inode will be released).
  */
-int tarfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t **res_inode)
+int tarfs_follow_link(struct inode *dir, struct inode *inode, struct inode **res_inode)
 {
-	struct tarfs_inode_info_t *tarfs_inode = tarfs_i(inode);
+	struct tarfs_inode_info *tarfs_inode = tarfs_i(inode);
 
 	/* reset result inode */
 	*res_inode = NULL;
@@ -37,9 +37,9 @@ int tarfs_follow_link(struct inode_t *dir, struct inode_t *inode, struct inode_t
 /*
  * Read value of a symbolic link.
  */
-ssize_t tarfs_readlink(struct inode_t *inode, char *buf, size_t bufsize)
+ssize_t tarfs_readlink(struct inode *inode, char *buf, size_t bufsize)
 {
-	struct tarfs_inode_info_t *tarfs_inode = tarfs_i(inode);
+	struct tarfs_inode_info *tarfs_inode = tarfs_i(inode);
 	ssize_t len;
 
 	/* inode must be a link */

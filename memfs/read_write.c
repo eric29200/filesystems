@@ -8,7 +8,7 @@
 /*
  * Read a file.
  */
-int memfs_file_read(struct file_t *filp, char *buf, int count)
+int memfs_file_read(struct file *filp, char *buf, int count)
 {
 	/* adjust size */
 	if (filp->f_pos + count > filp->f_inode->i_size)
@@ -28,7 +28,7 @@ int memfs_file_read(struct file_t *filp, char *buf, int count)
 /*
  * Write to a file.
  */
-int memfs_file_write(struct file_t *filp, const char *buf, int count)
+int memfs_file_write(struct file *filp, const char *buf, int count)
 {
 	/* handle append flag */
 	if (filp->f_flags & O_APPEND)
